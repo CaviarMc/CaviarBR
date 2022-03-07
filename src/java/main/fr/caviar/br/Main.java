@@ -1,4 +1,4 @@
-package fr.tristiisch.br;
+package fr.caviar.br;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -6,7 +6,7 @@ public class Main extends JavaPlugin {
 
 	@Override
 	public void onLoad() {
-		sendMessage("&6%s&e (%s) est chargé.", getDescription().getName(), getDescription().getVersion());
+		sendMessage("§6%s§e (%s) est chargé.", getDescription().getName(), getDescription().getVersion());
 		super.onLoad();
 	}
 	
@@ -18,7 +18,7 @@ public class Main extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		sendMessage("&4%s&c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
+		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
 		super.onDisable();
 	}
 
