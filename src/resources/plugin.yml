@@ -1,0 +1,5 @@
+name: BR
+main: fr.tristiisch.br.Main
+version: 0.1
+api-version: 1.17
+authors: [Tristiisch]
