@@ -2,15 +2,28 @@ package fr.caviar.br;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import fr.caviar.br.config.ConfigSpigot;
 import fr.caviar.br.game.GameManager;
+import fr.caviar.br.player.PlayerHandler;
+import fr.caviar.br.task.TaskManagerSpigot;
+import fr.caviar.br.task.UniversalTask;
 
-public class Main extends JavaPlugin {
+public class CaviarBR extends JavaPlugin {
 
+	private static CaviarBR INSTANCE;
+	
 	private GameManager game;
+	private ConfigSpigot config;
+	private PlayerHandler playerHandler;
+	private UniversalTask taskManager;
 	
 	@Override
 	public void onLoad() {
+		INSTANCE = this;
 		game = new GameManager();
+		taskManager = new TaskManagerSpigot(this);
+		playerHandler = new PlayerHandler();
+		config = new ConfigSpigot(this, "config.yml");
 		
 		sendMessage("§6%s§e (%s) est chargé.", getDescription().getName(), getDescription().getVersion());
 		super.onLoad();
@@ -19,6 +32,7 @@ public class Main extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		game.enable();
+		config.load();
 		
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());
 		super.onEnable();
@@ -34,6 +48,22 @@ public class Main extends JavaPlugin {
 	
 	public GameManager getGame() {
 		return game;
+	}
+
+	public UniversalTask getTaskManager() {
+		return taskManager;
+	}
+
+	public ConfigSpigot getConfig() {
+		return config;
+	}
+
+	public PlayerHandler getPlayerHandler() {
+		return playerHandler;
+	}
+
+	public static CaviarBR getInstance() {
+		return INSTANCE;
 	}
 
 	public void sendMessage(String message, Object... args) {
