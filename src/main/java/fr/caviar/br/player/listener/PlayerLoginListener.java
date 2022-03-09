@@ -10,12 +10,12 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.player.CaviarPlayerSpigot;
 import fr.caviar.br.player.PlayerHandler;
 import fr.caviar.br.utils.ColorUtils;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;

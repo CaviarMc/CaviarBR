@@ -22,7 +22,7 @@ public class CaviarBR extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		INSTANCE = this;
-		game = new GameManager();
+		game = new GameManager(this);
 		taskManager = new TaskManagerSpigot(this);
 		playerHandler = new PlayerHandler();
 		config = new ConfigSpigot(this, "config.yml");
@@ -60,6 +60,7 @@ public class CaviarBR extends JavaPlugin {
 		return taskManager;
 	}
 
+	@Override
 	public ConfigSpigot getConfig() {
 		return config;
 	}
