@@ -24,8 +24,14 @@ fi
 cp ../build/*.jar plugins/
 
 if [ "$1" = "stay" ]; then
-	screen -S test_mc java -jar $SPIGOT_JAR_NAME
+	java -jar $SPIGOT_JAR_NAME | tee log.txt
 else
 	# Open server for 30 sec minimum then stop it properly
-	(sleep 30 && screen -S test_mc -p 0 -X stuff "stop^M") & screen -S test_mc java -jar $SPIGOT_JAR_NAME
+	java -jar $SPIGOT_JAR_NAME | tee log.txt & (sleep 30 && kill -2 $(pgrep -f paper | head -1))
 fi
+
+echo
+echo "Serveur STOPPED - Check for error : "
+echo
+# Exit status if error
+cat log.txt | (! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)")
