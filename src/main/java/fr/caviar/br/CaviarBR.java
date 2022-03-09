@@ -1,10 +1,12 @@
 package fr.caviar.br;
 
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import fr.caviar.br.config.ConfigSpigot;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.player.PlayerHandler;
+import fr.caviar.br.player.listener.PlayerLoginListener;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.task.UniversalTask;
 
@@ -31,8 +33,12 @@ public class CaviarBR extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		PluginManager pluginManager = getServer().getPluginManager();
+
 		game.enable();
 		config.load();
+
+		pluginManager.registerEvents(new PlayerLoginListener(), this);
 		
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());
 		super.onEnable();

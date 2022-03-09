@@ -23,5 +23,9 @@ fi
 
 cp ../build/*.jar plugins/
 
-# Open server for 30 sec minimum then stop it properly
-(sleep 30 && screen -S test_mc -p 0 -X stuff "stop^M") & screen -S test_mc java -jar $SPIGOT_JAR_NAME
+if [ "$1" = "stay" ]; then
+	screen -S test_mc java -jar $SPIGOT_JAR_NAME
+else
+	# Open server for 30 sec minimum then stop it properly
+	(sleep 30 && screen -S test_mc -p 0 -X stuff "stop^M") & screen -S test_mc java -jar $SPIGOT_JAR_NAME
+fi

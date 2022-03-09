@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -22,6 +23,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import com.google.common.io.ByteStreams;
 
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.player.CaviarPlayerSpigot;
 import fr.caviar.br.utils.ColorUtils;
 import fr.caviar.br.utils.Utils;
 
@@ -58,14 +60,6 @@ public class ConfigSpigot extends YamlConfiguration {
 	private String fileName;
 	private CaviarBR plugin;
 	private Map<String, Consumer<ConfigSpigot>> tasks = new HashMap<>();
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public CaviarBR getPlugin() {
-		return plugin;
-	}
 
 	public ConfigSpigot() {
 		super();
@@ -112,32 +106,25 @@ public class ConfigSpigot extends YamlConfiguration {
 		return configFile;
 	}
 
+	public String getFileName() {
+		return fileName;
+	}
+
+	public CaviarBR getPlugin() {
+		return plugin;
+	}
+
+	public InputStream getRessource() {
+		return plugin.getResource(fileName);
+	}
+
+	public boolean hasResource() {
+		return getRessource() != null;
+	}
+
 	@Override
-	public Location getLocation(String path) {
-//		return UtilsSpigot.convertStringToLocation(this.getString(path));
-		return null;
-	}
-
-	public Material getMaterial(String path) {
-		return Material.valueOf(this.getString(path));
-	}
-
-	@Override
-	public String getString(String path) {
-		return ColorUtils.color(super.getString(path));
-	}
-
-	public Double getVersion() {
-		Object obj = this.get("version");
-		if (obj instanceof Number)
-			return ((Number) obj).doubleValue();
-		else if (obj != null)
-			try {
-				return Double.valueOf(obj.toString());
-			} catch (NumberFormatException e) {
-				return null;
-			}
-		return null;
+	public String getName() {
+		return plugin.getDescription().getName() + "/" + fileName;
 	}
 
 	public void reload() throws IOException, InvalidConfigurationException {
@@ -204,6 +191,19 @@ public class ConfigSpigot extends YamlConfiguration {
 		}
 	}
 
+	public Double getVersion() {
+		Object obj = this.get("version");
+		if (obj instanceof Number)
+			return ((Number) obj).doubleValue();
+		else if (obj != null)
+			try {
+				return Double.valueOf(obj.toString());
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		return null;
+	}
+
 	public void saveIfNotExists() {
 		if (!configFile.exists())
 			plugin.saveResource(fileName, true);
@@ -213,20 +213,37 @@ public class ConfigSpigot extends YamlConfiguration {
 //		this.set(path, UtilsSpigot.convertLocationToString(location));
 //	}
 
+	public void setPlayer(CaviarPlayerSpigot uPlayer) {
+		this.set("player." + uPlayer.getUuid() + ".name", uPlayer.getName());
+		this.set("player." + uPlayer.getUuid() + ".group", uPlayer.getGroup());
+	}
+	
+	@Override
+	public Location getLocation(String path) {
+//		return UtilsSpigot.convertStringToLocation(this.getString(path));
+		return null;
+	}
+
+	public Material getMaterial(String path) {
+		return Material.valueOf(this.getString(path));
+	}
+	
+	@Override
+	public String getString(String path) {
+		return ColorUtils.color(super.getString(path));
+	}
+
+	public CaviarPlayerSpigot getPlayer(UUID uuid) {
+		CaviarPlayerSpigot uPlayer;
+		String name = this.getString("player." + uuid + ".name");
+		String group = this.getString("player." + uuid + ".group");
+		
+		uPlayer = new CaviarPlayerSpigot(name, uuid);
+		uPlayer.setGroup(group);
+		return uPlayer;
+	}
+
 	public void set(String path, Material material) {
 		this.set(path, material.name());
-	}
-
-	public InputStream getRessource() {
-		return plugin.getResource(fileName);
-	}
-
-	public boolean hasResource() {
-		return getRessource() != null;
-	}
-
-	@Override
-	public String getName() {
-		return plugin.getDescription().getName() + "/" + fileName;
 	}
 }

@@ -569,27 +569,4 @@ public class Utils {
 			list.add(string);
 		return list.toArray(String[]::new);
 	}
-
-
-	@FunctionalInterface
-	public interface BiConsumerCanFail<T, U> extends BiConsumer<T, U>  {
-		public class BiConsumerException extends Exception { 
-			private static final long serialVersionUID = 3373526245482192623L;
-
-			public BiConsumerException(String errorMessage) {
-		        super(errorMessage);
-		    }
-		}
-		
-		@Override
-		default void accept(T t, U u) {
-	        try {
-	        	acceptException(t, u);
-	        } catch (BiConsumerException e) {
-	            throw new RuntimeException(e);
-	        }
-		}
-		
-		void acceptException(T t, U u) throws BiConsumerException;
-	}
 }

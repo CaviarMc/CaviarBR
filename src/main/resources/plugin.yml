@@ -1,5 +1,5 @@
 name: CaviarBR
 main: fr.caviar.br.CaviarBR
-version: 0.1
+version: @plugin_version@
 api-version: 1.17
 authors: [Tristiisch, SkytAsul]
