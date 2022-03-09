@@ -22,16 +22,47 @@ else
 fi
 
 cp ../build/*.jar plugins/
+rm -f log.txt error.txt
+
+
+
+function kill_server {
+	i=1
+	status=1
+
+	while [ $i -lt 60 ] && [ $status -eq 1 ]
+	do
+		sleep 1
+		cat log.txt | grep "Timings Reset" &> /dev/null
+		status=$?
+		let "i++"
+	done
+	echo "Try to stop Java"
+	kill -2 $(pgrep -f paper)
+}
 
 if [ "$1" = "stay" ]; then
-	java -jar $SPIGOT_JAR_NAME | tee log.txt
+	java -jar $SPIGOT_JAR_NAME
 else
-	# Open server for 30 sec minimum then stop it properly
-	java -jar $SPIGOT_JAR_NAME | tee log.txt & (sleep 30 && kill -2 $(pgrep -f paper | head -1))
-fi
+	kill_server & java -jar $SPIGOT_JAR_NAME | tee log.txt
 
-echo
-echo "Serveur STOPPED - Check for error : "
-echo
-# Exit status if error
-cat log.txt | (! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)")
+	# Wait 60 secondes before force shutdown
+	JAVA_OPEN=0
+	i=0
+	while [ $JAVA_OPEN -eq 0 ]
+	do
+		echo "Wait for Java to stop ..."
+		sleep 2
+		pgrep -f paper &> /dev/null
+		JAVA_OPEN=$?
+		let "i++"
+		if [ $i -eq 30 ]; then
+			echo "ForceKill Java"
+			kill -9 $(pgrep -f paper)
+			break
+		fi
+	done
+
+	# Exit status if error
+	cat log.txt | (! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt
+fi

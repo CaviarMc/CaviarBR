@@ -73,27 +73,15 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('*.gradle*', 'gradle/wrapper/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-    - name: Build with Gradle
+    - name: "Build with Gradle"
       uses: gradle/gradle-build-action@v2
       with:
         arguments: build
         gradle-version: 7.4
 
-# Parse error gradle in issue if any
-    - name: "Comment build scan url"
-      uses: actions/github-script@v5
-      #if: github.event_name == 'pull_request' && failure()
+    - name: "Get build-scan-url if build fail"
       if: failure()
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-          })
-      continue-on-error: true
+      run: echo ❌ ${{ github.workflow }} failed ${{ steps.gradle.outputs.build-scan-url }}
 
 # Push .jar to repo Release 
     - name: "Publish .JAR"
@@ -118,7 +106,6 @@ jobs:
           ${{ runner.os }}-test_server-
 # Start plugin
     - name: "Start PaperSpigot Server with plugin"
-      run: |
-        export TERM='vt100'
-        ./testServer.sh
-      shell: 'script -q -e -c "bash {0}"'
+      run: ./testServer.sh
+      shell: bash
+      timeout-minutes: 5
