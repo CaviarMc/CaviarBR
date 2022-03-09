@@ -54,7 +54,7 @@ public class StateWait extends GameState implements Runnable {
 		if (left != -1) {
 			
 			if (--left == 0) {
-				game.setState(new StatePlaying(game));
+				game.setState(new StatePreparing(game));
 			}else {
 				if (left == 50 || left == 30 || left == 15 || left == 10 || left <= 5) {
 					Bukkit.broadcastMessage("§aGame is launching in " + left + " seconds.");

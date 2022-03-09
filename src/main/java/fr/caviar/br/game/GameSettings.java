@@ -13,6 +13,8 @@ public class GameSettings {
 	private final ObservableInt waitingTimeLong = new ObservableInt(60);
 	private final ObservableInt waitingTimeShort = new ObservableInt(10);
 	
+	private final ObservableInt playersRadius = new ObservableInt(200);
+	
 	private final GameManager game;
 	
 	public GameSettings(@NotNull GameManager game) {
@@ -38,6 +40,10 @@ public class GameSettings {
 	
 	public ObservableInt getWaitingTimeShort() {
 		return waitingTimeShort;
+	}
+	
+	public ObservableInt getPlayersRadius() {
+		return playersRadius;
 	}
 	
 }
