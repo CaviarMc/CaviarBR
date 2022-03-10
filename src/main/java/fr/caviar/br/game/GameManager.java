@@ -54,7 +54,10 @@ public class GameManager {
 	}
 	
 	public void disable() {
-		
+		if (state != null) {
+			state.end();
+			state = null;
+		}
 	}
 	
 }

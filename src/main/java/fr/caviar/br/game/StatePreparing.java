@@ -34,11 +34,13 @@ public class StatePreparing extends GameState {
 		for (GamePlayer player : game.getPlayers().values()) {
 			double theta = i++ * 2 * Math.PI / online;
 			player.spawnLocation = null;
+			player.teleported = false;
+			
 			game.getPlugin().getTaskManager().runTaskAsynchronously(() -> {
 				Location loc = prepareLocation(theta);
 				
 				lock.lock();
-				player.spawnLocation = loc;
+				player.spawnLocation = loc.add(0, 1, 0);
 				
 				if (game.getPlayers().values().stream().noneMatch(x -> x.spawnLocation == null)) {
 					game.getPlugin().getTaskManager().runTask(() -> game.setState(new StatePlaying(game)));

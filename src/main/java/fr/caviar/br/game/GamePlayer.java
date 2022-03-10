@@ -9,6 +9,7 @@ public class GamePlayer {
 	public final CaviarPlayerSpigot player;
 	
 	public Location spawnLocation;
+	public boolean teleported;
 	
 	public GamePlayer(CaviarPlayerSpigot player) {
 		this.player = player;
