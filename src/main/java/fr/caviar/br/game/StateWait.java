@@ -5,8 +5,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -65,6 +63,11 @@ public class StateWait extends GameState implements Runnable {
 		lock.unlock();
 	}
 	
+	@Override
+	public boolean areNewPlayersAllowed() {
+		return true;
+	}
+	
 	protected void updatePlayers(int online) {
 		lock.lock();
 		int min = game.getSettings().getMinPlayers().get();
@@ -81,16 +84,18 @@ public class StateWait extends GameState implements Runnable {
 		lock.unlock();
 	}
 	
-	@EventHandler (priority = EventPriority.HIGH)
-	public void onJoin(PlayerJoinEvent event) {
+	@Override
+	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
 		updatePlayers(Bukkit.getOnlinePlayers().size());
 		
 		// TODO messages
 	}
 	
-	@EventHandler (priority = EventPriority.HIGH)
-	public void onQuit(PlayerQuitEvent event) {
+	@Override
+	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 		updatePlayers(Bukkit.getOnlinePlayers().size() - 1);
+		
+		return true;
 	}
 	
 }

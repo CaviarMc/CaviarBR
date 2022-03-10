@@ -1,5 +1,9 @@
 package fr.caviar.br.game;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.bukkit.World;
 
 import fr.caviar.br.CaviarBR;
@@ -8,6 +12,7 @@ public class GameManager {
 	
 	private final CaviarBR plugin;
 	private final GameSettings settings;
+	private final Map<UUID, GamePlayer> players = new HashMap<>();
 	
 	private GameState state;
 	
@@ -33,6 +38,10 @@ public class GameManager {
 	
 	public World getWorld() {
 		return world;
+	}
+	
+	public Map<UUID, GamePlayer> getPlayers() {
+		return players;
 	}
 	
 	public void setState(GameState state) {
