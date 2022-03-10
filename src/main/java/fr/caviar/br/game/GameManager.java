@@ -16,7 +16,6 @@ public class GameManager {
 	public GameManager(CaviarBR plugin) {
 		this.plugin = plugin;
 		settings = new GameSettings(this);
-		setState(new StateWait(this));
 	}
 	
 	public CaviarBR getPlugin() {
@@ -42,7 +41,7 @@ public class GameManager {
 	}
 	
 	public void enable() {
-		
+		setState(new StateWait(this));
 	}
 	
 	public void disable() {
