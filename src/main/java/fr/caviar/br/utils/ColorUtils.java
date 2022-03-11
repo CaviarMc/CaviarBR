@@ -3,6 +3,7 @@ package fr.caviar.br.utils;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.regex.MatcherPattern;
@@ -196,6 +198,10 @@ public class ColorUtils {
 	public static String join(Iterator<? extends CharSequence> it, String ouOrEt) {
 		return join(null, null, it, ouOrEt);
 	}
+	
+	public static String joinPlayer(Character color1, Character color2, Collection<? extends Player> elements) {
+		return join(color1, color2, elements.stream().map(Player::getName).iterator(), " et ");
+	}
 
 	public static String join(Character c1, Character c2, Iterator<? extends CharSequence> it, String ouOrEt) {
 		String color1 = c1 != null ? String.valueOf(ChatColor.COLOR_CHAR) + c1 : "";
@@ -326,7 +332,7 @@ public class ColorUtils {
 		return getNearestForLegacyColor(color.getColor());
 	}
 
-	// TODO
+	// TODO (already call for Nametag)
 	public static String replaceRGBByNearest(String s) {
 		//		StringBuilder newString = new StringBuilder();
 		//		ChatColor lastColor;

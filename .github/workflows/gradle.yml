@@ -101,7 +101,7 @@ jobs:
       with:
         path: |
           test_server/
-        key: ${{ runner.os }}-test_server-${{ hashFiles('testServer.sh') }}
+        key: ${{ runner.os }}-test_server-${{ hashFiles('testServer.sh', 'vanilla_worldgen_no_ocean.zip')}}
         restore-keys: |
           ${{ runner.os }}-test_server-
 # Start plugin

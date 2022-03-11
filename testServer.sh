@@ -22,9 +22,8 @@ else
 fi
 
 cp ../build/*.jar plugins/
+cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
 rm -f log.txt error.txt
-
-
 
 function kill_server {
 	i=1
@@ -66,3 +65,4 @@ else
 	# Exit status if error
 	cat log.txt | (! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt
 fi
+
