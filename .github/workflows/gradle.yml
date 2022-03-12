@@ -99,7 +99,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: artifacts
-        path: build/*.jar
+        path: build/**/*.jar
         
 # Install spigot repo
     - name: "Cache PaperSpigot Server"

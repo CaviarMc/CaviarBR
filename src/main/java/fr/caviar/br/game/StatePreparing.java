@@ -15,6 +15,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import fr.caviar.br.CaviarStrings;
+
 public class StatePreparing extends GameState {
 	
 	private static final List<Material> UNWALKABLE_ON = Arrays.asList(Material.WATER, Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK);
@@ -28,7 +30,7 @@ public class StatePreparing extends GameState {
 	@Override
 	public void start() {
 		super.start();
-		Bukkit.broadcastMessage("§aWe are preparing your spawn location.");
+		CaviarStrings.STATE_PREPARING_PREPARE.broadcast();
 		int online = game.getPlayers().size();
 		int i = 0;
 		for (GamePlayer player : game.getPlayers().values()) {
@@ -93,7 +95,7 @@ public class StatePreparing extends GameState {
 	}
 	
 	private void setPreparing(Player player) {
-		player.sendTitle("§ePreparing...", "§7We are preparing the game.", 5, 999999, 0);
+		player.sendTitle(CaviarStrings.STATE_PREPARING_TITLE.toString(), CaviarStrings.STATE_PREPARING_SUBTITLE.toString(), 5, 999999, 0);
 	}
 	
 	private void exitPreparing(Player player) {

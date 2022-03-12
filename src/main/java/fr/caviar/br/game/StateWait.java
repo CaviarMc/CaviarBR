@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.utils.observable.Observable.Observer;
 
 public class StateWait extends GameState implements Runnable {
@@ -55,7 +56,7 @@ public class StateWait extends GameState implements Runnable {
 				game.setState(new StatePreparing(game));
 			}else {
 				if (left == 50 || left == 30 || left == 15 || left == 10 || left <= 5) {
-					Bukkit.broadcastMessage("§aGame is launching in " + left + " seconds.");
+					CaviarStrings.STATE_WAIT_LAUNCHING.broadcast(left);
 				}
 			}
 		}
@@ -74,7 +75,7 @@ public class StateWait extends GameState implements Runnable {
 		if (online < min) {
 			if (left != -1) {
 				left = -1;
-				Bukkit.broadcastMessage("§cNot enough players to start the game.");
+				CaviarStrings.STATE_WAIT_CANCEL.broadcast();
 			}
 		}else {
 			int max = game.getSettings().getMaxPlayers().get();
