@@ -8,6 +8,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
+import fr.mrmicky.fastboard.FastBoard;
+
 public class Scoreboard implements Listener {
 
 	private final Plugin plugin;

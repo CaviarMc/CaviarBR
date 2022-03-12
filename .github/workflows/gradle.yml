@@ -76,7 +76,7 @@ jobs:
     - name: "Build with Gradle"
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: build
+        arguments: build shadowJar
         gradle-version: 7.4
 
     - name: "Get build-scan-url if build fail"
