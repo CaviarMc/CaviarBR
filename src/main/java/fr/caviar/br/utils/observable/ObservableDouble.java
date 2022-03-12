@@ -1,4 +1,4 @@
-package fr.caviar.br.utils.observablel;
+package fr.caviar.br.utils.observable;
 
 public class ObservableDouble extends AbstractObservable implements Comparable<ObservableDouble> {
 	

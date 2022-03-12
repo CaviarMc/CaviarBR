@@ -1,4 +1,4 @@
-package fr.caviar.br.utils.observablel;
+package fr.caviar.br.utils.observable;
 
 public class ObservableBoolean extends AbstractObservable implements Comparable<ObservableBoolean> {
 	

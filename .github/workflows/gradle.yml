@@ -94,6 +94,12 @@ jobs:
         files: |
           build/*.jar
       continue-on-error: true
+      
+# Upload .jar files to build artifacts
+    - uses: actions/upload-artifact@v3
+      with:
+        name: artifacts
+        path: build/*.jar
         
 # Install spigot repo
     - name: "Cache PaperSpigot Server"

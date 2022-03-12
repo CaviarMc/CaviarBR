@@ -1,4 +1,4 @@
-package fr.caviar.br.utils.observablel;
+package fr.caviar.br.utils.observable;
 
 public class ObservableInt extends AbstractObservable implements Comparable<ObservableInt> {
 	

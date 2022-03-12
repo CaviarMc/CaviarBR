@@ -8,7 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import fr.caviar.br.utils.observablel.Observable.Observer;
+import fr.caviar.br.utils.observable.Observable.Observer;
 
 public class StateWait extends GameState implements Runnable {
 	

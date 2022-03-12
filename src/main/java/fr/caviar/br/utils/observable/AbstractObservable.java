@@ -1,4 +1,4 @@
-package fr.caviar.br.utils.observablel;
+package fr.caviar.br.utils.observable;
 
 import java.util.HashMap;
 import java.util.Map;

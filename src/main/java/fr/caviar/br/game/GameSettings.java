@@ -3,7 +3,7 @@ package fr.caviar.br.game;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
-import fr.caviar.br.utils.observablel.ObservableInt;
+import fr.caviar.br.utils.observable.ObservableInt;
 
 public class GameSettings {
 	

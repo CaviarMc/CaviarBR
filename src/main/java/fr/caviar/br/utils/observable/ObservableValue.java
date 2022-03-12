@@ -1,4 +1,4 @@
-package fr.caviar.br.utils.observablel;
+package fr.caviar.br.utils.observable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
