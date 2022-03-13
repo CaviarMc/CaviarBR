@@ -38,7 +38,14 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	
 	ITEM_COMPASS_NAME(
-			"§eTreasure Compass")
+			"§eTreasure Compass"),
+	
+	COMMAND_SETTING_SET(
+			"Setting %s has changed from §2%s§r to §2%s§r.",
+			PREFIX_GOOD),
+	COMMAND_SETTING_SAME(
+			"Setting %s already had value §4%s§r.",
+			PREFIX_BAD),
 	
 	;
 	
