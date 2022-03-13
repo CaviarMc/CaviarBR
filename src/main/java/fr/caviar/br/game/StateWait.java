@@ -85,16 +85,28 @@ public class StateWait extends GameState implements Runnable {
 		lock.unlock();
 	}
 	
+	private String getOnlineFormat(int online) {
+		int min = game.getSettings().getMinPlayers().get();
+		
+		return (online >= min ? "§a" : "§c") + " (" + online + "/" + min + ")";
+	}
+	
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
-		updatePlayers(Bukkit.getOnlinePlayers().size());
+		int online = Bukkit.getOnlinePlayers().size();
 		
-		// TODO messages
+		updatePlayers(online);
+		
+		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
 	}
 	
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
-		updatePlayers(Bukkit.getOnlinePlayers().size() - 1);
+		int online = Bukkit.getOnlinePlayers().size() - 1;
+		
+		updatePlayers(online);
+		
+		event.setQuitMessage(event.getQuitMessage() + getOnlineFormat(online));
 		
 		return true;
 	}

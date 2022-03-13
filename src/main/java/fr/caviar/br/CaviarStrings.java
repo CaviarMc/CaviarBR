@@ -25,8 +25,14 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	STATE_PREPARING_TITLE(
 			"§ePreparing..."),
-	STATE_PREPARING_SUBTITLE(
+	STATE_PREPARING_SUBTITLE_1(
 			"§7Finding spawnpoints"),
+	STATE_PREPARING_SUBTITLE_2(
+			"§aStarting game"),
+	
+	STATE_PLAYING_START(
+			"The game has started! Good luck, and be the first one to find the trasure!",
+			PREFIX_GOOD),
 	
 	;
 	
