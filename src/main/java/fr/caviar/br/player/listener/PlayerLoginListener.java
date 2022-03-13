@@ -11,8 +11,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import com.destroystokyo.paper.event.player.PlayerJumpEvent;
-
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.player.CaviarPlayerSpigot;
 import fr.caviar.br.player.PlayerHandler;
@@ -54,14 +52,13 @@ public class PlayerLoginListener implements Listener {
 	}
 
 	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onPlayerQuitHigh(PlayerQuitEvent event) {
+	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		event.setQuitMessage(ColorUtils.format("&7[&c-&7] %s", player.getName()));
 	}
 	
-	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent event) {
+	@EventHandler (priority = EventPriority.HIGH)
+	public void onPlayerQuitHigh(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		PlayerHandler playerHandler = CaviarBR.getInstance().getPlayerHandler();
 		playerHandler.get(player.getUniqueId(), (uPlayer, exception) -> {

@@ -1,4 +1,4 @@
-package fr.caviar.br.scorebard;
+package fr.caviar.br.scoreboard;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

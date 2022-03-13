@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.game.commands.SettingsCommand;
 
 public class GameManager {
 	
@@ -50,7 +52,9 @@ public class GameManager {
 	}
 	
 	public void enable() {
+		world = Bukkit.getWorlds().get(0);
 		setState(new StateWait(this));
+		new SettingsCommand(this);
 	}
 	
 	public void disable() {

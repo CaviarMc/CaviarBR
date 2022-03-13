@@ -7,13 +7,13 @@ import fr.caviar.br.utils.observable.ObservableInt;
 
 public class GameSettings {
 	
-	private final ObservableInt minPlayers = new ObservableInt(2);
+	private final ObservableInt minPlayers = new ObservableInt(1);
 	private final ObservableInt maxPlayers = new ObservableInt(10);
 	
-	private final ObservableInt waitingTimeLong = new ObservableInt(60);
+	private final ObservableInt waitingTimeLong = new ObservableInt(4);
 	private final ObservableInt waitingTimeShort = new ObservableInt(10);
 	
-	private final ObservableInt playersRadius = new ObservableInt(200);
+	private final ObservableInt playersRadius = new ObservableInt(450);
 	
 	private final GameManager game;
 	

@@ -14,9 +14,12 @@ public enum CaviarStrings {
 			"§c",
 			PREFIX),
 	
-	STATE_WAIT_LAUNCHING(
-			"Game is launching in %d seconds.",
+	STATE_WAIT_COUNTDOWN(
+			"Game is launching in §a%d§7 seconds.",
 			PREFIX),
+	STATE_WAIT_COUNTDOWN_START(
+			"There is enough players to start the game!",
+			PREFIX_GOOD),
 	STATE_WAIT_CANCEL(
 			"Not enough players to start the game.",
 			PREFIX_BAD),
@@ -31,8 +34,11 @@ public enum CaviarStrings {
 			"§aStarting game"),
 	
 	STATE_PLAYING_START(
-			"The game has started! Good luck, and be the first one to find the trasure!",
+			"The game has started! Good luck, and be the first one to find the treasure!",
 			PREFIX_GOOD),
+	
+	ITEM_COMPASS_NAME(
+			"§eTreasure Compass")
 	
 	;
 	
@@ -71,6 +77,10 @@ public enum CaviarStrings {
 	
 	public void send(CommandSender sender, Object... args) {
 		sender.sendMessage(format(args));
+	}
+	
+	public void sendWith(CommandSender sender, String next, Object... args) {
+		sender.sendMessage(format(args) + next);
 	}
 	
 }

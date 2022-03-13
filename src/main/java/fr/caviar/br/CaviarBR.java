@@ -12,9 +12,12 @@ import fr.caviar.br.game.GameManager;
 import fr.caviar.br.nametag.Nametag;
 import fr.caviar.br.player.PlayerHandler;
 import fr.caviar.br.player.listener.PlayerLoginListener;
-import fr.caviar.br.scorebard.Scoreboard;
+import fr.caviar.br.scoreboard.Scoreboard;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.task.UniversalTask;
+
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIConfig;
 
 public class CaviarBR extends JavaPlugin {
 
@@ -34,6 +37,7 @@ public class CaviarBR extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		INSTANCE = this;
+		CommandAPI.onLoad(new CommandAPIConfig());
 		game = new GameManager(this);
 		taskManager = new TaskManagerSpigot(this);
 		playerHandler = new PlayerHandler();
@@ -47,6 +51,7 @@ public class CaviarBR extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		CommandAPI.onEnable(this);
 		PluginManager pluginManager = getServer().getPluginManager();
 
 		game.enable();

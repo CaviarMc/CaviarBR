@@ -3,13 +3,13 @@ package fr.caviar.br.game;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -21,8 +21,6 @@ import fr.caviar.br.CaviarStrings;
 public class StatePreparing extends GameState {
 	
 	private static final List<Material> UNWALKABLE_ON = Arrays.asList(Material.WATER, Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK);
-	
-	private Lock lock = new ReentrantLock();
 	
 	private int task = -1;
 	private boolean foundSpawnpoints = false;
@@ -42,12 +40,11 @@ public class StatePreparing extends GameState {
 			player.spawnLocation = null;
 			player.started = false;
 			
-			task = game.getPlugin().getTaskManager().runTaskAsynchronously(() -> {
-				task = -1;
-				Location loc = prepareLocation(theta);
+			prepareLocation(theta, loc -> {
+				game.getPlugin().getLogger().info("Found spawnpoint.");
 				
-				lock.lock();
-				player.spawnLocation = loc.add(0, 1, 0);
+				loc.getChunk().addPluginChunkTicket(game.getPlugin());
+				player.setSpawnLocation(loc);
 				
 				if (game.getPlayers().values().stream().noneMatch(x -> x.spawnLocation == null)) {
 					foundSpawnpoints = true;
@@ -57,7 +54,6 @@ public class StatePreparing extends GameState {
 						game.setState(new StatePlaying(game));
 					}, 3, TimeUnit.SECONDS);
 				}
-				lock.unlock();
 			});
 		}
 		Bukkit.getOnlinePlayers().forEach(this::setPreparing);
@@ -70,44 +66,58 @@ public class StatePreparing extends GameState {
 		if (task != -1) game.getPlugin().getTaskManager().cancelTaskById(task);
 	}
 	
-	private Location prepareLocation(double theta) {
+	private void prepareLocation(double theta, Consumer<Location> consumer) {
 		int x = (int) (game.getSettings().getPlayersRadius().get() * Math.cos(theta));
 		int z = (int) (game.getSettings().getPlayersRadius().get() * Math.sin(theta));
+		game.getPlugin().getLogger().info("First spawnpoint on x:" + x + " z:" + z);
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
-		Chunk chunk = game.getWorld().getChunkAt(chunkX, chunkZ);
-		chunk.addPluginChunkTicket(game.getPlugin());
-		int y = chunk.getWorld().getHighestBlockYAt(x, z);
-		
-		if (UNWALKABLE_ON.contains(chunk.getBlock(x - chunkX << 4, y, z - chunkZ << 4).getType())) {
-			Location location;
-			boolean xChanged = true;
-			while ((location = getNicestBlock(chunk)) == null) {
-				if (xChanged = !xChanged)
-					chunkZ++;
-				else
-					chunkX++;
-				chunk.removePluginChunkTicket(game.getPlugin());
-				chunk = game.getWorld().getChunkAt(chunkX, chunkZ);
-				chunk.addPluginChunkTicket(game.getPlugin());
+		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+			int y = chunk.getWorld().getHighestBlockYAt(x, z);
+			
+			if (!isGoodSpawnpoint(chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4)))) {
+				tryChunk(chunk, consumer, false);
+			}else {
+				consumer.accept(new Location(game.getWorld(), x, y, z));
 			}
-			return location;
+		}).exceptionally(throwable -> {
+			throwable.printStackTrace();
+			return null;
+		});
+	}
+	
+	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged) {
+		game.getPlugin().getLogger().info("Trying chunk " + chunk.toString());
+		Location location = getNicestBlock(chunk);
+		if (location == null) { // have not found good spawnpoint in this chunk
+			game.getWorld()
+				.getChunkAtAsync(chunk.getX() + (xChanged ? 0 : 1), chunk.getZ() + (xChanged ? 1 : 0))
+				.thenAccept(next -> tryChunk(next, consumer, !xChanged))
+				.exceptionally(throwable -> {
+					throwable.printStackTrace();
+					return null;
+				});
+		}else {
+			consumer.accept(location);
 		}
-		return new Location(game.getWorld(), x, y, z);
 	}
 	
 	private Location getNicestBlock(Chunk chunk) {
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
-				int globalX = chunk.getX() << 4 + x;
-				int globalZ = chunk.getZ() << 4 + z;
+				int globalX = (chunk.getX() << 4) + x;
+				int globalZ = (chunk.getZ() << 4) + z;
 				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
-				if (!UNWALKABLE_ON.contains(chunk.getBlock(x, y, z).getType())) {
+				if (isGoodSpawnpoint(chunk.getBlock(x, y, z))) {
 					return new Location(game.getWorld(), globalX, y, globalZ);
 				}
 			}
 		}
 		return null;
+	}
+	
+	private boolean isGoodSpawnpoint(Block block) {
+		return block.getY() > 60 && !UNWALKABLE_ON.contains(block.getType());
 	}
 	
 	private void setPreparing(Player player) {

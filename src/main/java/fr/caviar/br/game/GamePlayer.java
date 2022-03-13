@@ -15,4 +15,9 @@ public class GamePlayer {
 		this.player = player;
 	}
 	
+	public void setSpawnLocation(Location spawnpoint) {
+		spawnLocation = spawnpoint.add(0.5, 1.5, 0.5);
+		spawnLocation.setDirection(spawnLocation.toVector().multiply(-1).setY(0));
+	}
+	
 }

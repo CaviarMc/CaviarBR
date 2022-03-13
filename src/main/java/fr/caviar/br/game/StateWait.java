@@ -52,13 +52,14 @@ public class StateWait extends GameState implements Runnable {
 		
 		if (left != -1) {
 			
-			if (--left == 0) {
+			if (left == 0) {
 				game.setState(new StatePreparing(game));
 			}else {
-				if (left == 50 || left == 30 || left == 15 || left == 10 || left <= 5) {
-					CaviarStrings.STATE_WAIT_LAUNCHING.broadcast(left);
+				if (left == game.getSettings().getWaitingTimeLong().get() || left == game.getSettings().getWaitingTimeShort().get() || left == 60 || left == 30 || left == 15 || left == 10 || left <= 5) {
+					CaviarStrings.STATE_WAIT_COUNTDOWN.broadcast(left);
 				}
 			}
+			left--;
 		}
 		
 		lock.unlock();
@@ -80,7 +81,10 @@ public class StateWait extends GameState implements Runnable {
 		}else {
 			int max = game.getSettings().getMaxPlayers().get();
 			int waitingTime = (online == max ? game.getSettings().getWaitingTimeShort() : game.getSettings().getWaitingTimeLong()).get();
-			if (left == -1 || left > waitingTime) left = waitingTime;
+			if (left == -1 || left > waitingTime) {
+				if (left == -1) CaviarStrings.STATE_WAIT_COUNTDOWN_START.broadcast();
+				left = waitingTime;
+			}
 		}
 		lock.unlock();
 	}

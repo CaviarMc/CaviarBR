@@ -17,6 +17,7 @@ repositories {
 		content {
 		  includeGroup 'org.bukkit'
 		  includeGroup 'org.spigotmc'
+		  includeGroup 'net.md-5'
 		}
 	}
 
@@ -24,6 +25,7 @@ repositories {
 		url = uri('https://jitpack.io')
 		content {
 		  includeGroup 'org.bstats.bStats-Metrics'
+		  includeGroup 'dev.jorel.CommandAPI'
 		}
 	}
 
@@ -44,13 +46,17 @@ repositories {
 }
 
 dependencies {
-	compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
-	compileOnly 'org.spigotmc:spigot:1.17.1-R0.1-SNAPSHOT'
+	compileOnly 'io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT'
+	compileOnly 'org.spigotmc:spigot:1.18.2-R0.1-SNAPSHOT'
 	compileOnly 'com.nametagedit:nametagedit:4.5.5'
 
 	implementation 'fr.mrmicky:fastboard:1.2.1'
+	
+	implementation "dev.jorel.CommandAPI:commandapi-shade:6.5.4"
+    //compileOnly "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
+    //annotationProcessor "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
 
-	testImplementation 'com.github.seeseemelk:MockBukkit-v1.17:1.13.0'
+	testImplementation 'com.github.seeseemelk:MockBukkit-v1.18:1.15.5'
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
 	
 	/* EazyNick -> prefix/suffix + skin + nick
@@ -100,7 +106,12 @@ jar {
 }
 
 shadowJar {
-    relocate 'fr.mrmicky.fastboard', 'fr.caviar.br.scoreboard'
+	archiveFileName = 'CaviarBR.jar'
+	dependencies {
+		include dependency("dev.jorel.CommandAPI:commandapi-shade:6.5.4")
+		include dependency("fr.mrmicky:fastboard:1.2.1")
+	}
+	relocate 'fr.mrmicky.fastboard', 'fr.caviar.br.scoreboard'
 }
 
 sourceSets {

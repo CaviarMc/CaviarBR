@@ -7,13 +7,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.CompassMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.utils.observable.ObservableValue;
 
 public class StatePlaying extends GameState {
 	
-	private Location treasure;
+	private ObservableValue<Location> treasure;
 	private ItemStack[] compass;
 	
 	public StatePlaying(GameManager game) {
@@ -24,11 +25,12 @@ public class StatePlaying extends GameState {
 	public void start() {
 		super.start();
 		
-		treasure = new Location(game.getWorld(), 100, 100, 0);
+		treasure = new ObservableValue<>(new Location(game.getWorld(), 100, 100, 0));
+		treasure.observe("compass", () -> Bukkit.getOnlinePlayers().forEach(x -> x.setCompassTarget(treasure.get())));
 		
 		ItemStack compassItem = new ItemStack(Material.COMPASS);
-		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
-		meta.setLodestone(treasure);
+		ItemMeta meta = compassItem.getItemMeta();
+		meta.setDisplayName(CaviarStrings.ITEM_COMPASS_NAME.toString());
 		compassItem.setItemMeta(meta);
 		compass = new ItemStack[] { compassItem };
 		
@@ -49,6 +51,7 @@ public class StatePlaying extends GameState {
 			}
 			
 			player.getInventory().setContents(compass);
+			player.setCompassTarget(treasure.get());
 		}
 	}
 	
