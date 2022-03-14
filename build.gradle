@@ -139,6 +139,12 @@ sourceSets {
 			srcDirs = ['src/main/resources']
 		}
 	}
+
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
 }
 
 tasks.withType(JavaCompile) {
