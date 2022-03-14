@@ -10,6 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import fr.caviar.br.player.CaviarPlayerSpigot;
@@ -17,6 +18,8 @@ import fr.caviar.br.player.CaviarPlayerSpigot;
 public abstract class GameState implements Listener {
 	
 	protected final GameManager game;
+	
+	private boolean running = false;
 	
 	public GameState(GameManager game) {
 		this.game = game;
@@ -27,17 +30,25 @@ public abstract class GameState implements Listener {
 	}
 	
 	public void start() {
+		running = true;
 		game.getPlugin().getLogger().info("Starting state " + getClass().getSimpleName());
 		Bukkit.getPluginManager().registerEvents(this, game.getPlugin());
 	}
 	
 	public void end() {
+		running = false;
 		game.getPlugin().getLogger().info("Ending state " + getClass().getSimpleName());
 		HandlerList.unregisterAll(this);
 	}
 	
-	public boolean areNewPlayersAllowed() {
-		return false;
+	public boolean isRunning() {
+		return running;
+	}
+	
+	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
+		if (player == null) { // disallows players who have never connected
+			event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "§cYou cannot join the game yet.");
+		}
 	}
 	
 	public abstract void onJoin(PlayerJoinEvent event, GamePlayer player);
@@ -46,18 +57,18 @@ public abstract class GameState implements Listener {
 
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onLogin(PlayerLoginEvent event) {
+		if (event.getResult() != Result.ALLOWED) return;
+		
 		UUID uuid = event.getPlayer().getUniqueId();
 		GamePlayer gamePlayer = game.getPlayers().get(uuid);
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(uuid);
 		Validate.notNull(caviarPlayer);
 		
-		if (gamePlayer == null) {
-			if (areNewPlayersAllowed()) {
+		handleLogin(event, gamePlayer);
+		if (event.getResult() == Result.ALLOWED) {
+			if (gamePlayer == null) {
 				gamePlayer = new GamePlayer(caviarPlayer);
 				game.getPlayers().put(uuid, gamePlayer);
-			}else {
-				event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "§cYou cannot join the game yet.");
-				return;
 			}
 		}
 	}

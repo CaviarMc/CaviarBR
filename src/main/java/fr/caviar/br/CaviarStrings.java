@@ -24,18 +24,26 @@ public enum CaviarStrings {
 			"Not enough players to start the game.",
 			PREFIX_BAD),
 	STATE_PREPARING_PREPARE(
-			"We are preparing your spawnpoints.",
+			"We are preparing your game. This will only take a few seconds.",
 			PREFIX_GOOD),
 	STATE_PREPARING_TITLE(
 			"§ePreparing..."),
-	STATE_PREPARING_SUBTITLE_1(
-			"§7Finding spawnpoints"),
-	STATE_PREPARING_SUBTITLE_2(
+	STATE_PREPARING_SUBTITLE_TREASURE(
+			"§7Preparing treasure"),
+	STATE_PREPARING_SUBTITLE_SPAWNPOINTS(
+			"§bFinding spawnpoints"),
+	STATE_PREPARING_SUBTITLE_STARTING(
 			"§aStarting game"),
 	
 	STATE_PLAYING_START(
 			"The game has started! Good luck, and be the first one to find the treasure!",
 			PREFIX_GOOD),
+	STATE_PLAYING_BREAK_TREASURE(
+			"You cannot break the treasure... click on it!",
+			PREFIX_BAD),
+	
+	STATE_WIN(
+			"§d%s§7 won the game! Congratulations!"),
 	
 	ITEM_COMPASS_NAME(
 			"§eTreasure Compass"),

@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import fr.caviar.br.CaviarStrings;
@@ -66,8 +67,8 @@ public class StateWait extends GameState implements Runnable {
 	}
 	
 	@Override
-	public boolean areNewPlayersAllowed() {
-		return true;
+	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
+		// do nothing: players can join
 	}
 	
 	protected void updatePlayers(int online) {
