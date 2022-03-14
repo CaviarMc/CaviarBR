@@ -40,6 +40,7 @@ public class RegexMatcher {
 		try {
 			return java.util.UUID.fromString(x.contains("-") ? x : x.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
 		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}, UUID.class);
@@ -47,7 +48,8 @@ public class RegexMatcher {
 	public static final MatcherPattern<LocalDate> DATE = new MatcherPattern<>("[0-9]{2}/[0-9]{2}/[0-9]{4}", x -> {
 		try {
 			return LocalDate.parse(x, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-		} catch (DateTimeParseException e2) {
+		} catch (DateTimeParseException e) {
+			e.printStackTrace();
 			return null;
 		}
 	});
@@ -55,6 +57,7 @@ public class RegexMatcher {
 		try {
 			return Double.parseDouble(x.replace(",", "."));
 		} catch (NumberFormatException e) {
+			e.printStackTrace();
 			return null;
 		}
 	});
@@ -65,6 +68,7 @@ public class RegexMatcher {
 		try {
 			return Double.parseDouble(x.replace(",", "."));
 		} catch (NumberFormatException e) {
+			e.printStackTrace();
 			return null;
 		}
 	});
@@ -72,6 +76,7 @@ public class RegexMatcher {
 		try {
 			return Float.parseFloat(x.replace(",", "."));
 		} catch (NumberFormatException e) {
+			e.printStackTrace();
 			return null;
 		}
 	});
@@ -79,6 +84,7 @@ public class RegexMatcher {
 		try {
 			return Integer.parseInt(x);
 		} catch (NumberFormatException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}, Integer.class);
@@ -86,21 +92,26 @@ public class RegexMatcher {
 		try {
 			return Long.parseLong(x);
 		} catch (NumberFormatException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}, Long.class);
 	public static final MatcherPattern<Integer> NUMBER = new MatcherPattern<>("\\d+", x -> {
 		try {
 			return Integer.parseInt(x);
-		} catch (NumberFormatException e) {}
-		return null;
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}, Integer.class);
 	public static final MatcherPattern<Integer> DIGIT = new MatcherPattern<>("\\d", x -> {
 		try {
 			Integer i = Integer.parseInt(x);
 			if (i >= 0 && i <= 10)
 				return i;
-		} catch (NumberFormatException e) {}
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}, Integer.class);
 	public static final MatcherPattern<String> HEX_COLOR = new MatcherPattern<>("[xX#]?[0-9a-fA-F]{6}", x -> {

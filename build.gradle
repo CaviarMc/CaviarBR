@@ -22,7 +22,7 @@ repositories {
 	}
 
 	maven {
-		url = uri('https://jitpack.io')
+		url = 'https://jitpack.io'
 		content {
 		  includeGroup 'org.bstats.bStats-Metrics'
 		  includeGroup 'dev.jorel.CommandAPI'
@@ -30,35 +30,51 @@ repositories {
 	}
 
 	maven {
-		url = uri('https://papermc.io/repo/repository/maven-public/')
+		url = 'https://papermc.io/repo/repository/maven-public/'
 		content {
 		  includeGroup 'io.papermc.paper'
 		}
 	}
 
 	maven {
-		url = uri('https://ci.nametagedit.com/plugin/repository/everything/')
+		url = 'https://ci.nametagedit.com/plugin/repository/everything/'
 		content {
 			includeGroup 'com.nametagedit'
 		}
 	}
 
+	maven {
+		url = 'https://maven.worldql.com/releases'
+		content {
+			includeGroup 'com.nftworlds'
+		}
+	}
+
+	// NTFWorld dep
+	maven {
+		url = 'https://nexus.scarsz.me/content/groups/public/'
+		content {
+			includeGroup 'ninja.amp'
+			includeGroup 'github.scarsz'
+		}
+	}
 }
 
 dependencies {
 	compileOnly 'io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT'
 	compileOnly 'org.spigotmc:spigot:1.18.2-R0.1-SNAPSHOT'
-	compileOnly 'com.nametagedit:nametagedit:4.5.5'
-
-	implementation 'fr.mrmicky:fastboard:1.2.1'
 	
+	compileOnly 'com.nametagedit:nametagedit:4.5.5'
+	implementation 'fr.mrmicky:fastboard:1.2.1'
 	implementation "dev.jorel.CommandAPI:commandapi-shade:6.5.4"
-    //compileOnly "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
-    //annotationProcessor "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
+	//compileOnly "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
+	//annotationProcessor "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
+	
+	compileOnly 'com.nftworlds:wrld-payments-api:0.1.6'
 
 	testImplementation 'com.github.seeseemelk:MockBukkit-v1.18:1.15.5'
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-	
+
 	/* EazyNick -> prefix/suffix + skin + nick
 	def file = file(new File('libs/EazyNick v3.11.jar'))
 	if (!file.exists()) {
@@ -135,3 +151,11 @@ processResources {
 	   "plugin_version": fullVersion
 	]
 }
+
+task printVersion {
+    doLast {
+        println project.version + "-" + getGitBranch() + "-" + getCheckedOutGitCommitHash()
+    }
+}
+
+tasks.build.dependsOn tasks.shadowJar

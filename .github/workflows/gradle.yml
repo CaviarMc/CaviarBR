@@ -24,9 +24,9 @@ jobs:
       with:
         path: |
           ~/.m2/repository
-        key: ${{ runner.os }}-buildtools
+        key: ${{ runner.os }}-buildtools-1.8.2
         restore-keys: |
-          ${{ runner.os }}-buildtools
+          ${{ runner.os }}-buildtools-1.8.2
     - name: "Run BuildTools to git clone Spigot repo"
       uses: SpraxDev/Action-SpigotMC@v3
       with:
@@ -34,7 +34,7 @@ jobs:
        # These values are later given to the BuildTools.jar as '--rev' argument
        #
        # Example: latest, 1.14.4, 1.8.8
-       versions: 1.17.1 # Optional
+       versions: 1.18.2 # Optional
    
        # Should sources be generated?
        # If enabled, BuildTools is provided the '--generate-source' argument
@@ -74,33 +74,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
     - name: "Build with Gradle"
+      id: gradle
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: build shadowJar
+        arguments: build
         gradle-version: 7.4
 
     - name: "Get build-scan-url if build fail"
       if: failure()
       run: echo ❌ ${{ github.workflow }} failed ${{ steps.gradle.outputs.build-scan-url }}
 
-# Push .jar to repo Release 
-    - name: "Publish .JAR"
-      uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Development Build"
-        files: |
-          build/*.jar
-      continue-on-error: true
-      
-# Upload .jar files to build artifacts
-    - uses: actions/upload-artifact@v3
-      with:
-        name: artifacts
-        path: build/**/*.jar
-        
 # Install spigot repo
     - name: "Cache PaperSpigot Server"
       uses: actions/cache@v2

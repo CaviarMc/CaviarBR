@@ -3,22 +3,24 @@
 # Create server folder if not exist and run the newly created plugin
 
 TEST_DIR=test_server
-SPIGOT_VERSION=1.17.1
-SPIGOT_BUILD_ID=409
+SPIGOT_JAR_NAME=paperspigot.jar
 
-SPIGOT_URL=https://papermc.io/api/v2/projects/paper/versions
-SPIGOT_JAR_NAME=paper-$SPIGOT_VERSION-$SPIGOT_BUILD_ID.jar
-SPIGOT_FULL_URL=$SPIGOT_URL/$SPIGOT_VERSION/builds/$SPIGOT_BUILD_ID/downloads/$SPIGOT_JAR_NAME
+gradle build
 
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
 	mkdir $TEST_DIR/
-	cd $TEST_DIR/
-	curl -O $SPIGOT_FULL_URL
+	cd $TEST_DIR/ || exit
 	echo "eula=true" > eula.txt
 	mkdir plugins/
 else
-	cd $TEST_DIR/
+	cd $TEST_DIR/ || exit
+fi
+
+if [ -f "../updatePaper.sh" ]; then
+	../updatePaper.sh
+else
+	echo -e "\e[93mWARN > Script updatePaper.sh not found. You sould check manully the spigot jar at $TEST_DIR\$SPIGOT_JAR_NAME\e[0m"
 fi
 
 cp ../build/*.jar plugins/
@@ -32,9 +34,9 @@ function kill_server {
 	while [ $i -lt 60 ] && [ $status -eq 1 ]
 	do
 		sleep 1
-		cat log.txt | grep "Timings Reset" &> /dev/null
+		grep "Timings Reset" &> /dev/null < log.txt
 		status=$?
-		let "i++"
+		(( i++ ))
 	done
 	echo "Try to stop Java"
 	kill -2 $(pgrep -f paper)
@@ -54,8 +56,8 @@ else
 		sleep 2
 		pgrep -f paper &> /dev/null
 		JAVA_OPEN=$?
-		let "i++"
-		if [ $i -eq 30 ]; then
+		(( i++ ))
+		if [ "$i" -eq 30 ]; then
 			echo "ForceKill Java"
 			kill -9 $(pgrep -f paper)
 			break
@@ -63,6 +65,5 @@ else
 	done
 
 	# Exit status if error
-	cat log.txt | (! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt
+	(! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt < log.txt
 fi
-
