@@ -5,8 +5,6 @@
 TEST_DIR=test_server
 SPIGOT_JAR_NAME=paperspigot.jar
 
-gradle build
-
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
 	mkdir $TEST_DIR/
@@ -21,6 +19,12 @@ if [ -f "../updatePaper.sh" ]; then
 	../updatePaper.sh
 else
 	echo -e "\e[93mWARN > Script updatePaper.sh not found. You sould check manully the spigot jar at $TEST_DIR\$SPIGOT_JAR_NAME\e[0m"
+fi
+
+if [ ! -f "plugins/CommandAPI.jar" ]; then
+	cd plugins
+	curl -LO https://github.com/JorelAli/CommandAPI/releases/latest/download/CommandAPI.jar
+	cd -
 fi
 
 cp ../build/*.jar plugins/
