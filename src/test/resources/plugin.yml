@@ -1,0 +1,6 @@
+name: CaviarBR
+main: fr.caviar.br.CaviarBRTest
+version: 0.1
+api-version: 1.18
+authors: [Tristiisch, SkytAsul]
+

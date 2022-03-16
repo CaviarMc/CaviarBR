@@ -144,7 +144,17 @@ sourceSets {
         java {
             srcDirs = ['src/test/java']
         }
+		resources {
+			srcDirs = ['src/test/resources']
+		}
     }
+}
+
+test {
+    useJUnitPlatform()	
+	manifest {
+		attributes "Version": fullVersion
+	}
 }
 
 tasks.withType(JavaCompile) {
