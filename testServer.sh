@@ -4,6 +4,7 @@
 
 TEST_DIR=test_server
 SPIGOT_JAR_NAME=paperspigot.jar
+PLUGINS_PATH=build/libs/CaviarBR.jar
 
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
@@ -27,7 +28,7 @@ if [ ! -f "plugins/CommandAPI.jar" ]; then
 	cd -
 fi
 
-cp ../build/*.jar plugins/
+cp $PLUGINS_PATH plugins/
 cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
 rm -f log.txt error.txt
 

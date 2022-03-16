@@ -89,7 +89,7 @@ jobs:
       with:
           if-no-files-found: error
           name: Output JAR
-          path: build/*.jar
+          path: build/libs/*.jar
 
 # Start plugin
   start:
@@ -102,7 +102,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: Output JAR
-        path: build/
+        path: build/libs/
     - name: "Set up JDK 17"
       uses: actions/setup-java@v2
       with:
@@ -131,7 +131,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: Output JAR
-        path: build/
+        path: build/libs/
     - name: "Set up JDK 17"
       uses: actions/setup-java@v2
       with:
@@ -153,8 +153,8 @@ jobs:
 #        gradle-version: 7.4
     - name: "Create release"
       run: |
-         gh release create v$(./gradlew --build-cache -q printVersion) build/CaviarBR.jar --target main -t "Development Build" --generate-notes -p
-#         gh release create v${{ steps.gradlever.outputs.stdout }} build/CaviarBR.jar --target main -t "Test Release" --generate-notes
+         gh release create v$(./gradlew --build-cache -q printVersion) build/libs/CaviarBR.jar --target main -t "Development Build" --generate-notes -p
+#         gh release create v${{ steps.gradlever.outputs.stdout }} build/libs/CaviarBR.jar --target main -t "Test Release" --generate-notes
 #        git tag v${{ steps.gradlever.outputs.stdout }}
 #        git push origin --tags
 #    - name: "Bump version and push tag"
@@ -170,4 +170,4 @@ jobs:
 #        automatic_release_tag: "v${{ steps.gradlever.outputs.stdout }}"
 #        prerelease: false
 #        title: "Auto Development Build"
-#        files: build/CaviarBR.jar
+#        files: build/libs/CaviarBR.jar
