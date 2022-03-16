@@ -34,6 +34,8 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getMaxPlayers().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeLong().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeShort().observe(OBSERVER_KEY, observer);
+		
+		updatePlayers(Bukkit.getOnlinePlayers().size());
 	}
 	
 	@Override

@@ -15,8 +15,8 @@ public class SettingsCommand {
 	
 	private CommandAPICommand command;
 	
-	public SettingsCommand(GameManager manager) {
-		settings = manager.getSettings();
+	public SettingsCommand(GameManager game) {
+		settings = game.getSettings();
 		
 		command = new CommandAPICommand("settings")
 			.withPermission("caviarbr.command.settings");
@@ -25,7 +25,7 @@ public class SettingsCommand {
 			command.withSubcommand(settingCommand(setting));
 		}
 		
-		command.register();
+		game.getPlugin().getCommands().registerCommand(command);
 	}
 	
 	private <T> CommandAPICommand settingCommand(GameSetting<T> setting) {

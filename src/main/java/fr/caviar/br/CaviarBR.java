@@ -16,14 +16,12 @@ import fr.caviar.br.scoreboard.Scoreboard;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.task.UniversalTask;
 
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIConfig;
-
 public class CaviarBR extends JavaPlugin {
 
 	private static CaviarBR INSTANCE;
 
 	private GameManager game;
+	private CaviarCommands commands;
 	private ConfigSpigot config;
 	private PlayerHandler playerHandler;
 	private UniversalTask taskManager;
@@ -37,7 +35,7 @@ public class CaviarBR extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		INSTANCE = this;
-		CommandAPI.onLoad(new CommandAPIConfig());
+		commands = new CaviarCommands(this);
 		game = new GameManager(this);
 		taskManager = new TaskManagerSpigot(this);
 		playerHandler = new PlayerHandler();
@@ -51,9 +49,9 @@ public class CaviarBR extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		CommandAPI.onEnable(this);
 		PluginManager pluginManager = getServer().getPluginManager();
 
+		commands.enable();
 		game.enable();
 		config.load();
 		nameTag.enable();
@@ -67,10 +65,15 @@ public class CaviarBR extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
+		commands.disable();
 		game.disable();
 
 		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
 		super.onDisable();
+	}
+	
+	public CaviarCommands getCommands() {
+		return commands;
 	}
 
 	public GameManager getGame() {

@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.game.commands.GameAdminCommand;
 import fr.caviar.br.game.commands.SettingsCommand;
 
 public class GameManager {
@@ -55,6 +56,7 @@ public class GameManager {
 		world = Bukkit.getWorlds().get(0);
 		setState(new StateWait(this));
 		new SettingsCommand(this);
+		new GameAdminCommand(this);
 	}
 	
 	public void disable() {

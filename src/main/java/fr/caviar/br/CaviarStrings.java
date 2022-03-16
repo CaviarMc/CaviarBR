@@ -7,6 +7,10 @@ public enum CaviarStrings {
 	
 	PREFIX(
 			"§9§lCaviar§b§lBR §7>> "),
+	PREFIX_WARNING(
+			"§8§lCaviar§7§lBR §6⚠ §e"),
+	PREFIX_ERROR(
+			"§4§lCaviar§c§lBR §4✖ §c"),
 	PREFIX_GOOD(
 			"§a",
 			PREFIX),
@@ -54,6 +58,19 @@ public enum CaviarStrings {
 	COMMAND_SETTING_SAME(
 			"Setting %s already had value §4%s§r.",
 			PREFIX_BAD),
+	
+	COMMAND_GAMEADMIN_CONFIRM(
+			"Are you sure you want to change the game state from §6%s§r to §6%s§r?",
+			PREFIX_WARNING),
+	COMMAND_GAMEADMIN_RESET(
+			"The game has been reset.",
+			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_STARTED(
+			"You have launched the preparation state to start the game.",
+			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_FORCESTARTED(
+			"You have forced the start of the game.",
+			PREFIX_GOOD),
 	
 	;
 	
