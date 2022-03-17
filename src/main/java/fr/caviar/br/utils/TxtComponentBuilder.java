@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.annotations.Beta;
 
-import fr.caviar.br.regex.RegexMatcher;
+import fr.caviar.br.api.regex.RegexMatcher;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;

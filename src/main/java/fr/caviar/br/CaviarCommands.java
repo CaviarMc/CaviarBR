@@ -3,6 +3,8 @@ package fr.caviar.br;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.plugin.Plugin;
+
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.CommandAPIConfig;
@@ -10,9 +12,9 @@ import dev.jorel.commandapi.CommandAPIConfig;
 public class CaviarCommands {
 	
 	private List<CommandAPICommand> commands = new ArrayList<>();
-	private CaviarBR plugin;
+	private Plugin plugin;
 	
-	public CaviarCommands(CaviarBR plugin) {
+	public CaviarCommands(Plugin plugin) {
 		this.plugin = plugin;
 		CommandAPI.onLoad(new CommandAPIConfig());
 	}

@@ -1,4 +1,4 @@
-package fr.caviar.br.regex;
+package fr.caviar.br.api.regex;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

@@ -12,72 +12,57 @@ on:
 
 jobs:
   build:
-    #strategy:
-    #  matrix:
-    #    os: [ubuntu-latest, windows-latest]
-        #os: [ubuntu-latest, macos-latest, windows-latest]
-    #runs-on: ${{ matrix.os }}
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+#    runs-on: ubuntu-latest
     steps:
+ 
     - name: "Git clone"
       uses: actions/checkout@v2
-# Install JDK
+ 
+   # Install JDK
     - name: "Set up JDK 17"
       uses: actions/setup-java@v2
       with:
         java-version: '17'
-        distribution: 'temurin'
-# Install spigot repo
+        distribution: 'adopt-openj9'
+
     - name: "Cache BuildTools"
       uses: actions/cache@v2
+      id: buildtools_cache
       with:
         path: |
-          ~/.m2/repository
+          $HOME/.m2/repository
         key: ${{ runner.os }}-buildtools-1.8.2
         restore-keys: |
           ${{ runner.os }}-buildtools-1.8.2
-    - name: "Run BuildTools to git clone Spigot repo"
-      uses: SpraxDev/Action-SpigotMC@v3
-      with:
-       # A comma-separated list of Spigot version that should be compiled
-       # These values are later given to the BuildTools.jar as '--rev' argument
-       #
-       # Example: latest, 1.14.4, 1.8.8
-       versions: 1.18.2 # Optional
-   
-       # Should sources be generated?
-       # If enabled, BuildTools is provided the '--generate-source' argument
-       generateSrc: false # Optional
-   
-       # Should the documentation be generated?
-       # If enabled, BuildTools is provided the '--generate-docs' argument
-       generateDoc: false # Optional
-   
-       # Should we disable the BuildTools's Java-Version-Check?
-       # If enabled, BuildTools is provided the '--disable-java-check' argument
-       disableJavaCheck: false # Optional
-   
-       # Disables the check for existing files in the local maven repository
-       # Normally, a version is skipped if it is already installed
-       # in the local maven repository to speed up build time
-       forceRun: false # Optional
-   
-       # The amount of builds allowed to run at the same time
-       # Set to '-1' to use system's cpu core count
-       threads: -1 # Optional
-   
-       # You can choose between different BuildTools to be used by this action
-       # ~~'SpraxDev' is my fork of SpigotMC's that introduces some changes (https://github.com/SpraxDev/Spigot-BuildTools/#breaking-changes)~~
-       # My (SpraxDev) provider is causing some builds to fail depending on the build environment
-       # Available: SpraxDev, SpigotMC
-       buildToolProvider: SpigotMC # Optional
 
-# Build Jar with gradle
+    - name: "Run BuildTools repo Linux"
+      uses: SpraxDev/Action-SpigotMC@v3
+      if: matrix.os == 'ubuntu-latest'
+      with:
+       versions: 1.18.2
+       generateSrc: false
+       generateDoc: false
+       disableJavaCheck: false
+       forceRun: false
+       threads: -1
+       buildToolProvider: SpigotMC
+ 
+    - name: "Run BuildTools repo Windows"
+      if: matrix.os == 'windows-latest' && steps.buildtools_cache.outputs.cache-hit != 'true'
+      run: |
+        curl -O https://hub.spigotmc.org/jenkins/job/BuildTools/lastStableBuild/artifact/target/BuildTools.jar
+        java -jar BuildTools.jar --rev 1.18.2
+
+   # Build Jar with gradle
     - name: "Build with Gradle"
       id: gradle
       uses: gradle/gradle-build-action@v2.1.3
       with:
-        arguments: build
+        arguments: jar
 #        arguments: build --scan
         gradle-version: 7.4
 #    - name: "Get build-scan-url if build fail"
@@ -90,24 +75,71 @@ jobs:
           if-no-files-found: error
           name: Output JAR
           path: build/libs/*.jar
+ 
+  build_test:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: "Git clone"
+      uses: actions/checkout@v2
+ 
+   # Install JDK
+    - name: "Set up JDK 17"
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'adopt-openj9'
+
+    - name: "Cache BuildTools Linux"
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.m2/repository
+        key: ${{ runner.os }}-buildtools-1.8.2
+        restore-keys: |
+          ${{ runner.os }}-buildtools-1.8.2
+ 
+   # Install spigot repo
+    - name: "Run BuildTools to git clone Spigot repo"
+      uses: SpraxDev/Action-SpigotMC@v3
+      with:
+       versions: 1.18.2
+       generateSrc: false
+       generateDoc: false
+       disableJavaCheck: false
+       forceRun: false
+       threads: -1
+       buildToolProvider: SpigotMC
+
+   # Build Jar with gradle
+    - name: "Test Junit with Gradle"
+      id: gradle
+      uses: gradle/gradle-build-action@v2.1.3
+      with:
+        arguments: build
+        gradle-version: 7.4
 
 # Start plugin
   start:
     runs-on: ubuntu-latest
     needs: build
     steps:
+
     - name: "Git clone"
       uses: actions/checkout@v2
+ 
     - name: "Download JAR from job build"
       uses: actions/download-artifact@v3
       with:
         name: Output JAR
         path: build/libs/
+
     - name: "Set up JDK 17"
       uses: actions/setup-java@v2
       with:
         java-version: '17'
-        distribution: 'temurin'
+        distribution: 'adopt-openj9'
+
     - name: "Cache PaperSpigot Server"
       uses: actions/cache@v2
       with:
@@ -115,6 +147,7 @@ jobs:
         key: ${{ runner.os }}-test_server-${{ hashFiles('testServer.sh', 'updatePaper.sh', 'test_server/paperspigot.jar')}}
         restore-keys: |
           ${{ runner.os }}-test_server-
+
     - name: "Start PaperSpigot Server with plugin"
       run: ./testServer.sh
       shell: bash
@@ -123,20 +156,24 @@ jobs:
 # Push .jar to repo Release 
   push:
     runs-on: ubuntu-latest
-    needs: start
+    needs: [start, build_test]
     steps:
+
     - name: "Git clone"
       uses: actions/checkout@v2
+
     - name: "Download JAR from job build"
       uses: actions/download-artifact@v3
       with:
         name: Output JAR
         path: build/libs/
+
     - name: "Set up JDK 17"
       uses: actions/setup-java@v2
       with:
         java-version: '17'
-        distribution: 'temurin'
+        distribution: 'adopt-openj9'
+
     - name: "Install Github Cli"
       run: |
         cd .github
@@ -151,6 +188,7 @@ jobs:
 #      with:
 #        arguments: -q printVersion
 #        gradle-version: 7.4
+
     - name: "Create release"
       run: |
          gh release create v$(./gradlew --build-cache -q printVersion) build/libs/CaviarBR.jar --target main -t "Development Build" --generate-notes -p

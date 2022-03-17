@@ -1,96 +1,65 @@
 package fr.caviar.br;
 
-import java.io.File;
-
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
 
-import fr.caviar.br.config.ConfigSpigot;
+import fr.caviar.br.api.CaviarPlugin;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.nametag.Nametag;
-import fr.caviar.br.player.PlayerHandler;
 import fr.caviar.br.player.listener.PlayerLoginListener;
 import fr.caviar.br.scoreboard.Scoreboard;
-import fr.caviar.br.task.TaskManagerSpigot;
-import fr.caviar.br.task.UniversalTask;
 
-public class CaviarBR extends JavaPlugin {
+public class CaviarBR extends CaviarPlugin {
 
 	private static CaviarBR INSTANCE;
 
 	private GameManager game;
 	private CaviarCommands commands;
-	private ConfigSpigot config;
-	private PlayerHandler playerHandler;
-	private UniversalTask taskManager;
 	private Nametag nameTag;
 	private Scoreboard scoreboard;
-
-	public CaviarBR() { super(); }
-
-	protected CaviarBR(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) { super(loader, description, dataFolder, file); }
 
 	@Override
 	public void onLoad() {
 		INSTANCE = this;
+		super.onLoad();
+
 		commands = new CaviarCommands(this);
 		game = new GameManager(this);
-		taskManager = new TaskManagerSpigot(this);
-		playerHandler = new PlayerHandler();
-		config = new ConfigSpigot(this, "config.yml");
 		nameTag = new Nametag(this);
 		scoreboard = new Scoreboard(this);
 
 		sendMessage("§6%s§e (%s) est chargé.", getDescription().getName(), getDescription().getVersion());
-		super.onLoad();
 	}
 
 	@Override
 	public void onEnable() {
+		super.onEnable();
 		PluginManager pluginManager = getServer().getPluginManager();
 
 		commands.enable();
 		game.enable();
-		config.load();
 		nameTag.enable();
 		scoreboard.enable();
 
 		pluginManager.registerEvents(new PlayerLoginListener(), this);
 
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());
-		super.onEnable();
 	}
 
 	@Override
 	public void onDisable() {
+		super.onDisable();
 		commands.disable();
 		game.disable();
 
 		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
-		super.onDisable();
 	}
-	
+
 	public CaviarCommands getCommands() {
 		return commands;
 	}
 
 	public GameManager getGame() {
 		return game;
-	}
-
-	public UniversalTask getTaskManager() {
-		return taskManager;
-	}
-
-	@Override
-	public ConfigSpigot getConfig() {
-		return config;
-	}
-
-	public PlayerHandler getPlayerHandler() {
-		return playerHandler;
 	}
 
 	public Nametag getNameTag() {
@@ -103,9 +72,5 @@ public class CaviarBR extends JavaPlugin {
 
 	public static CaviarBR getInstance() {
 		return INSTANCE;
-	}
-
-	public void sendMessage(String message, Object... args) {
-		getServer().getConsoleSender().sendMessage(String.format(message, args));
 	}
 }

@@ -110,7 +110,7 @@ def getDate() {
 	return formattedDate
 }
 
-def fullVersion = version + "-" + getGitBranch() + '-' + getCheckedOutGitCommitHash() + "-" + getDate()
+def fullVersion = version + "-" + getGitBranch() + "-" + getDate() + "-" + getCheckedOutGitCommitHash()
 
 jar {
 	archiveFileName = 'CaviarBR.jar'
@@ -128,6 +128,7 @@ shadowJar {
 		include dependency("fr.mrmicky:fastboard:1.2.1")
 	}
 	relocate 'fr.mrmicky.fastboard', 'fr.caviar.br.scoreboard'
+	relocate 'dev.jorel.commandapi', 'fr.caviar.br.api.command'
 }
 
 sourceSets {
@@ -142,6 +143,7 @@ sourceSets {
 
     test {
         java {
+			srcDirs = ['src/main/java']
             srcDirs = ['src/test/java']
         }
 		resources {
@@ -170,7 +172,7 @@ processResources {
 
 task printVersion {
     doLast {
-        println project.version + "-" + getGitBranch() + "-" + getCheckedOutGitCommitHash()
+        println fullVersion
     }
 }
 

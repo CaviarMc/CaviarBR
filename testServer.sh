@@ -19,16 +19,16 @@ fi
 if [ -f "../updatePaper.sh" ]; then
 	../updatePaper.sh
 else
-	echo -e "\e[93mWARN > Script updatePaper.sh not found. You sould check manully the spigot jar at $TEST_DIR\$SPIGOT_JAR_NAME\e[0m"
+	echo -e "\e[93mWARN > Script updatePaper.sh not found. You sould check manually the spigot jar at $TEST_DIR\$SPIGOT_JAR_NAME\e[0m"
 fi
 
-if [ ! -f "plugins/CommandAPI.jar" ]; then
-	cd plugins
-	curl -LO https://github.com/JorelAli/CommandAPI/releases/latest/download/CommandAPI.jar
-	cd -
-fi
+#if [ ! -f "plugins/CommandAPI.jar" ]; then
+#	cd plugins
+#	curl -LO https://github.com/JorelAli/CommandAPI/releases/latest/download/CommandAPI.jar
+#	cd -
+#fi
 
-cp $PLUGINS_PATH plugins/
+cp ../$PLUGINS_PATH plugins/
 cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
 rm -f log.txt error.txt
 
@@ -39,7 +39,7 @@ function kill_server {
 	while [ $i -lt 60 ] && [ $status -eq 1 ]
 	do
 		sleep 1
-		grep "Timings Reset" &> /dev/null < log.txt
+		egrep -q "Done \([0-9]+\.[0-9]+s\)! For help, type \"help\"" log.txt
 		status=$?
 		(( i++ ))
 	done
@@ -58,11 +58,11 @@ else
 	while [ $JAVA_OPEN -eq 0 ]
 	do
 		echo "Wait for Java to stop ..."
-		sleep 2
+		sleep 1
 		pgrep -f paper &> /dev/null
 		JAVA_OPEN=$?
 		(( i++ ))
-		if [ "$i" -eq 30 ]; then
+		if [ "$i" -eq 60 ]; then
 			echo "ForceKill Java"
 			kill -9 $(pgrep -f paper)
 			break

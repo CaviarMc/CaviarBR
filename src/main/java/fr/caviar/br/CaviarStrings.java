@@ -103,6 +103,7 @@ public enum CaviarStrings {
 		return toString().formatted(args);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void broadcast(Object... args) {
 		Bukkit.broadcastMessage(format(args));
 	}

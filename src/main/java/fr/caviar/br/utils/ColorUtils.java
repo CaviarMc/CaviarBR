@@ -20,8 +20,8 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import fr.caviar.br.regex.MatcherPattern;
-import fr.caviar.br.regex.RegexMatcher;
+import fr.caviar.br.api.regex.MatcherPattern;
+import fr.caviar.br.api.regex.RegexMatcher;
 import net.md_5.bungee.api.ChatColor;
 
 public class ColorUtils {

@@ -4,4 +4,4 @@ version: @plugin_version@
 api-version: 1.18
 authors: [Tristiisch, SkytAsul]
 #softdepend: [EazyNick]
-softdepend: [CommandAPI, NametagEdit, WRLDPaymentsAPI]
+softdepend: [NametagEdit, WRLDPaymentsAPI]

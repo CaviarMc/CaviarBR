@@ -22,7 +22,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import com.google.common.io.ByteStreams;
 
-import fr.caviar.br.CaviarBR;
+import fr.caviar.br.api.CaviarPlugin;
 import fr.caviar.br.player.CaviarPlayerSpigot;
 import fr.caviar.br.utils.ColorUtils;
 import fr.caviar.br.utils.Utils;
@@ -58,7 +58,7 @@ public class ConfigSpigot extends YamlConfiguration {
 
 	private boolean isLoaded = false;
 	private String fileName;
-	private CaviarBR plugin;
+	private CaviarPlugin plugin;
 	private Map<String, Consumer<ConfigSpigot>> tasks = new HashMap<>();
 
 	public ConfigSpigot() {
@@ -66,10 +66,10 @@ public class ConfigSpigot extends YamlConfiguration {
 	}
 
 //	public ConfigSpigot(Plugin plugin, String filename) {
-//		this((CaviarBR) plugin, filename);
+//		this((CaviarPlugin) plugin, filename);
 //	}
 
-	public ConfigSpigot(CaviarBR plugin, String filename) {
+	public ConfigSpigot(CaviarPlugin plugin, String filename) {
 		this.plugin = plugin;
 		if (!filename.toLowerCase().endsWith(".yml"))
 			filename += ".yml";
@@ -110,7 +110,7 @@ public class ConfigSpigot extends YamlConfiguration {
 		return fileName;
 	}
 
-	public CaviarBR getPlugin() {
+	public CaviarPlugin getPlugin() {
 		return plugin;
 	}
 

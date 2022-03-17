@@ -1,9 +1,11 @@
-package fr.caviar.br.regex;
+package fr.caviar.br.api.regex;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +22,7 @@ public class MatcherPattern<T> {
 	private final String regex;
 	private Function<String, T> supplyArgumentFunction;
 	private String typeName;
-
+	
 	public static MatcherPattern<?> of(String regex) {
 		MatcherPattern<?> matcherPattern = cache.getIfPresent(regex);
 		if (matcherPattern == null) {
