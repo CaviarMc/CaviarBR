@@ -57,38 +57,55 @@ public class StatePlaying extends GameState {
 		setTreasure(null);
 	}
 	
-	private void setTreasure(Location treasure) {
-		Bukkit.getOnlinePlayers().forEach(x -> x.setCompassTarget(treasure));
-		Runnable set = treasure == null ? () -> {} : () -> treasure.getWorld()
+	public Location getTreasure() {
+		return treasure;
+	}
+	
+	public void setTreasure(Location treasure) {
+		Location oldTreasure = this.treasure;
+		this.treasure = treasure;
+		
+		if (treasure != null) {
+			Bukkit.getOnlinePlayers().forEach(x -> x.setCompassTarget(treasure));
+			
+			treasure.getWorld()
 				.getChunkAtAsync(treasure)
 				.thenAccept(chunk -> {
-					this.treasure = treasure;
-					Block treasureBlock = treasure.getBlock();
-					treasureBlock.setType(Material.BEDROCK);
-					Block buttonBlock = treasureBlock.getRelative(BlockFace.UP);
-					buttonBlock.setType(Material.CRIMSON_BUTTON, false);
-					((Switch) buttonBlock.getBlockData()).setAttachedFace(AttachedFace.FLOOR);
+					placeTreasure(treasure);
 				})
 				.exceptionally(throwable -> {
 					throwable.printStackTrace();
 					return null;
 				});
-		if (this.treasure != null) {
-			this.treasure.getWorld()
-					.getChunkAtAsync(this.treasure)
-					.thenAccept(chunk -> {
-						Block treasureBlock = this.treasure.getBlock();
-						treasureBlock.getRelative(BlockFace.UP).setType(Material.AIR);
-						treasureBlock.setType(Material.AIR);
-					})
-					.exceptionally(throwable -> {
-						throwable.printStackTrace();
-						return null;
-					})
-					.thenRun(set);
-		}else {
-			set.run();
 		}
+		
+		if (oldTreasure != null) {
+			oldTreasure.getWorld()
+				.getChunkAtAsync(oldTreasure)
+				.thenAccept(chunk -> {
+					removeTreasure(oldTreasure);
+				})
+				.exceptionally(throwable -> {
+					throwable.printStackTrace();
+					return null;
+				});
+		}
+	}
+	
+	private void placeTreasure(Location loc) {
+		Block treasureBlock = loc.getBlock();
+		treasureBlock.setType(Material.BEDROCK);
+		Block buttonBlock = treasureBlock.getRelative(BlockFace.UP);
+		buttonBlock.setType(Material.CRIMSON_BUTTON, false);
+		Switch buttonData = (Switch) buttonBlock.getBlockData();
+		buttonData.setAttachedFace(AttachedFace.FLOOR);
+		buttonBlock.setBlockData(buttonData);
+	}
+	
+	private void removeTreasure(Location loc) {
+		Block treasureBlock = loc.getBlock();
+		treasureBlock.getRelative(BlockFace.UP).setType(Material.AIR);
+		treasureBlock.setType(Material.AIR);
 	}
 	
 	private void join(Player player, GamePlayer gamePlayer) {

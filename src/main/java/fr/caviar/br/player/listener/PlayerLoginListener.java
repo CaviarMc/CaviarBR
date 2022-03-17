@@ -52,6 +52,7 @@ public class PlayerLoginListener implements Listener {
 	}
 
 	@SuppressWarnings("deprecation")
+	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		event.setQuitMessage(ColorUtils.format("&7[&c-&7] %s", player.getName()));
