@@ -21,7 +21,8 @@ import fr.caviar.br.CaviarStrings;
 
 public class StatePreparing extends GameState {
 	
-	private static final List<Material> UNWALKABLE_ON = Arrays.asList(Material.WATER, Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK);
+	private static final List<Material> UNWALKABLE_ON =
+			Arrays.asList(Material.WATER, Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS, Material.TUBE_CORAL, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.CONDUIT);
 	
 	private int task = -1;
 	private Location treasure = null;
@@ -41,6 +42,7 @@ public class StatePreparing extends GameState {
 		Random random = new Random();
 		int treasureX = random.nextInt(-1000, 1000);
 		int treasureZ = random.nextInt(-1000, 1000);
+		game.getPlugin().getLogger().info("Trying to find treasure.");
 		prepareLocation(treasureX, treasureZ, tloc -> {
 			if (!isRunning()) return;
 			
@@ -74,9 +76,9 @@ public class StatePreparing extends GameState {
 							game.setState(new StatePlaying(game, treasure));
 						}, 3, TimeUnit.SECONDS);
 					}
-				});
+				}, 0);
 			}
-		});
+		}, 0);
 	}
 	
 	@Override
@@ -86,16 +88,17 @@ public class StatePreparing extends GameState {
 		if (task != -1) game.getPlugin().getTaskManager().cancelTaskById(task);
 	}
 	
-	private void prepareLocation(int x, int z, Consumer<Location> consumer) {
-		game.getPlugin().getLogger().info("First spawnpoint on x:" + x + " z:" + z);
+	private void prepareLocation(int x, int z, Consumer<Location> consumer, int operations) {
+		game.getPlugin().getLogger().info("First location on x:" + x + " z:" + z);
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
 			int y = chunk.getWorld().getHighestBlockYAt(x, z);
 			
 			if (!isGoodBlock(chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4)))) {
-				tryChunk(chunk, consumer, false);
+				tryChunk(chunk, consumer, false, operations + 1);
 			}else {
+				game.getPlugin().getLogger().info("Success in " + (operations + 1) + " operations.");
 				consumer.accept(new Location(game.getWorld(), x, y, z));
 			}
 		}).exceptionally(throwable -> {
@@ -105,18 +108,19 @@ public class StatePreparing extends GameState {
 		});
 	}
 	
-	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged) {
+	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged, int operations) {
 		game.getPlugin().getLogger().info("Trying chunk " + chunk.toString());
 		Location location = getNicestBlock(chunk);
 		if (location == null) { // have not found good spawnpoint in this chunk
 			game.getWorld()
 				.getChunkAtAsync(chunk.getX() + (xChanged ? 0 : 1), chunk.getZ() + (xChanged ? 1 : 0))
-				.thenAccept(next -> tryChunk(next, consumer, !xChanged))
+				.thenAccept(next -> tryChunk(next, consumer, !xChanged, operations + 1))
 				.exceptionally(throwable -> {
 					throwable.printStackTrace();
 					return null;
 				});
 		}else {
+			game.getPlugin().getLogger().info("Success in " + (operations + 1) + " operations.");
 			consumer.accept(location);
 		}
 	}
@@ -136,7 +140,9 @@ public class StatePreparing extends GameState {
 	}
 	
 	private boolean isGoodBlock(Block block) {
-		return block.getY() > 60 && !UNWALKABLE_ON.contains(block.getType());
+		if (block.getY() < 60) return false;
+		if (UNWALKABLE_ON.contains(block.getType())) return false;
+		return true;
 	}
 	
 	private void setPreparing(Player player) {
@@ -148,7 +154,7 @@ public class StatePreparing extends GameState {
 		}else {
 			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_STARTING.toString();
 		}
-		player.sendTitle(CaviarStrings.STATE_PREPARING_TITLE.toString(), subtitle, 5, 999999, 0);
+		player.sendTitle(CaviarStrings.STATE_PREPARING_TITLE.toString(), subtitle, 1, 999999, 0);
 	}
 	
 	private void exitPreparing(Player player) {

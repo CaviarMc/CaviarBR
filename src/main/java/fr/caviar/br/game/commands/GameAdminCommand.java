@@ -2,6 +2,7 @@ package fr.caviar.br.game.commands;
 
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.GameManager;
@@ -33,6 +34,12 @@ public class GameAdminCommand {
 						.executes((CommandExecutor) (sender, args) -> askConfimration(StatePlaying.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::forceStart)))
+				.withSubcommand(new CommandAPICommand("treasure")
+						.withSubcommand(new CommandAPICommand("set")
+								.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
+								.executes((CommandExecutor) this::setTreasure))
+						.withSubcommand(new CommandAPICommand("teleport")
+								.executesPlayer(this::teleportTreasure)))
 				;
 		
 		game.getPlugin().getCommands().registerCommand(command);
@@ -52,6 +59,15 @@ public class GameAdminCommand {
 				targetState.getClass().getSimpleName());
 	}
 	
+	private <T extends GameState> T testGameState(Class<T> targetState, CommandSender sender) {
+		if (targetState.isInstance(game.getState())) return targetState.cast(game.getState());
+		CaviarStrings.COMMAND_GAMEADMIN_NOTSTATE.send(
+				sender,
+				game.getState().getClass().getSimpleName(),
+				targetState.getSimpleName());
+		return null;
+	}
+	
 	private void reset(CommandSender sender, Object[] args) {
 		game.setState(new StateWait(game));
 		CaviarStrings.COMMAND_GAMEADMIN_RESET.broadcast();
@@ -65,6 +81,31 @@ public class GameAdminCommand {
 	private void forceStart(CommandSender sender, Object[] args) {
 		game.setState(new StatePlaying(game, (Location) args[0]));
 		CaviarStrings.COMMAND_GAMEADMIN_FORCESTARTED.send(sender);
+	}
+	
+	private void setTreasure(CommandSender sender, Object[] args) {
+		setTreasure(sender, (Location) args[0]);
+	}
+	
+	private void setTreasure(CommandSender sender, Location location) {
+		if (location == null) {
+			CaviarStrings.PREFIX_ERROR.sendWith(sender, "no location");
+			return;
+		}
+		
+		StatePlaying state = testGameState(StatePlaying.class, sender);
+		if (state == null) return;
+		
+		state.setTreasure(location);
+		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_EDITED.send(sender);
+	}
+	
+	private void teleportTreasure(Player player, Object[] args) {
+		StatePlaying state = testGameState(StatePlaying.class, player);
+		if (state == null) return;
+		
+		player.teleport(state.getTreasure());
+		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED.send(player);
 	}
 	
 }

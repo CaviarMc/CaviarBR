@@ -13,10 +13,10 @@ import dev.jorel.commandapi.arguments.IntegerArgument;
 
 public class GameSettings {
 	
-	private final GameSettingInt minPlayers = new GameSettingInt(1, "minPlayers", 1);
+	private final GameSettingInt minPlayers = new GameSettingInt(2, "minPlayers", 1);
 	private final GameSettingInt maxPlayers = new GameSettingInt(10, "maxPlayers", 1);
 	
-	private final GameSettingInt waitingTimeLong = new GameSettingInt(4, "waitingTimeLong", 0);
+	private final GameSettingInt waitingTimeLong = new GameSettingInt(7, "waitingTimeLong", 0);
 	private final GameSettingInt waitingTimeShort = new GameSettingInt(10, "waitingTimeShort", 0);
 	
 	private final GameSettingInt playersRadius = new GameSettingInt(450, "playersRadius", 10);
