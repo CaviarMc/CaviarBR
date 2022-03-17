@@ -41,7 +41,7 @@ jobs:
 
     - name: "Run BuildTools repo"
       uses: SpraxDev/Action-SpigotMC@v3
-      if: matrix.os == 'ubuntu-latest'
+#      if: matrix.os == 'ubuntu-latest'
       with:
        versions: 1.18.2
        generateSrc: false
