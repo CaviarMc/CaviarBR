@@ -34,14 +34,14 @@ jobs:
       id: buildtools_cache
       with:
         path: |
-          $HOME/.m2/repository
-        key: ${{ runner.os }}-buildtools-1.8.2
+          ~/.m2/repository
+        key: ${{ runner.os }}-buildtools_1.8.2
         restore-keys: |
-          ${{ runner.os }}-buildtools-1.8.2
+          ${{ runner.os }}-buildtools_1.8.2
 
-    - name: "Run BuildTools repo Linux"
+    - name: "Run BuildTools repo"
       uses: SpraxDev/Action-SpigotMC@v3
-      if: matrix.os == 'ubuntu-latest'
+#      if: matrix.os == 'ubuntu-latest'
       with:
        versions: 1.18.2
        generateSrc: false
@@ -51,11 +51,11 @@ jobs:
        threads: -1
        buildToolProvider: SpigotMC
  
-    - name: "Run BuildTools repo Windows"
-      if: matrix.os == 'windows-latest' && steps.buildtools_cache.outputs.cache-hit != 'true'
-      run: |
-        curl -O https://hub.spigotmc.org/jenkins/job/BuildTools/lastStableBuild/artifact/target/BuildTools.jar
-        java -jar BuildTools.jar --rev 1.18.2
+#    - name: "Run BuildTools repo Windows"
+#      if: matrix.os == 'windows-latest' && steps.buildtools_cache.outputs.cache-hit != 'true'
+#      run: |
+#        curl -O https://hub.spigotmc.org/jenkins/job/BuildTools/lastStableBuild/artifact/target/BuildTools.jar
+#        java -jar BuildTools.jar --rev 1.18.2
 
    # Build Jar with gradle
     - name: "Build with Gradle"

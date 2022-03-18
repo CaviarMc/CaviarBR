@@ -36,7 +36,6 @@ public class PlayerLoginListener implements Listener {
 		CaviarPlayerSpigot uPlayer =  playerHandler.getObjectCached(player.getUniqueId());
 		if (uPlayer == null)
 			uPlayer = playerHandler.createPlayer(player);
-		main.getNameTag().updatePlayer(player);
 	}
 
 	@SuppressWarnings("deprecation")
