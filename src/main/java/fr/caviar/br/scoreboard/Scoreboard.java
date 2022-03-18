@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -20,13 +21,22 @@ public class Scoreboard implements Listener {
 	public Scoreboard(Plugin plugin) {
 		this.plugin = plugin;
 	}
-
+	
 	public void enable() {
-		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 		isEnabled = true;
 		testIt();
-		if (isEnabled)
-			plugin.getServer().getOnlinePlayers().forEach(p -> create(p));
+		if (!isEnabled)
+			return;
+		plugin.getServer().getPluginManager().registerEvents(this, plugin);
+		plugin.getServer().getOnlinePlayers().forEach(p -> create(p));
+	}
+
+	public void disable() {
+		if (!isEnabled)
+			return;
+		HandlerList.unregisterAll(this);
+		plugin.getServer().getOnlinePlayers().forEach(p -> delete(p));
+		isEnabled = false;
 	}
 	
 	public void testIt() {
@@ -42,7 +52,7 @@ public class Scoreboard implements Listener {
 			isEnabled = false;
 		}
 	}
-
+	
 	public void create(Player player) {
 		FastBoard board = new FastBoard(player);
 		board.updateTitle(ChatColor.AQUA + "CaviarBR");
@@ -50,7 +60,12 @@ public class Scoreboard implements Listener {
 				ChatColor.GREEN + "Hello world",
 				"",
 				ChatColor.RED + "eu.caviar.com"
-		);
+				);
+	}
+
+	public void delete(Player player) {
+		FastBoard board = new FastBoard(player);
+		board.delete();
 	}
 
 	@EventHandler

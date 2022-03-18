@@ -50,6 +50,8 @@ public class CaviarBR extends CaviarPlugin {
 		super.onDisable();
 		commands.disable();
 		game.disable();
+		scoreboard.disable();
+		nameTag.disable();
 
 		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
 	}
