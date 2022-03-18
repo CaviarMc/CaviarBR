@@ -32,6 +32,14 @@ public enum CaviarStrings {
 			Style.style(NamedTextColor.RED),
 			PREFIX),
 	
+	FORMAT_BARS(
+			"""
+					
+				<dark_purple>==========-====-==========-====</dark_purple>
+				   {0}
+				<dark_purple>==========-====-==========-====</dark_purple>
+				"""),
+	
 	STATE_WAIT_COUNTDOWN(
 			"Game is starting in <green>{0}</green> seconds.",
 			PREFIX_NEUTRAL),
@@ -63,8 +71,12 @@ public enum CaviarStrings {
 	STATE_WIN(
 			"<light_purple>{0}</light_purple> won the game! Congratulations!"),
 	
+	GAME_SHUTDOWN(
+			"<bold>The game is now shutting down. Thank you for playing!",
+			PREFIX_NEUTRAL),
+	
 	ITEM_COMPASS_NAME(
-			"<yello>Treasure Compass"),
+			"<yellow>Treasure Compass"),
 	
 	COMMAND_SETTING_SET(
 			"Setting {0} has changed from <dark_green>{1}</dark_green> to <dark_green>{2}</dark_green>.",
@@ -88,12 +100,37 @@ public enum CaviarStrings {
 	COMMAND_GAMEADMIN_FORCESTARTED(
 			"You have forced the start of the game.",
 			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_FINISHED(
+			"You have finished the game with <dark_green>{0}</dark_green> as a winner.",
+			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_TREASURE_EDITED(
 			"Edited treasure location.",
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_TREASURE_TELEPORTED(
 			"You have been teleported to the treasure.",
 			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_COMPASS_GIVEN(
+			"You have gave a compass to <dark_green>{0}</dark_green>.",
+			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM(
+			"Are you sure you want to shutdown the server? All players will get disconnected, and the world will be reset. Put \"confirm\" at the end of your command.",
+			PREFIX_WARNING),
+	COMMAND_GAMEADMIN_SHUTDOWN_DONE(
+			"Server shutdown initiated.",
+			PREFIX_GOOD),
+	
+	LOGIN_SCREEN_PREFIX(
+			"<bold><blue>Caviar<aqua>BR</bold>\n\n",
+			Style.style(NamedTextColor.GRAY)),
+	LOGIN_SCREEN_FINISHED(
+			"The game has ended! Thanks for playing!",
+			LOGIN_SCREEN_PREFIX),
+	LOGIN_SCREEN_FINISHED_KICK(
+			"The game is finished.",
+			LOGIN_SCREEN_PREFIX),
+	LOGIN_SCREEN_STARTED_KICK(
+			"The game has already started.",
+			LOGIN_SCREEN_PREFIX),
 	
 	;
 	

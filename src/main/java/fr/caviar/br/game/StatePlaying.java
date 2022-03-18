@@ -1,5 +1,7 @@
 package fr.caviar.br.game;
 
+import java.util.Iterator;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,6 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -108,6 +113,10 @@ public class StatePlaying extends GameState {
 		treasureBlock.setType(Material.AIR);
 	}
 	
+	public ItemStack[] getCompass() {
+		return compass;
+	}
+
 	private void join(Player player, GamePlayer gamePlayer) {
 		if (!gamePlayer.started) {
 			gamePlayer.started = true;
@@ -118,7 +127,7 @@ public class StatePlaying extends GameState {
 				gamePlayer.spawnLocation.getChunk().removePluginChunkTicket(game.getPlugin());
 			}
 			
-			player.getInventory().setContents(compass);
+			player.getInventory().setContents(getCompass());
 		}
 		player.setCompassTarget(treasure);
 	}
@@ -141,6 +150,29 @@ public class StatePlaying extends GameState {
 			event.setCancelled(true);
 			CaviarStrings.STATE_PLAYING_BREAK_TREASURE.send(event.getPlayer());
 		}
+	}
+	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event) {
+		for (Iterator<ItemStack> iterator = event.getDrops().iterator(); iterator.hasNext();) {
+			ItemStack item = iterator.next();
+			if (item.getType() == Material.COMPASS) {
+				iterator.remove();
+				event.getItemsToKeep().add(item);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onDrop(PlayerDropItemEvent event) {
+		if (event.getItemDrop().getItemStack().getType() == Material.COMPASS)
+			event.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onCraft(CraftItemEvent event) {
+		if (event.getRecipe().getResult().getType() == Material.COMPASS)
+			event.setCancelled(true);
 	}
 	
 	@Override

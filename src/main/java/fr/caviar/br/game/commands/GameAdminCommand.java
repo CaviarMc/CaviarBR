@@ -10,12 +10,14 @@ import fr.caviar.br.game.GameState;
 import fr.caviar.br.game.StatePlaying;
 import fr.caviar.br.game.StatePreparing;
 import fr.caviar.br.game.StateWait;
+import fr.caviar.br.game.StateWin;
 
 import net.kyori.adventure.text.Component;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.LocationArgument;
 import dev.jorel.commandapi.arguments.LocationType;
+import dev.jorel.commandapi.arguments.PlayerArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 
 public class GameAdminCommand {
@@ -29,19 +31,43 @@ public class GameAdminCommand {
 		command = new CommandAPICommand("gameadmin")
 				.withAliases("game")
 				.withPermission("caviarbr.command.gameadmin")
+				
 				.withSubcommand(stateCommand("reset", StateWait.class, this::reset))
+				
 				.withSubcommand(stateCommand("start", StatePreparing.class, this::start))
+				
 				.withSubcommand(new CommandAPICommand("forceStart")
 						.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
 						.executes((CommandExecutor) (sender, args) -> askConfimration(StatePlaying.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::forceStart)))
+				
+				.withSubcommand(new CommandAPICommand("finish")
+						.withArguments(new PlayerArgument("winner"))
+						.executes((CommandExecutor) (sender, args) -> askConfimration(StateWin.class, sender))
+						.withSubcommand(new CommandAPICommand("confirm")
+								.executes(this::finish)))
+				.withSubcommand(new CommandAPICommand("finish")
+						.executes((CommandExecutor) (sender, args) -> askConfimration(StateWin.class, sender))
+						.withSubcommand(new CommandAPICommand("confirm")
+								.executes(this::finish)))
+				
 				.withSubcommand(new CommandAPICommand("treasure")
 						.withSubcommand(new CommandAPICommand("set")
 								.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
 								.executes((CommandExecutor) this::setTreasure))
 						.withSubcommand(new CommandAPICommand("teleport")
-								.executesPlayer(this::teleportTreasure)))
+								.executesPlayer(this::teleportTreasure))
+						.withSubcommand(new CommandAPICommand("giveCompass")
+								.executes(this::giveCompass))
+						)
+				
+				.withSubcommand(new CommandAPICommand("shutdown")
+						.executes((CommandExecutor) (sender, args) -> CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM.send(sender))
+						.withSubcommand(new CommandAPICommand("confirm")
+								.executes(this::shutdown))
+						)
+				
 				;
 		
 		game.getPlugin().getCommands().registerCommand(command);
@@ -85,6 +111,12 @@ public class GameAdminCommand {
 		CaviarStrings.COMMAND_GAMEADMIN_FORCESTARTED.send(sender);
 	}
 	
+	private void finish(CommandSender sender, Object[] args) {
+		Player winnerPlayer = args.length == 1 ? (Player) args[0] : null;
+		game.setState(new StateWin(game, winnerPlayer == null ? null : game.getPlayers().get(winnerPlayer.getUniqueId())));
+		CaviarStrings.COMMAND_GAMEADMIN_FINISHED.send(sender, winnerPlayer == null ? "x" : winnerPlayer.getName());
+	}
+	
 	private void setTreasure(CommandSender sender, Object[] args) {
 		setTreasure(sender, (Location) args[0]);
 	}
@@ -108,6 +140,20 @@ public class GameAdminCommand {
 		
 		player.teleport(state.getTreasure());
 		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED.send(player);
+	}
+	
+	private void giveCompass(CommandSender sender, Object[] args) {
+		StatePlaying state = testGameState(StatePlaying.class, sender);
+		if (state == null) return;
+		
+		Player target = (Player) args[0];
+		target.getInventory().addItem(state.getCompass());
+		CaviarStrings.COMMAND_GAMEADMIN_COMPASS_GIVEN.send(sender, target.getName());
+	}
+	
+	private void shutdown(CommandSender sender, Object[] args) {
+		game.shutdown();
+		CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_DONE.send(sender);
 	}
 	
 }

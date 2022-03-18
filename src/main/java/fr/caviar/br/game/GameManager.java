@@ -1,13 +1,22 @@
 package fr.caviar.br.game;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.commands.GameAdminCommand;
 import fr.caviar.br.game.commands.SettingsCommand;
 
@@ -49,7 +58,7 @@ public class GameManager {
 	public void setState(GameState state) {
 		if (this.state != null) this.state.end();
 		this.state = state;
-		state.start();
+		if (state != null) state.start();
 	}
 	
 	public void enable() {
@@ -64,6 +73,31 @@ public class GameManager {
 			state.end();
 			state = null;
 		}
+	}
+	
+	public void shutdown() {
+		setState(null);
+		CaviarStrings.GAME_SHUTDOWN.broadcast();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			File worldFile = new File("world");
+			try (Stream<Path> stream = Files.walk(worldFile.toPath())) {
+				AtomicInteger deleted = new AtomicInteger();
+				stream
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.filter(file -> !file.getName().equals("caviarbr_datapack.zip") &&!file.getName().equals("datapacks"))
+					.filter(file -> !file.equals(worldFile))
+					.forEach(file -> {
+						file.delete();
+						deleted.incrementAndGet();
+					});
+				System.out.println("World folder has been erased. " + deleted + " files deleted.");
+			}catch (IOException e) {
+				e.printStackTrace();
+			}
+		}, "World reset"));
+		new ArrayList<>(Bukkit.getOnlinePlayers()).forEach(p -> p.kick(CaviarStrings.LOGIN_SCREEN_FINISHED.toComponent()));
+		Bukkit.shutdown();
 	}
 	
 }

@@ -16,7 +16,8 @@ public class CaviarCommands {
 	
 	public CaviarCommands(Plugin plugin) {
 		this.plugin = plugin;
-		CommandAPI.onLoad(new CommandAPIConfig());
+		CommandAPI.onLoad(new CommandAPIConfig()
+				.missingExecutorImplementationMessage("This command cannot be ran by %S."));
 	}
 	
 	public void registerCommand(CommandAPICommand command) {

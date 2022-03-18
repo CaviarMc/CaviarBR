@@ -5,12 +5,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,8 +27,11 @@ import net.kyori.adventure.title.Title.Times;
 
 public class StatePreparing extends GameState {
 	
-	private static final List<Material> UNWALKABLE_ON =
-			Arrays.asList(Material.WATER, Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS, Material.TUBE_CORAL, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.CONDUIT);
+	private static final List<Material> UNSPAWNABLE_ON = Arrays.asList(
+			Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK, // because they deal damage
+			Material.WATER, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS, Material.TUBE_CORAL, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.CONDUIT, // because it's in water
+			Material.ICE, Material.FROSTED_ICE, Material.BLUE_ICE // because it means on a frozen river
+	);
 	
 	private int task = -1;
 	private Location treasure = null;
@@ -80,9 +85,9 @@ public class StatePreparing extends GameState {
 							game.setState(new StatePlaying(game, treasure));
 						}, 3, TimeUnit.SECONDS);
 					}
-				}, 0);
+				}, new AtomicInteger(1), 1);
 			}
-		}, 0);
+		}, new AtomicInteger(1), 1);
 	}
 	
 	@Override
@@ -92,16 +97,16 @@ public class StatePreparing extends GameState {
 		if (task != -1) game.getPlugin().getTaskManager().cancelTaskById(task);
 	}
 	
-	private void prepareLocation(int x, int z, Consumer<Location> consumer, int operations) {
+	private void prepareLocation(int x, int z, Consumer<Location> consumer, AtomicInteger operations, int chunks) {
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
 			int y = chunk.getWorld().getHighestBlockYAt(x, z);
 			
 			if (!isGoodBlock(chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4)))) {
-				tryChunk(chunk, consumer, false, operations + 1);
+				tryChunk(chunk, consumer, false, operations, chunks);
 			}else {
-				game.getPlugin().getLogger().info("Success in " + (operations + 1) + " operations.");
+				game.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
 				consumer.accept(new Location(game.getWorld(), x, y, z));
 			}
 		}).exceptionally(throwable -> {
@@ -111,26 +116,26 @@ public class StatePreparing extends GameState {
 		});
 	}
 	
-	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged, int operations) {
-		game.getPlugin().getLogger().info("Trying chunk " + chunk.toString());
-		Location location = getNicestBlock(chunk);
+	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged, AtomicInteger operations, int chunks) {
+		Location location = getNicestBlock(chunk, operations);
 		if (location == null) { // have not found good spawnpoint in this chunk
 			game.getWorld()
 				.getChunkAtAsync(chunk.getX() + (xChanged ? 0 : 1), chunk.getZ() + (xChanged ? 1 : 0))
-				.thenAccept(next -> tryChunk(next, consumer, !xChanged, operations + 1))
+				.thenAccept(next -> tryChunk(next, consumer, !xChanged, operations, chunks + 1))
 				.exceptionally(throwable -> {
 					throwable.printStackTrace();
 					return null;
 				});
 		}else {
-			game.getPlugin().getLogger().info("Success in " + (operations + 1) + " operations.");
+			game.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
 			consumer.accept(location);
 		}
 	}
 	
-	private Location getNicestBlock(Chunk chunk) {
+	private Location getNicestBlock(Chunk chunk, AtomicInteger operations) {
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
+				operations.incrementAndGet();
 				int globalX = (chunk.getX() << 4) + x;
 				int globalZ = (chunk.getZ() << 4) + z;
 				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
@@ -144,7 +149,9 @@ public class StatePreparing extends GameState {
 	
 	private boolean isGoodBlock(Block block) {
 		if (block.getY() < 60) return false;
-		if (UNWALKABLE_ON.contains(block.getType())) return false;
+		Material blockType = block.getType();
+		if (UNSPAWNABLE_ON.contains(blockType)) return false;
+		if (Tag.LEAVES.isTagged(blockType)) return false;
 		return true;
 	}
 	

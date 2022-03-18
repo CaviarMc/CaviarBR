@@ -21,13 +21,15 @@ public class GameSettings {
 	
 	private final GameSettingInt playersRadius = new GameSettingInt(450, "playersRadius", 10);
 	
+	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 0);
+	
 	private final GameManager game;
 	
 	private List<GameSetting> settings;
 	
 	public GameSettings(@NotNull GameManager game) {
 		this.game = game;
-		this.settings = Arrays.asList(minPlayers, maxPlayers, waitingTimeLong, waitingTimeShort, playersRadius);
+		this.settings = Arrays.asList(minPlayers, maxPlayers, waitingTimeLong, waitingTimeShort, playersRadius, endingDuration);
 		maxPlayers.observe("update_bukkit", () -> Bukkit.setMaxPlayers(maxPlayers.get()));
 	}
 	
@@ -57,6 +59,10 @@ public class GameSettings {
 	
 	public GameSettingInt getPlayersRadius() {
 		return playersRadius;
+	}
+	
+	public GameSettingInt getEndingDuration() {
+		return endingDuration;
 	}
 	
 	public abstract class GameSetting<T> extends AbstractObservable {

@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.player.CaviarPlayerSpigot;
 
 public abstract class GameState implements Listener {
@@ -47,7 +48,7 @@ public abstract class GameState implements Listener {
 	
 	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
 		if (player == null) { // disallows players who have never connected
-			event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "§cYou cannot join the game yet.");
+			event.disallow(PlayerLoginEvent.Result.KICK_OTHER, CaviarStrings.LOGIN_SCREEN_STARTED_KICK.toComponent());
 		}
 	}
 	
