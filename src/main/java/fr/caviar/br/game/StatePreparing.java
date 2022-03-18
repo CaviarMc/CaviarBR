@@ -1,5 +1,6 @@
 package fr.caviar.br.game;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -18,6 +19,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import fr.caviar.br.CaviarStrings;
+
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.Title.Times;
 
 public class StatePreparing extends GameState {
 	
@@ -89,7 +93,6 @@ public class StatePreparing extends GameState {
 	}
 	
 	private void prepareLocation(int x, int z, Consumer<Location> consumer, int operations) {
-		game.getPlugin().getLogger().info("First location on x:" + x + " z:" + z);
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
@@ -146,15 +149,15 @@ public class StatePreparing extends GameState {
 	}
 	
 	private void setPreparing(Player player) {
-		String subtitle;
+		CaviarStrings subtitle;
 		if (treasure == null) {
-			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_TREASURE.toString();
+			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_TREASURE;
 		}else if (!foundSpawnpoints) {
-			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_SPAWNPOINTS.toString();
+			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_SPAWNPOINTS;
 		}else {
-			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_STARTING.toString();
+			subtitle = CaviarStrings.STATE_PREPARING_SUBTITLE_STARTING;
 		}
-		player.sendTitle(CaviarStrings.STATE_PREPARING_TITLE.toString(), subtitle, 1, 999999, 0);
+		player.showTitle(Title.title(CaviarStrings.STATE_PREPARING_TITLE.toComponent(), subtitle.toComponent(), Times.times(Duration.ZERO, Duration.ofSeconds(99999), Duration.ZERO)));
 	}
 	
 	private void exitPreparing(Player player) {

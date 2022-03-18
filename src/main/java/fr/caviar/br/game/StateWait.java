@@ -36,6 +36,7 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getWaitingTimeShort().observe(OBSERVER_KEY, observer);
 		
 		updatePlayers(Bukkit.getOnlinePlayers().size());
+		if (left == -1) CaviarStrings.STATE_WAIT_CANCEL.broadcast();
 	}
 	
 	@Override

@@ -71,6 +71,7 @@ public class GameSettings {
 		
 		public void set(T value) {
 			this.value = value;
+			update();
 		}
 		
 		public T get() {

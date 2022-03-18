@@ -11,6 +11,8 @@ import fr.caviar.br.game.StatePlaying;
 import fr.caviar.br.game.StatePreparing;
 import fr.caviar.br.game.StateWait;
 
+import net.kyori.adventure.text.Component;
+
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.LocationArgument;
 import dev.jorel.commandapi.arguments.LocationType;
@@ -89,7 +91,7 @@ public class GameAdminCommand {
 	
 	private void setTreasure(CommandSender sender, Location location) {
 		if (location == null) {
-			CaviarStrings.PREFIX_ERROR.sendWith(sender, "no location");
+			CaviarStrings.PREFIX_ERROR.sendWith(sender, Component.text("no location"));
 			return;
 		}
 		
