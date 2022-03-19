@@ -3,6 +3,7 @@ package fr.caviar.br;
 import org.bukkit.plugin.PluginManager;
 
 import fr.caviar.br.api.CaviarPlugin;
+import fr.caviar.br.commands.ConfigCommand;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.nametag.Nametag;
 import fr.caviar.br.player.listener.PlayerLoginListener;
@@ -35,19 +36,22 @@ public class CaviarBR extends CaviarPlugin {
 		super.onEnable();
 		PluginManager pluginManager = getServer().getPluginManager();
 
+		pluginManager.registerEvents(new PlayerLoginListener(), this);
 		commands.enable();
 		game.enable();
 		nameTag.enable();
 		scoreboard.enable();
+		new ConfigCommand(this);
 
-		pluginManager.registerEvents(new PlayerLoginListener(), this);
 
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());
 	}
 
 	@Override
 	public void onDisable() {
+		// Note: Configs is not unload
 		super.onDisable();
+		// Note: Configs is already unload
 		commands.disable();
 		game.disable();
 		scoreboard.disable();

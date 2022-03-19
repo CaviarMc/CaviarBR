@@ -1,21 +1,25 @@
 package fr.caviar.br.nametag;
 
+import java.util.logging.Level;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.nametagedit.plugin.NametagEdit;
 import com.nametagedit.plugin.api.INametagApi;
 
+import fr.caviar.br.CaviarBR;
+import fr.caviar.br.api.CaviarPlugin;
+
 public class Nametag implements Listener {
-	
-	private final Plugin plugin;
+
+	private final CaviarPlugin plugin;
 	private boolean isEnabled = false;
 
-	public Nametag(Plugin plugin) {
+	public Nametag(CaviarPlugin plugin) {
 		this.plugin = plugin;
 	}
 	
@@ -24,7 +28,7 @@ public class Nametag implements Listener {
 		if (!isEnabled)
 			return;
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
-		plugin.getServer().getOnlinePlayers().forEach(p -> updatePlayer(p));
+		plugin.getConfig().addLoadTask("nametag_update", config -> plugin.getServer().getOnlinePlayers().forEach(p -> updatePlayer(p)));
 	}
 	
 	public void disable() {
@@ -39,7 +43,16 @@ public class Nametag implements Listener {
 		if (!isEnabled)
 			return;
 		INametagApi api = NametagEdit.getApi();
-		if (player.hasPermission("caviar.admin.prefix"))
+		
+		if (player.isOp()) {
+			CaviarBR.getInstance().getPlayerHandler().get(player.getUniqueId(), (cPlayer, e) -> {
+				if (e != null) {
+					e.printStackTrace();
+				} else if (cPlayer.getGroup() != null)
+					api.setPrefix(player, "&dGroup: " + cPlayer.getGroup().toUpperCase() + " ");
+				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Update nameTag : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
+			});
+		} else if (player.hasPermission("caviar.admin.prefix"))
 			api.setPrefix(player, "&cADMIN ");
 		else if (player.hasPermission("caviar.mod.prefix"))
 			api.setPrefix(player, "&cMOD ");
@@ -55,7 +68,7 @@ public class Nametag implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerLogin(PlayerLoginEvent event) {
+	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		this.updatePlayer(player);
 	}

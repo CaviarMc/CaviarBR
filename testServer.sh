@@ -36,10 +36,10 @@ function kill_server {
 	i=1
 	status=1
 
-	while [ $i -lt 60 ] && [ $status -eq 1 ]
+	while [ $i -lt 300 ] && [ $status -eq 1 ]
 	do
 		sleep 1
-		egrep -q "Done \([0-9]+\.[0-9]+s\)! For help, type \"help\"" log.txt
+		grep -E -q "Done \([0-9]+\.[0-9]+s\)! For help, type \"help\"" log.txt
 		status=$?
 		(( i++ ))
 	done
@@ -52,7 +52,7 @@ if [ "$1" = "stay" ]; then
 else
 	kill_server & java -jar $SPIGOT_JAR_NAME | tee log.txt
 
-	# Wait 60 secondes before force shutdown
+	# Wait 5 mins before force shutdown
 	JAVA_OPEN=0
 	i=0
 	while [ $JAVA_OPEN -eq 0 ]
@@ -62,7 +62,7 @@ else
 		pgrep -f paper &> /dev/null
 		JAVA_OPEN=$?
 		(( i++ ))
-		if [ "$i" -eq 60 ]; then
+		if [ "$i" -eq 300 ]; then
 			echo "ForceKill Java"
 			kill -9 $(pgrep -f paper)
 			break

@@ -3,12 +3,17 @@ package fr.caviar.br.player;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 
+import javax.annotation.Nullable;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.api.CaviarPlugin;
+import fr.caviar.br.api.config.ConfigSpigot;
 import fr.caviar.br.cache.BasicCache;
-import fr.caviar.br.config.ConfigSpigot;
 
 public class PlayerHandler extends BasicCache<UUID, CaviarPlayerSpigot> {
 
@@ -16,25 +21,40 @@ public class PlayerHandler extends BasicCache<UUID, CaviarPlayerSpigot> {
 
 	private static void loadPlayer(UUID uuid, BiConsumer<CaviarPlayerSpigot, Exception> result) {
 		ConfigSpigot config = CaviarBR.getInstance().getConfig();
+		@Nullable
 		CaviarPlayerSpigot uPlayer = config.getPlayer(uuid);
 
 		result.accept(uPlayer, null);
-		INSTANCE.put(uuid, uPlayer);
+		if (uPlayer != null)
+			INSTANCE.put(uuid, uPlayer);
 		// TODO load from db
 	}
 
-	public PlayerHandler() {
+	private CaviarPlugin plugin;
+
+	public PlayerHandler(CaviarPlugin caviarPlugin) {
 		super(PlayerHandler::loadPlayer, 1, TimeUnit.HOURS);
+		this.plugin = caviarPlugin;
 		INSTANCE = this;
+
+		// Usless
+		/*plugin.getConfig().addLoadTask("player_data", config ->
+			Bukkit.getOnlinePlayers().forEach(p -> {
+				if (this.getObjectCached(p.getUniqueId()) != null)
+					return;
+				this.get(p.getUniqueId(), (cPlayer, exception) -> {
+					CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Succes load player from reload Config : name = %s uuid = %s group = %s",
+							cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
+				});
+			})
+		);*/
 	}
 
 	public CaviarPlayerSpigot createPlayer(Player player) {
-		ConfigSpigot config = CaviarBR.getInstance().getConfig();
 		CaviarPlayerSpigot uPlayer = new CaviarPlayerSpigot(player);
 
+		savePlayer(uPlayer);
 		put(player.getUniqueId(), uPlayer);
-		config.setPlayer(uPlayer);
-		config.save();
 
 		return uPlayer;
 	}

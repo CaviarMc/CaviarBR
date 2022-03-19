@@ -1,4 +1,4 @@
-package fr.caviar.br.config;
+package fr.caviar.br.api.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,11 +8,14 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+
+import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,9 +37,15 @@ public class ConfigSpigot extends YamlConfiguration {
 	public static List<ConfigSpigot> getConfigs() {
 		return configs;
 	}
-
+	
 	public static ConfigSpigot getConfig(String name) {
 		return configs.stream().filter(c -> c.getName().equals(name)).findFirst().orElse(configs.stream().filter(c -> c.fileName.equals(name)).findFirst().orElse(null));
+	}
+
+	public static void unloadAll() {
+		for (Iterator<ConfigSpigot> it = configs.iterator(); it.hasNext();) {
+			it.next().unload();
+		}
 	}
 
 	{
@@ -57,9 +66,11 @@ public class ConfigSpigot extends YamlConfiguration {
 	private File configFile;
 
 	private boolean isLoaded = false;
+	private boolean saveOnUnload = false;
 	private String fileName;
 	private CaviarPlugin plugin;
-	private Map<String, Consumer<ConfigSpigot>> tasks = new HashMap<>();
+	private Map<String, Consumer<ConfigSpigot>> loadTasks = new HashMap<>();
+	//private Map<String, Consumer<ConfigSpigot>> unloadTasks = new HashMap<>();
 
 	public ConfigSpigot() {
 		super();
@@ -69,8 +80,9 @@ public class ConfigSpigot extends YamlConfiguration {
 //		this((CaviarPlugin) plugin, filename);
 //	}
 
-	public ConfigSpigot(CaviarPlugin plugin, String filename) {
+	public ConfigSpigot(CaviarPlugin plugin, String filename, boolean saveOnUnload) {
 		this.plugin = plugin;
+		this.saveOnUnload = saveOnUnload;
 		if (!filename.toLowerCase().endsWith(".yml"))
 			filename += ".yml";
 		fileName = filename;
@@ -78,18 +90,31 @@ public class ConfigSpigot extends YamlConfiguration {
 		configs.add(this);
 	}
 
-	public boolean removeTask(String name) {
-		return tasks.remove(name) != null;
+	public boolean removeLoadTask(String name) {
+		return loadTasks.remove(name) != null;
 	}
-
-	public boolean addTask(String name, Consumer<ConfigSpigot> consumer) {
+	
+	public boolean addLoadTask(String name, Consumer<ConfigSpigot> consumer) {
 		if (isLoaded)
 			consumer.accept(this);
-		boolean isTaskDidntExist = tasks.put(name, consumer) == null;
+		boolean isTaskDidntExist = loadTasks.put(name, consumer) == null;
 		if (!isTaskDidntExist)
-			new IllegalAccessError("Config Task " + name + " already exist. It was replaced but this won't be happened").printStackTrace();
+			new IllegalAccessError("Config load task " + name + " already exist. It was replaced but this won't be happened").printStackTrace();
 		return isTaskDidntExist;
 	}
+
+	/*public boolean removeUnLoadTask(String name) {
+		return loadTasks.remove(name) != null;
+	}
+	
+	public boolean addUnLoadTask(String name, Consumer<ConfigSpigot> consumer) {
+		if (isLoaded)
+			consumer.accept(this);
+		boolean isTaskDidntExist = unloadTasks.put(name, consumer) == null;
+		if (!isTaskDidntExist)
+			new IllegalAccessError("Config unload task " + name + " already exist. It was replaced but this won't be happened").printStackTrace();
+		return isTaskDidntExist;
+	}*/
 
 	public boolean eraseFile() {
 		try {
@@ -128,11 +153,14 @@ public class ConfigSpigot extends YamlConfiguration {
 	}
 
 	public void reload() throws IOException, InvalidConfigurationException {
+		saveOnUnload = false;
 		loadUnSafe();
 //		plugin.getTaskManager().runTaskAsynchronously(() -> plugin.getServer().getPluginManager().callEvent(new SpigotConfigReloadEvent(this)));
 	}
 
 	public void loadUnSafe() throws IOException, InvalidConfigurationException {
+		if (isLoaded)
+			unload();
 		File folder = configFile.getParentFile();
 		if (!folder.exists())
 			folder.mkdirs();
@@ -164,7 +192,7 @@ public class ConfigSpigot extends YamlConfiguration {
 			}
 		}
 		isLoaded = true;
-		tasks.values().forEach(task -> task.accept(this));
+		loadTasks.values().forEach(task -> task.accept(this));
 	}
 
 	public void load() {
@@ -176,9 +204,17 @@ public class ConfigSpigot extends YamlConfiguration {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void saveUnSafe() throws IOException {
 		this.save(configFile);
+	}
+
+	public void unload() {
+		if (saveOnUnload)
+			save();
+		//unloadTasks.values().forEach(task -> task.accept(this));
+		isLoaded = false;
+		//configs.remove(this); // -> Need to be added but this trigger an ConcurrentModificationException at line 45
 	}
 
 	public void save() {
@@ -233,8 +269,11 @@ public class ConfigSpigot extends YamlConfiguration {
 		return ColorUtils.color(super.getString(path));
 	}
 
+	@Nullable
 	public CaviarPlayerSpigot getPlayer(UUID uuid) {
 		CaviarPlayerSpigot uPlayer;
+		if (this.get("player." + uuid) == null)
+			return null;
 		String name = this.getString("player." + uuid + ".name");
 		String group = this.getString("player." + uuid + ".group");
 		

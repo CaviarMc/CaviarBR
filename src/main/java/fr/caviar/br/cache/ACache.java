@@ -8,6 +8,8 @@ import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.bukkit.Bukkit;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
@@ -72,9 +74,12 @@ abstract class ACache<T, U> {
 				callback.accept(u, null);
 			return true;
 		} else {
-			task.runTaskAsynchronously(() -> {
+			if (Bukkit.isPrimaryThread())
+				task.runTaskAsynchronously(() -> {
+					getObjectNotCached(key, callback);
+				});
+			else
 				getObjectNotCached(key, callback);
-			});
 			return false;
 		}
 	}
@@ -84,7 +89,7 @@ abstract class ACache<T, U> {
 	 * @throws BiConsumerException 
 	 */
 	@Nullable
-	protected void getObjectNotCached(T key, @Nullable BiConsumer<U, Exception> result) {
+	public void getObjectNotCached(T key, @Nullable BiConsumer<U, Exception> result) {
 		asyncGetObjectFunction.accept(key, (u, exception) -> {
 			if (u != null)
 				privatePut(key, u);

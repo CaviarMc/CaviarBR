@@ -63,7 +63,9 @@ public abstract class GameState implements Listener {
 		UUID uuid = event.getPlayer().getUniqueId();
 		GamePlayer gamePlayer = game.getPlayers().get(uuid);
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(uuid);
-		Validate.notNull(caviarPlayer);
+		
+		 // @Tristiisch  Can be null if player never connect -> go use PlayerJoinEvent
+		//Validate.notNull(caviarPlayer);
 		
 		handleLogin(event, gamePlayer);
 		if (event.getResult() == Result.ALLOWED) {
@@ -77,6 +79,15 @@ public abstract class GameState implements Listener {
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onJoin(PlayerJoinEvent event) {
 		GamePlayer gamePlayer = game.getPlayers().get(event.getPlayer().getUniqueId());
+
+		// @Tristiisch Temp fix for fakePlayer
+		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(event.getPlayer().getUniqueId());
+		if (caviarPlayer != null && gamePlayer == null) {
+			gamePlayer = new GamePlayer(caviarPlayer);
+			game.getPlayers().put(event.getPlayer().getUniqueId(), gamePlayer);
+		}
+		// end Temp Fix
+
 		Validate.notNull(gamePlayer);
 		onJoin(event, gamePlayer);
 	}
