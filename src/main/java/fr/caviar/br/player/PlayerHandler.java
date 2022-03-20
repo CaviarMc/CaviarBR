@@ -1,13 +1,11 @@
 package fr.caviar.br.player;
 
+import java.util.Map.Entry;
+import java.util.AbstractMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.logging.Level;
-
 import javax.annotation.Nullable;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import fr.caviar.br.CaviarBR;
@@ -19,15 +17,16 @@ public class PlayerHandler extends BasicCache<UUID, CaviarPlayerSpigot> {
 
 	private static PlayerHandler INSTANCE;
 
-	private static void loadPlayer(UUID uuid, BiConsumer<CaviarPlayerSpigot, Exception> result) {
+	private static Entry<CaviarPlayerSpigot, ? extends Exception> loadPlayer(UUID uuid) {
 		ConfigSpigot config = CaviarBR.getInstance().getConfig();
 		@Nullable
 		CaviarPlayerSpigot uPlayer = config.getPlayer(uuid);
 
-		result.accept(uPlayer, null);
+		//result.accept(uPlayer, null);
 		if (uPlayer != null)
 			INSTANCE.put(uuid, uPlayer);
 		// TODO load from db
+		return new AbstractMap.SimpleEntry<>(uPlayer, null);
 	}
 
 	private CaviarPlugin plugin;

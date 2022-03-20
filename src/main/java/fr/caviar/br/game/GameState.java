@@ -64,8 +64,7 @@ public abstract class GameState implements Listener {
 		GamePlayer gamePlayer = game.getPlayers().get(uuid);
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(uuid);
 		
-		 // @Tristiisch  Can be null if player never connect -> go use PlayerJoinEvent
-		//Validate.notNull(caviarPlayer);
+		Validate.notNull(caviarPlayer);
 		
 		handleLogin(event, gamePlayer);
 		if (event.getResult() == Result.ALLOWED) {

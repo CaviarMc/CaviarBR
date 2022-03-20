@@ -11,16 +11,28 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import com.nametagedit.plugin.NametagEdit;
 import com.nametagedit.plugin.api.INametagApi;
 
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.PlayerArgument;
+import dev.jorel.commandapi.executors.CommandExecutor;
 import fr.caviar.br.CaviarBR;
-import fr.caviar.br.api.CaviarPlugin;
 
 public class Nametag implements Listener {
 
-	private final CaviarPlugin plugin;
+	private final CommandAPICommand command;
+	private final CaviarBR plugin;
 	private boolean isEnabled = false;
 
-	public Nametag(CaviarPlugin plugin) {
+	public Nametag(CaviarBR plugin) {
 		this.plugin = plugin;
+		command = new CommandAPICommand("nametag").withPermission("caviarbr.command.nametag");
+		command.withSubcommand(new CommandAPICommand("reload").withArguments(new PlayerArgument("playerToReload")).executes((CommandExecutor) (sender, args) -> {
+			Player playerToReload = args.length == 1 ? (Player) args[0] : null;
+			if (playerToReload == null)
+				return ;
+			updatePlayer(playerToReload);
+			// TODO add msg
+		}));
+		plugin.getCommands().registerCommand(command);
 	}
 	
 	public void enable() {

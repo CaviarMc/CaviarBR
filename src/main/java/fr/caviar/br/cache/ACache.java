@@ -1,8 +1,10 @@
 package fr.caviar.br.cache;
 
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import javax.annotation.Nonnull;
@@ -19,25 +21,26 @@ import fr.caviar.br.task.UniversalTask;
 
 abstract class ACache<T, U> {
 
-	protected static final UniversalTask task = NativeTask.getInstance();
+	protected static final UniversalTask taskHandler = NativeTask.getInstance();
 
 	@Nonnull
 	protected Cache<T, U> objectsCached;
 	@Nonnull
-	private BiConsumer<T, BiConsumer<U, Exception>> asyncGetObjectFunction;
+	private Function<T, Entry<U, ? extends Exception>> asyncGetObjectFunction;
 	@Nonnull
 	int timeBeforeRemove;
 	@Nonnull
 	TimeUnit unit;
 
-	protected ACache(UnaryOperator<CacheBuilder<Object, Object>> builder, BiConsumer<T, BiConsumer<U, Exception>> asyncGetObjectFunction, int timeBeforeRemove, TimeUnit unit) {
+	protected ACache(UnaryOperator<CacheBuilder<Object, Object>> builder, Function<T, Entry<U, ? extends Exception>> asyncGetObjectFunction, int timeBeforeRemove, TimeUnit unit) {
 		this.objectsCached = builder.apply(CacheBuilder.newBuilder()).build();
 		this.asyncGetObjectFunction = asyncGetObjectFunction;
 		this.timeBeforeRemove = timeBeforeRemove;
+		
 		this.unit = unit;
 	}
 
-	protected ACache(BiConsumer<T, BiConsumer<U, Exception>> asyncGetObjectFunction, int timeBeforeRemove, TimeUnit unit) {
+	protected ACache(Function<T, Entry<U, ? extends Exception>> asyncGetObjectFunction, int timeBeforeRemove, TimeUnit unit) {
 		this(cb -> cb.recordStats().expireAfterAccess(timeBeforeRemove, unit), asyncGetObjectFunction, timeBeforeRemove, unit);
 	}
 
@@ -74,12 +77,19 @@ abstract class ACache<T, U> {
 				callback.accept(u, null);
 			return true;
 		} else {
+			Runnable task = () -> {
+				try {
+					U u2 = getObjectNotCached(key);
+					callback.accept(u2, null);
+				} catch (Exception e) {
+					callback.accept(null, e);
+				}
+			};
 			if (Bukkit.isPrimaryThread())
-				task.runTaskAsynchronously(() -> {
-					getObjectNotCached(key, callback);
-				});
-			else
-				getObjectNotCached(key, callback);
+				taskHandler.runTaskAsynchronously(task);
+			else {
+				task.run();
+			}
 			return false;
 		}
 	}
@@ -89,26 +99,31 @@ abstract class ACache<T, U> {
 	 * @throws BiConsumerException 
 	 */
 	@Nullable
-	public void getObjectNotCached(T key, @Nullable BiConsumer<U, Exception> result) {
-		asyncGetObjectFunction.accept(key, (u, exception) -> {
+	public U getObjectNotCached(T key) throws Exception  {
+		U u;
+		try {
+			u = getObjectWithoutCached(key);
 			if (u != null)
 				privatePut(key, u);
-			if (result != null)
-				result.accept(u, exception);
-		});
+		} catch (Exception e) {
+			throw e;
+		}
+		return u;
 	}
 
 	/**
 	 * Need to be async
+	 * @return 
 	 * @throws BiConsumerException 
 	 */
 	@Nullable
-	protected void getObjectWithoutCached(T key, @Nonnull BiConsumer<U, Exception> result) {
-		U u = getObjectCached(key);
-		if (u != null)
-			result.accept(u, null);
-		else
-			getObjectNotCached(key, result);
+	protected U getObjectWithoutCached(T key) throws Exception {
+		Entry<U, ? extends Exception> entry = asyncGetObjectFunction.apply(key);
+		U u = entry.getKey();
+		Exception exception = entry.getValue();
+		if (exception != null)
+			throw exception;
+		return u;
 	}
 
 }

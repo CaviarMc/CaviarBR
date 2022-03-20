@@ -131,6 +131,9 @@ public enum CaviarStrings {
 	LOGIN_SCREEN_STARTED_KICK(
 			"The game has already started.",
 			LOGIN_SCREEN_PREFIX),
+	LOGIN_SCREEN_ERROR_KICK(
+			"An error has occurred, please try again.",
+			LOGIN_SCREEN_PREFIX),
 	
 	;
 	

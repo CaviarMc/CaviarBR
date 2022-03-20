@@ -38,17 +38,17 @@ public class GameAdminCommand {
 				
 				.withSubcommand(new CommandAPICommand("forceStart")
 						.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
-						.executes((CommandExecutor) (sender, args) -> askConfimration(StatePlaying.class, sender))
+						.executes((CommandExecutor) (sender, args) -> askConfirmation(StatePlaying.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::forceStart)))
 				
 				.withSubcommand(new CommandAPICommand("finish")
 						.withArguments(new PlayerArgument("winner"))
-						.executes((CommandExecutor) (sender, args) -> askConfimration(StateWin.class, sender))
+						.executes((CommandExecutor) (sender, args) -> askConfirmation(StateWin.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::finish)))
 				.withSubcommand(new CommandAPICommand("finish")
-						.executes((CommandExecutor) (sender, args) -> askConfimration(StateWin.class, sender))
+						.executes((CommandExecutor) (sender, args) -> askConfirmation(StateWin.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::finish)))
 				
@@ -75,12 +75,12 @@ public class GameAdminCommand {
 	
 	private CommandAPICommand stateCommand(String name, Class<? extends GameState> targetState, CommandExecutor executor) {
 		return new CommandAPICommand(name)
-				.executes((CommandExecutor) (sender, args) -> askConfimration(targetState, sender))
+				.executes((CommandExecutor) (sender, args) -> askConfirmation(targetState, sender))
 				.withSubcommand(new CommandAPICommand("confirm")
 						.executes(executor));
 	}
 
-	private void askConfimration(Class<? extends GameState> targetState, CommandSender sender) {
+	private void askConfirmation(Class<? extends GameState> targetState, CommandSender sender) {
 		CaviarStrings.COMMAND_GAMEADMIN_CONFIRM.send(
 				sender,
 				game.getState().getClass().getSimpleName(),
