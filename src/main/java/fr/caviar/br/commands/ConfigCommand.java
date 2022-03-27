@@ -43,9 +43,9 @@ public class ConfigCommand {
 		try {
 			config.reload();
 			time = System.nanoTime() - time;
-			Prefix.DEFAULT_GOOD.sendMessage(sender, "Config &2%s&a chargé en &2%s ms", config.getName(), new DecimalFormat("0.#").format(time / 10000000d));
+			Prefix.DEFAULT_GOOD.sendMessage(sender, "Config &2%s&a load in &2%s ms", config.getName(), new DecimalFormat("0.#").format(time / 10000000d));
 		} catch (IOException | InvalidConfigurationException e) {
-			Prefix.ERROR.sendMessage(sender, "Impossible de charger la config &4%s&c : &4%s&c.", config.getName(), e.getMessage());
+			Prefix.ERROR.sendMessage(sender, "Unable to load config &4%s&c : &4%s&c.", config.getName(), e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -55,9 +55,9 @@ public class ConfigCommand {
 		try {
 			config.saveUnSafe();
 			time = System.nanoTime() - time;
-			Prefix.DEFAULT_GOOD.sendMessage(sender, "Config &2%s&a sauvegarder en &2%s ms", config.getName(), new DecimalFormat("0.#").format(time / 10000000d));
+			Prefix.DEFAULT_GOOD.sendMessage(sender, "Config &2%s&a saved en &2%s ms", config.getName(), new DecimalFormat("0.#").format(time / 10000000d));
 		} catch (IOException e) {
-			Prefix.ERROR.sendMessage(sender, "Impossible de sauvegarder la config &4%s&c sur le disque : &4%s&c.", config.getName(), e.getMessage());
+			Prefix.ERROR.sendMessage(sender, "Unable to save config &4%s&c on disk : &4%s&c.", config.getName(), e.getMessage());
 			e.printStackTrace();
 		}
 	}

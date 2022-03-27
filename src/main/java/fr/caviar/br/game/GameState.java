@@ -1,9 +1,14 @@
 package fr.caviar.br.game;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -98,5 +103,13 @@ public abstract class GameState implements Listener {
 		Validate.notNull(gamePlayer);
 		if (onQuit(event, gamePlayer)) game.getPlayers().remove(uuid);
 	}
-	
+
+	public void disableEvent(Player player, Event event) {
+		if (player.getGameMode() == GameMode.CREATIVE)
+			return;
+		if (event instanceof Cancellable ec)
+			ec.setCancelled(true);
+		else
+			game.getPlugin().getLogger().log(Level.SEVERE, String.format("%s try to cancel event not cancellable : %s", this.getClass().getName(), event.getClass().getName()));
+	}
 }

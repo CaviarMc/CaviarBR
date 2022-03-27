@@ -4,6 +4,7 @@ import org.bukkit.plugin.PluginManager;
 
 import fr.caviar.br.api.CaviarPlugin;
 import fr.caviar.br.commands.ConfigCommand;
+import fr.caviar.br.commands.VanishCommand;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.nametag.Nametag;
 import fr.caviar.br.player.listener.PlayerLoginListener;
@@ -39,9 +40,10 @@ public class CaviarBR extends CaviarPlugin {
 		pluginManager.registerEvents(new PlayerLoginListener(), this);
 		commands.enable();
 		game.enable();
-		nameTag.enable();
 		scoreboard.enable();
+		nameTag.enable();
 		new ConfigCommand(this);
+		new VanishCommand(this);
 
 
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());

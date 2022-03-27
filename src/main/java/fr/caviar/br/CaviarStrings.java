@@ -64,8 +64,19 @@ public enum CaviarStrings {
 	STATE_PLAYING_START(
 			"The game has started! Good luck, and be the first one to find the treasure!",
 			PREFIX_GOOD),
+	STATE_PLAYING_TREASURE_SPAWN(
+			"<yellow><bold>A treasure has spawn on the map. Good luck to find it !",
+			PREFIX_GOOD),
+	STATE_PLAYING_COMPASS(
+			"<bold>Here is a compass that points to the treasure. It will work for 2 minutes.",
+			PREFIX_GOOD),
+	STATE_PLAYING_COMPASS_GROUND(
+			"Compass is on ground, your inventory is full",
+			PREFIX_BAD),
+	STATE_PLAYING_COMPASS_STOP(
+			"The bousole no longer points to the treasure"),
 	STATE_PLAYING_BREAK_TREASURE(
-			"You cannot break the treasure... click on it!",
+			"<gold>You cannot break the treasure... click on it!",
 			PREFIX_BAD),
 	
 	STATE_WIN(
@@ -96,6 +107,12 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_STARTED(
 			"You have launched the preparation state to start the game.",
+			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_ENABLE_GENERATE(
+			"You have activated chunk generator.",
+			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_DISABLE_GENERATE(
+			"You have disabled chunk generator.",
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_FORCESTARTED(
 			"You have forced the start of the game.",
@@ -134,6 +151,21 @@ public enum CaviarStrings {
 	LOGIN_SCREEN_ERROR_KICK(
 			"An error has occurred, please try again.",
 			LOGIN_SCREEN_PREFIX),
+	VANISH_ON(
+			"<green>Vanish ON",
+			PREFIX_GOOD),
+	VANISH_ON_OTHER(
+			"<green>%s now has the Vanish mode turned on",
+			PREFIX_GOOD),
+	VANISH_OFF(
+			"<red>Vanish OFF",
+			PREFIX_BAD),
+	VANISH_OFF_OTHER(
+			"<red>%s now has the Vanish mode turned off",
+			PREFIX_BAD),
+	COMMAND_NO_CONSOLE(
+			"<red>Can't execute this command with the console",
+			PREFIX_BAD),
 	
 	;
 	

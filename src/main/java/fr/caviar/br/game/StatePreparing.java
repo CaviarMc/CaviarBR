@@ -16,6 +16,11 @@ import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDropItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -191,4 +196,30 @@ public class StatePreparing extends GameState {
 		}
 	}
 	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onEntityPickupItem(EntityPickupItemEvent event) {
+		if (event.getEntity() instanceof Player p)
+			disableEvent(p, event);
+	}
+
+	@EventHandler
+	public void onEntityDropItem(EntityDropItemEvent event) {
+		if (event.getEntity() instanceof Player p)
+			disableEvent(p, event);
+	}
+
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
 }

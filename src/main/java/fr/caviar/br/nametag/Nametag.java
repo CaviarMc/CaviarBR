@@ -70,6 +70,13 @@ public class Nametag implements Listener {
 			api.setPrefix(player, "&cMOD ");
 		else
 			api.setPrefix(player, "&7");
+	}	
+
+	public void setSpectator(Player player) {
+		if (!isEnabled)
+			return;
+		INametagApi api = NametagEdit.getApi();
+		api.setPrefix(player, new StringBuilder("&7[SPECTATOR] ").append(api.getNametag(player).getPrefix()).toString());
 	}
 
 	public void delete(Player player) {

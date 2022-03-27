@@ -28,6 +28,10 @@ import java.util.regex.Matcher;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.jetbrains.annotations.Nullable;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -38,6 +42,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import fr.caviar.br.api.regex.MatcherPattern;
+import net.kyori.adventure.text.Component;
 
 public class Utils {
 

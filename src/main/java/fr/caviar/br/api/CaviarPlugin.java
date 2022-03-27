@@ -42,6 +42,7 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		ConfigSpigot.unloadAll();
+		taskManager.cancelAllTask();
 		super.onDisable();
 	}
 

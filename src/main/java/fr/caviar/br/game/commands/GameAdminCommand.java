@@ -59,14 +59,18 @@ public class GameAdminCommand {
 						.withSubcommand(new CommandAPICommand("teleport")
 								.executesPlayer(this::teleportTreasure))
 						.withSubcommand(new CommandAPICommand("giveCompass")
-								.executes(this::giveCompass))
-						)
+								.executes(this::giveCompass)))
 				
+				.withSubcommand(new CommandAPICommand("generate")
+						.withSubcommand(new CommandAPICommand("stop")
+								.executes(this::disableGenerate))
+						.withSubcommand(new CommandAPICommand("start")
+								.executes(this::startGenerate)))
+
 				.withSubcommand(new CommandAPICommand("shutdown")
 						.executes((CommandExecutor) (sender, args) -> CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM.send(sender))
 						.withSubcommand(new CommandAPICommand("confirm")
-								.executes(this::shutdown))
-						)
+								.executes(this::shutdown)))
 				
 				;
 		
@@ -106,6 +110,16 @@ public class GameAdminCommand {
 		CaviarStrings.COMMAND_GAMEADMIN_STARTED.send(sender);
 	}
 	
+	private void disableGenerate(CommandSender sender, Object[] args) {
+		game.getWorldLoader().stop();
+		CaviarStrings.COMMAND_GAMEADMIN_DISABLE_GENERATE.send(sender);
+	}
+	
+	private void startGenerate(CommandSender sender, Object[] args) {
+		game.getWorldLoader().start(true);
+		CaviarStrings.COMMAND_GAMEADMIN_ENABLE_GENERATE.send(sender);
+	}
+	
 	private void forceStart(CommandSender sender, Object[] args) {
 		game.setState(new StatePlaying(game, (Location) args[0]));
 		CaviarStrings.COMMAND_GAMEADMIN_FORCESTARTED.send(sender);
@@ -118,6 +132,7 @@ public class GameAdminCommand {
 	}
 	
 	private void setTreasure(CommandSender sender, Object[] args) {
+		game.getPlugin().getTaskManager().removeTaskByName("treasure");
 		setTreasure(sender, (Location) args[0]);
 	}
 	
@@ -147,8 +162,10 @@ public class GameAdminCommand {
 		if (state == null) return;
 		
 		Player target = (Player) args[0];
+		state.giveCompass();
 		target.getInventory().addItem(state.getCompass());
 		CaviarStrings.COMMAND_GAMEADMIN_COMPASS_GIVEN.send(sender, target.getName());
+		CaviarStrings.STATE_PLAYING_COMPASS.send(target);
 	}
 	
 	private void shutdown(CommandSender sender, Object[] args) {

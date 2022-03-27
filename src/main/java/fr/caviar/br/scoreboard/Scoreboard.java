@@ -2,6 +2,7 @@ package fr.caviar.br.scoreboard;
 
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,14 +12,17 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
+import fr.caviar.br.CaviarBR;
+import fr.caviar.br.commands.VanishCommand;
+import fr.caviar.br.game.GameManager;
 import fr.mrmicky.fastboard.FastBoard;
 
 public class Scoreboard implements Listener {
 
-	private final Plugin plugin;
+	private final CaviarBR plugin;
 	private boolean isEnabled = false;
 
-	public Scoreboard(Plugin plugin) {
+	public Scoreboard(CaviarBR plugin) {
 		this.plugin = plugin;
 	}
 	
@@ -60,6 +64,43 @@ public class Scoreboard implements Listener {
 				ChatColor.GREEN + "Hello world",
 				"",
 				ChatColor.RED + "eu.caviar.com"
+				);
+	}	
+	
+	public void waitToStart(Player player) {
+		FastBoard board = new FastBoard(player);
+		GameManager game = plugin.getGame();
+		int needPlayer = game.getSettings().getMinPlayers().get() - Bukkit.getOnlinePlayers().size();
+		String linePlayerWait;
+		if (needPlayer > 0) {
+			linePlayerWait = ChatColor.YELLOW + "waiting " + needPlayer + " players";
+		} else {
+			linePlayerWait = ChatColor.YELLOW + String.valueOf(VanishCommand.getOnlineCount()) + " players onlines";
+		}
+		board.updateLines(
+				linePlayerWait,
+				"",
+				ChatColor.RED + "eu.caviar.com"
+				);
+	}	
+	
+	public void compassTreasureWaiting(Player player, long timestampCompass) {
+		FastBoard board = new FastBoard(player);
+		GameManager game = plugin.getGame();
+		board.updateLines(
+				ChatColor.YELLOW + "Compass in " + timestampCompass,
+				"",
+				ChatColor.GREEN + "eu.caviar.com"
+				);
+	}
+	
+	public void compassEndEffest(Player player, long timestampCompass) {
+		FastBoard board = new FastBoard(player);
+		GameManager game = plugin.getGame();
+		board.updateLines(
+				ChatColor.RED + "Remove Compass in " + timestampCompass,
+				"",
+				ChatColor.GREEN + "eu.caviar.com"
 				);
 	}
 
