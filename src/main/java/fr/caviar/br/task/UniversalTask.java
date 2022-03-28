@@ -3,8 +3,10 @@ package fr.caviar.br.task;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public interface UniversalTask {
 
@@ -47,7 +49,7 @@ public interface UniversalTask {
 	default Integer getTaskIdByName(String taskName) {
 		return taskList.get(taskName);
 	}
-
+	
 	default boolean cancelTaskByName(String taskName) {
 		if (taskExist(taskName)) {
 			cancelTaskById(taskList.get(taskName));
@@ -55,6 +57,14 @@ public interface UniversalTask {
 			return true;
 		}
 		return false;
+	}
+
+	default boolean cancelTasksByPrefix(String taskPrefix) {
+		Set<Integer> tasks = taskList.entrySet().stream().filter(e -> e.getKey().startsWith(taskPrefix)).map(Entry::getValue).collect(Collectors.toSet());
+		if (tasks.isEmpty())
+			return false;
+		tasks.forEach(this::cancelTaskById);
+		return true;
 	}
 
 	default void checkIfExist(String taskName) {

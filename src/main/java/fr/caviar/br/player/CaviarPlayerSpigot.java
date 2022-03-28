@@ -9,6 +9,7 @@ public class CaviarPlayerSpigot extends UniversalPlayer {
 
 	private OfflinePlayer player;
 	private String group;
+	private boolean fakePlayer;
 	
 	public CaviarPlayerSpigot(OfflinePlayer player) {
 		super(player.getName(), player.getUniqueId());
@@ -30,6 +31,14 @@ public class CaviarPlayerSpigot extends UniversalPlayer {
 
 	public void setGroup(String group) {
 		this.group = group;
+	}
+
+	public boolean isFakePlayer() {
+		return fakePlayer;
+	}
+
+	public void setFakePlayer(boolean fakePlayer) {
+		this.fakePlayer = fakePlayer;
 	}
 
 }

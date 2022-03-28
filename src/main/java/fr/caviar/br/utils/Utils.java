@@ -16,22 +16,24 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Period;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -42,7 +44,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import fr.caviar.br.api.regex.MatcherPattern;
-import net.kyori.adventure.text.Component;
 
 public class Utils {
 
@@ -52,6 +53,20 @@ public class Utils {
 		Collections.shuffle(list);
 		return list;
 	});
+	
+	public static String hrFormatDuration(long timestampSecond) {
+		long now = Utils.getCurrentTimeInSeconds(), distance;
+		if (timestampSecond > now) {
+			distance = timestampSecond - now;
+		} else {
+			distance = now - timestampSecond;
+		}
+		return hrDuration(distance);
+	}
+
+	public static String hrDuration(long seconds) {
+		return DurationFormatUtils.formatDurationWords(seconds * 1000, true, false);
+	}
 
 	public static String nanoSecondesToHumain(long nanoseconds) {
 		double number;
@@ -275,14 +290,6 @@ public class Utils {
 		return i > 0 && i < 27 ? String.valueOf((char) ('Z' - (Character.toUpperCase((char) (i + 64)) - 'A'))) : null;
 	}
 
-	/**
-	 * Utilise RegexMatcher.UUID.parse(uuid)
-	 */
-	@Deprecated
-	public static UUID getUUID(String uuid) throws IllegalArgumentException {
-		return UUID.fromString(uuid.contains("-") ? uuid : uuid.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
-	}
-
 	public static String getUUIDString(UUID uuid) {
 		return uuid == null ? null : uuid.toString().replaceAll("-", "");
 	}
@@ -393,6 +400,7 @@ public class Utils {
 		return format.format(new Date(timestamp * 1000));
 	}
 
+/*
 	public static String timeToDuration(long time) {
 		return timestampToDuration(time + Utils.getCurrentTimeInSeconds());
 	}
@@ -400,7 +408,6 @@ public class Utils {
 	public static String timestampToDuration(long timestamp) {
 		return timestampToDuration(timestamp, 2);
 	}
-
 	public static String tsToShortDur(long timestamp) {
 		long now = Utils.getCurrentTimeInSeconds();
 		LocalDateTime timestamp2 = LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), TimeZone.getDefault().toZoneId());
@@ -505,7 +512,7 @@ public class Utils {
 
 	public static String timestampToDuration(long timestamp, int precision) {
 		return timestampToDuration(timestamp, precision, Utils.getCurrentTimeInSeconds());
-	}
+	}*/
 
 	public static int toField(String field) {
 		switch (field) {
@@ -572,5 +579,30 @@ public class Utils {
 		while (size-- > 0)
 			list.add(string);
 		return list.toArray(String[]::new);
+	}
+	
+	public static class DevideList<T> {
+		private List<T> list;
+		private int nbList;
+		
+		public DevideList(List<T> list, int nbList) {
+			this.list = list;
+			this.nbList = nbList;
+		}
+
+		public List<List<T>> execute() {
+			List<List<T>> lists = new ArrayList<>(nbList);
+			int itemPerList = (list.size() / nbList) + 1;
+			for (int i2 = 0; i2 < nbList; ++i2) {
+				lists.add(new ArrayList<>(itemPerList));
+			}
+			int i = 0;
+			for (Iterator<T> it = list.iterator(); it.hasNext(); ++i) {
+				lists.get(i).add(it.next());
+				if (i + 1 == nbList)
+					i = -1;
+			}
+			return lists;
+		}
 	}
 }

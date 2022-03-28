@@ -157,6 +157,9 @@ test {
 	manifest {
 		attributes "Version": fullVersion
 	}
+    /*testLogging {
+        showStandardStreams = true
+    }*/
 }
 
 tasks.withType(JavaCompile) {

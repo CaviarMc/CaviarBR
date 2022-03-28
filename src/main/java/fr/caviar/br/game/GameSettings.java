@@ -21,15 +21,17 @@ public class GameSettings {
 	
 	private final GameSettingInt playersRadius = new GameSettingInt(450, "playersRadius", 10);
 	
-	private final GameSettingInt mapSize = new GameSettingInt(20, "mapSize", 50);
+	private final GameSettingInt mapSize = new GameSettingInt(5000, "mapSize", 10);
 	
-	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 0);
+	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 1);
 	
-	private final GameSettingInt waitCompass = new GameSettingInt(10, "waitCompass", 0);
+	private final GameSettingInt waitCompass = new GameSettingInt(10, "waitCompass", 1);
 	
-	private final GameSettingInt compassDuration = new GameSettingInt(10, "compassDuration", 0);
+	private final GameSettingInt compassDuration = new GameSettingInt(2, "compassDuration", 1);
 	
-	private final GameSettingInt waitTreasure = new GameSettingInt(20, "waitTreasure", 0);
+	private final GameSettingInt waitTreasure = new GameSettingInt(20, "waitTreasure", 1);
+	
+	private final GameSettingInt countdownStart = new GameSettingInt(60, "countdownStart", 10);
 	
 	private final GameManager game;
 	
@@ -87,6 +89,10 @@ public class GameSettings {
 
 	public GameSettingInt getMapSize() {
 		return mapSize;
+	}
+
+	public GameSettingInt getCountdownStart() {
+		return countdownStart;
 	}
 
 	public abstract class GameSetting<T> extends AbstractObservable {

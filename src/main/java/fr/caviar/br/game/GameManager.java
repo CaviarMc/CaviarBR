@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
@@ -30,10 +33,10 @@ public class GameManager {
 	private final Map<UUID, GamePlayer> players = new HashMap<>();
 	private final Map<Player, GamePlayer> spectator = new HashMap<>();
 	private final WorldLoader worldLoader;
-	protected long timestampSec;
-	protected long timeNextCompass;
-	protected long timeCompassDuration;
-	
+	protected long timestampStart;
+	protected long timestampNextCompass;
+	protected long timestampCompassEnd;
+
 	private GameState state;
 	
 	private World world;
@@ -60,7 +63,7 @@ public class GameManager {
 			state = null;
 		}
 		if (worldLoader != null)
-			worldLoader.stop();
+			worldLoader.stop(false);
 	}
 	
 	public CaviarBR getPlugin() {
@@ -87,13 +90,24 @@ public class GameManager {
 		return players;
 	}
 	
+	public boolean isGamer(Player player) {
+		return players.containsKey(player.getUniqueId());
+	}
+	
+	public Set<? extends Player> getGamers() {
+		return getAllPlayers().stream().filter(this::isGamer).collect(Collectors.toSet());
+	}
+	
+	public Collection<? extends Player> getAllPlayers() {
+		return plugin.getServer().getOnlinePlayers();
+	}
+	
 	public Map<Player, GamePlayer> getSpigotPlayers() {
 		return players.entrySet().stream().collect(Collectors.toMap(entry -> Bukkit.getPlayer(entry.getKey()), entry -> entry.getValue()));
 	}
 	
 	public Map<Player, GamePlayer> getSpectator() {
 		return spectator;
-		
 	}
 	
 	public GamePlayer addSpectator(Player player) {
@@ -104,6 +118,7 @@ public class GameManager {
 		spectator.put(player, gamePlayer);
 		CaviarBR.getInstance().getNameTag().setSpectator(player);
 		player.setGameMode(GameMode.SPECTATOR);
+		CaviarStrings.ENTER_SPECTATOR_MODE.send(player);
 		return gamePlayer;
 	}
 	
@@ -137,11 +152,32 @@ public class GameManager {
 		new ArrayList<>(Bukkit.getOnlinePlayers()).forEach(p -> {
 			try {
 				p.kick(CaviarStrings.LOGIN_SCREEN_FINISHED.toComponent());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 		});
 		Bukkit.shutdown();
 	}
 	
+	public void setTimestampSec(long timestampSec) {
+		this.timestampStart = timestampSec;
+	}
+
+	public void setTimeNextCompass(long timeNextCompass) {
+		this.timestampNextCompass = timeNextCompass;
+	}
+
+	public void setTimeCompassDuration(long timeCompassDuration) {
+		this.timestampCompassEnd = timeCompassDuration;
+	}
+
+	public long getTimestampStart() {
+		return timestampStart;
+	}
+
+	public long getTimestampNextCompass() {
+		return timestampNextCompass;
+	}
+
+	public long getTimestampCompassEnd() {
+		return timestampCompassEnd;
+	}
 }

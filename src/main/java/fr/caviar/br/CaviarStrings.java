@@ -52,8 +52,13 @@ public enum CaviarStrings {
 	STATE_PREPARING_PREPARE(
 			"We are preparing your game. This will only take a few seconds.",
 			PREFIX_GOOD),
+	STATE_PREPARING_TELEPORT(
+			"Teleportation in progress for all players",
+			PREFIX_GOOD),
 	STATE_PREPARING_TITLE(
 			"<yellow>Preparing..."),
+	STATE_PREPARING_TITLE_STARTING_IN(
+			"<green>STARTING IN"),
 	STATE_PREPARING_SUBTITLE_TREASURE(
 			"<gray>Preparing treasure"),
 	STATE_PREPARING_SUBTITLE_SPAWNPOINTS(
@@ -125,6 +130,9 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_TREASURE_TELEPORTED(
 			"You have been teleported to the treasure.",
+			PREFIX_BAD),
+	COMMAND_GAMEADMIN_TREASURE_TELEPORTED_NOT_EXIST(
+			"The treasure has not yet appeared.",
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_COMPASS_GIVEN(
 			"You have gave a compass to <dark_green>{0}</dark_green>.",
@@ -166,6 +174,9 @@ public enum CaviarStrings {
 	COMMAND_NO_CONSOLE(
 			"<red>Can't execute this command with the console",
 			PREFIX_BAD),
+	ENTER_SPECTATOR_MODE(
+			"<gray>You are now in specator mode. Use the wheel-click to change the player",
+			PREFIX_GOOD),
 	
 	;
 	

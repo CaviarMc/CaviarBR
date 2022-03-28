@@ -9,8 +9,6 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.task.UniversalTask;
 import fr.caviar.br.utils.Utils;
@@ -21,14 +19,15 @@ public class WorldLoader {
 	private GameSettings settings;
 	private GameManager gameManager;
 	private UniversalTask taskHandler;
-	Thread tread;
 
 	@Nullable
 	private World world;
-	private final List<ChunkLoad> chunkToLoad = new ArrayList<>();
+	private List<ChunkLoad> chunkToLoad;
+	private List<Thread> threads = new ArrayList<>();
 	private int chunkAlreadyGenerate = 0;
 	private boolean isGenerating = false;
-	private long time = 0;
+	private long timeStarted;
+	private long timeChunkStarted;
 
 	public WorldLoader(CaviarBR plugin) {
 		this.plugin = plugin;
@@ -42,12 +41,19 @@ public class WorldLoader {
 	}
 
 	public void start(boolean force) {
-		time = Utils.getCurrentTimeInSeconds();
-		Integer mapSize = settings.getMapSize().get();
-		tread = new Thread(() -> {
-			Thread.onSpinWait();
-			plugin.getLogger().log(Level.INFO, String.format("Calculation of the number of chunks to generate for a map of -%d -%d to %d %d", mapSize, mapSize, mapSize, mapSize));
-			for (int r = 1; mapSize >= r; r++) {
+		if (isGenerating)
+			stop(false);
+		isGenerating = true;
+		timeStarted = Utils.getCurrentTimeInSeconds();
+		int mapSize = settings.getMapSize().get();
+		int mapChunkSiwe = mapSize / 16;
+		int mapLength = mapSize * 2;
+		int chunksLength = mapLength / 16;
+		int totalChunks = chunksLength * chunksLength;
+		chunkToLoad = new ArrayList<>(totalChunks);
+		Runnable runnable = () -> {
+			plugin.getLogger().log(Level.INFO, String.format("Calculation the order of chunks for a map of -%d -%d to %d %d : %d chunks", mapSize, mapSize, mapSize, mapSize, totalChunks));
+			for (int r = 1; mapChunkSiwe >= r; r++) {
 				for (int x = -r; r >= x; x++) {
 					if (x == -r || r == x) {
 						for (int z = -r; r >= z; z++) {
@@ -61,35 +67,50 @@ public class WorldLoader {
 			}
 			if (chunkToLoad.isEmpty()) {
 				plugin.getLogger().log(Level.INFO, String.format("World is already generate from -%d -%d to %d %d", mapSize, mapSize, mapSize, mapSize));
+				stop(true);
 				return;
 			}
-			plugin.getLogger().log(Level.INFO, String.format("Total chunk not generated : %d | time %s mins", chunkToLoad.size(), (Utils.getCurrentTimeInSeconds() - time) / 60));
+			plugin.getLogger().log(Level.INFO, String.format("Total chunk to generate : %d | started %s ago", chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
 			/*if (chunkToLoad.stream().map(ChunkLoad::getCode).distinct().count() != chunkToLoad.size()) {
 				plugin.getLogger().log(Level.SEVERE, "Algo to calcul chunks add duplicating chunks");
 			}*/
-			launchTask(110);
-		});
+			launchTask();
+		};
 		if (force) {
-			tread.start();
+			taskHandler.runTaskAsynchronously(runnable);
 			return;
 		}
-		plugin.getLogger().log(Level.INFO, String.format("Launch generation for a map of -%d -%d to %d %d check in 30 secondes.", mapSize, mapSize, mapSize, mapSize));
+		plugin.getLogger().log(Level.INFO, String.format("Launch generation for a map of -%d -%d to %d %d check in 10 secondes.", mapSize, mapSize, mapSize, mapSize));
 		taskHandler.runTaskLater("generate.calculate", () -> {
-			tread.start();
-		}, 30, TimeUnit.SECONDS);
+			taskHandler.runTaskAsynchronously(runnable);
+		}, 10, TimeUnit.SECONDS);
 	}
 
-	public void stop() {
-		taskHandler.cancelTaskByName("generate.calculate");
-		taskHandler.cancelTaskByName("generate.chunk");
-		tread.interrupt();
+	public void stop(boolean succes) {
+		if (!isGenerating)
+			return;
 		isGenerating = false;
-		plugin.getLogger().log(Level.INFO, String.format("Generating is stopped | %d/%d chunks generate | time %d mins", chunkAlreadyGenerate, chunkToLoad.size(), (Utils.getCurrentTimeInSeconds() - time) / 60));
+		taskHandler.cancelTaskByName("generate.calculate");
+		if (taskHandler.cancelTaskByName("generate.chunk")) {
+			plugin.getLogger().log(Level.INFO, "Task delete");
+		}
+		taskHandler.cancelTasksByPrefix("generate.load");
+		
+		threads.forEach(Thread::interrupt);
+		if (!succes)
+			plugin.getLogger().log(Level.INFO, String.format("Generating is stopped | %d/%d chunks generate | time taken %s",
+					chunkAlreadyGenerate, chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+		else
+			plugin.getLogger().log(Level.INFO, String.format("Generating is finish | %d/%d chunks generate | time taken %s",
+					chunkAlreadyGenerate, chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+		if (chunkToLoad != null)
+			chunkToLoad.clear();
 	}
 
 	private void cleanQueue() {
+		if (chunkToLoad == null)
+			return;
 		boolean changes = false;
-
 		int tempSize = chunkToLoad.size();
 		if (chunkToLoad.removeIf(chunkLoad -> chunkLoad.isGenerate())) {
 			plugin.getLogger().log(Level.INFO, String.format("Removed %d chunks from queue because they are already generated.", tempSize - (tempSize = chunkToLoad.size())));
@@ -104,29 +125,68 @@ public class WorldLoader {
 			plugin.getLogger().log(Level.INFO, String.format("Number of chunks to generate : %d", chunkToLoad.size()));
 	}
 
-	private void launchTask(int intervalMillis) {
-		taskHandler.cancelTaskByName("generate.chunk");
+	private void launchTask() {
+		timeChunkStarted = Utils.getCurrentTimeInSeconds();
 		cleanQueue();
-		isGenerating = true;
-		taskHandler.scheduleSyncRepeatingTask("generate.chunk", new BukkitRunnable() {
-			Iterator<ChunkLoad> it = chunkToLoad.iterator();
-			int i = 0;
-
-			public void run() {
-				if (!it.hasNext()) {
-					stop();
-					return;
-				}
-				ChunkLoad chunk = it.next();
-				chunk.loadChunk();
-				if (++i % 500 == 0) {
-					long timeDiff = Utils.getCurrentTimeInSeconds() - time;
-					long timeToEndSecs = (timeDiff / chunkAlreadyGenerate) * (chunkToLoad.size() - chunkAlreadyGenerate);
-					plugin.getLogger().log(Level.INFO, String.format("Number of chunks generate : %d/%d time %d mins | ETA %d mins", chunkAlreadyGenerate, chunkToLoad.size(), timeDiff / 60, timeToEndSecs / 60));
-				}
-			}
-
-		}, 0, intervalMillis, TimeUnit.MILLISECONDS);
+		List<List<ChunkLoad>> lists = new Utils.DevideList<ChunkLoad>(chunkToLoad, 20).execute();
+		Iterator<List<ChunkLoad>> its = lists.iterator();
+		for (int i = 0; its.hasNext(); ++i) {
+			Iterator<ChunkLoad> it = its.next().iterator();
+			Thread t = new Thread(() -> {
+				loadChunk(it);
+			});
+			threads.add(t);
+			t.start();
+//			taskHandler.runTaskAsynchronously("generate.load." + i, () -> {
+//				loadChunk(it);
+//			});
+			
+		}
+		lists.forEach(chunks -> {
+		});
+//		Iterator<ChunkLoad> it = chunkToLoad.iterator();
+//		loadChunk(it);
+		taskHandler.scheduleSyncRepeatingTask("generate.chunk", () -> {
+			long timeDiff = Utils.getCurrentTimeInSeconds() - timeChunkStarted;
+			long avrageChunksPerSecond = chunkAlreadyGenerate / timeDiff;
+			long timeToEndSecs = (chunkToLoad.size() - chunkAlreadyGenerate) / avrageChunksPerSecond;
+			plugin.getLogger().log(Level.INFO, String.format("Generate %d/%d chunks - %d%% | %d chunks/s | started %s ago | ETA %s - %s",
+					chunkAlreadyGenerate, chunkToLoad.size(), chunkToLoad.size() / 100 / chunkAlreadyGenerate, avrageChunksPerSecond,  Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
+					Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
+		}, 1, 5, TimeUnit.MINUTES);
+		
+//		taskHandler.scheduleSyncRepeatingTask("generate.chunk", new BukkitRunnable() {
+//			Iterator<ChunkLoad> it = chunkToLoad.iterator();
+//			int i = 0;
+//
+//			public void run() {
+//				if (!it.hasNext()) {
+//					stop();
+//					return;
+//				}
+//				ChunkLoad chunk = it.next();
+//				chunk.loadChunk();
+//				if (++i % 500 == 0) {
+//					long timeDiff = Utils.getCurrentTimeInSeconds() - time;
+//					double timeToEndSecs = (timeDiff / chunkAlreadyGenerate) * (chunkToLoad.size() - chunkAlreadyGenerate);
+//					plugin.getLogger().log(Level.INFO, String.format("Number of chunks generate : %d/%d time %d mins | ETA %d mins", chunkAlreadyGenerate, chunkToLoad.size(), timeDiff / 60, timeToEndSecs / 60));
+//				}
+//			}
+//
+//		}, 0, intervalMillis, TimeUnit.MILLISECONDS);
+	}
+	
+	private void loadChunk(Iterator<ChunkLoad> it) {
+		if (!it.hasNext() || !isGenerating) {
+			stop(true);
+			return;
+		}
+		ChunkLoad chunkL = it.next();
+		world.getChunkAtAsync(chunkL.xChunk, chunkL.zChunk, true, chunk -> {
+			chunkL.addChunk(chunk);
+			++chunkAlreadyGenerate;
+			loadChunk(it);
+		});
 	}
 
 	@Nullable
@@ -166,9 +226,18 @@ public class WorldLoader {
 			this(chunk, chunk.getX(), chunk.getZ());
 		}
 
+		public void addChunk(Chunk chunk) {
+			if (this.chunk != null) {
+				return;
+			}
+			if (!isGenerate)
+				isGenerate = chunk.isLoaded();
+			this.chunk = chunk;
+			this.code = chunk.getChunkKey();
+		}
+		
 		public void loadChunk() {
 			if (isGenerate()) {
-				++chunkAlreadyGenerate;
 				return;
 			}
 			Runnable task = () -> {

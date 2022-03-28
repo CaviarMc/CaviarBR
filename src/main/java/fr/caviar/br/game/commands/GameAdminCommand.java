@@ -101,6 +101,7 @@ public class GameAdminCommand {
 	}
 	
 	private void reset(CommandSender sender, Object[] args) {
+		game.getState().end();
 		game.setState(new StateWait(game));
 		CaviarStrings.COMMAND_GAMEADMIN_RESET.broadcast();
 	}
@@ -111,7 +112,7 @@ public class GameAdminCommand {
 	}
 	
 	private void disableGenerate(CommandSender sender, Object[] args) {
-		game.getWorldLoader().stop();
+		game.getWorldLoader().stop(false);
 		CaviarStrings.COMMAND_GAMEADMIN_DISABLE_GENERATE.send(sender);
 	}
 	
@@ -153,6 +154,10 @@ public class GameAdminCommand {
 		StatePlaying state = testGameState(StatePlaying.class, player);
 		if (state == null) return;
 		
+		if (state.getTreasure() == null) {
+			CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED_NOT_EXIST.send(player);
+			return;
+		}
 		player.teleport(state.getTreasure());
 		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED.send(player);
 	}

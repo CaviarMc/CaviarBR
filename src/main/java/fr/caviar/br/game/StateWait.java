@@ -3,28 +3,25 @@ package fr.caviar.br.game;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.utils.observable.Observable.Observer;
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 
 public class StateWait extends GameState implements Runnable {
 	
@@ -48,7 +45,8 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getMaxPlayers().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeLong().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeShort().observe(OBSERVER_KEY, observer);
-		
+
+		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
 		if (left == -1) CaviarStrings.STATE_WAIT_CANCEL.broadcast();
 	}
@@ -62,11 +60,11 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getMaxPlayers().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeLong().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeShort().unobserve(OBSERVER_KEY);
+		game.getWorldLoader().stop(false);
 	}
 	
 	@Override
 	public void run() {
-		game.getWorld().setPVP(false);
 		lock.lock();
 		
 		if (left != -1) {
@@ -91,12 +89,14 @@ public class StateWait extends GameState implements Runnable {
 	
 	protected void updatePlayers(int online) {
 		lock.lock();
+		
 		int min = game.getSettings().getMinPlayers().get();
 		if (online < min) {
 			if (left != -1) {
 				left = -1;
 				CaviarStrings.STATE_WAIT_CANCEL.broadcast();
-			}
+			} else 
+				game.getAllPlayers().forEach(player -> game.getPlugin().getScoreboard().waitToStart(player));
 		}else {
 			int max = game.getSettings().getMaxPlayers().get();
 			int waitingTime = (online == max ? game.getSettings().getWaitingTimeShort() : game.getSettings().getWaitingTimeLong()).get();
@@ -116,8 +116,9 @@ public class StateWait extends GameState implements Runnable {
 	
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
-		int online = Bukkit.getOnlinePlayers().size();
-		
+		int online = game.getAllPlayers().size();
+
+		event.getPlayer().setBedSpawnLocation(game.getWorld().getSpawnLocation());
 		updatePlayers(online);
 		
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
@@ -125,7 +126,8 @@ public class StateWait extends GameState implements Runnable {
 	
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
-		int online = Bukkit.getOnlinePlayers().size() - 1;
+//		int online = game.getAllPlayers().size() - 1;
+		int online = game.getAllPlayers().size() - 1;
 		
 		updatePlayers(online);
 		
@@ -133,7 +135,7 @@ public class StateWait extends GameState implements Runnable {
 		
 		return true;
 	}
-	
+
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		disableEvent(event.getPlayer(), event);
@@ -143,15 +145,27 @@ public class StateWait extends GameState implements Runnable {
 	public void onBlockPlace(BlockPlaceEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
+	@EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (!event.getAction().equals(Action.PHYSICAL))
+        	return;
+		disableEvent(event.getPlayer(), event);
+	}
 	
 	@EventHandler
 	public void onEntityPickupItem(EntityPickupItemEvent event) {
 		if (event.getEntity() instanceof Player p)
 			disableEvent(p, event);
 	}
-
+	
 	@EventHandler
 	public void onEntityDropItem(EntityDropItemEvent event) {
+		if (event.getEntity() instanceof Player p)
+			disableEvent(p, event);
+	}
+	
+	@EventHandler
+	public void onEntityDamage(EntityDamageEvent event) {
 		if (event.getEntity() instanceof Player p)
 			disableEvent(p, event);
 	}
@@ -159,5 +173,27 @@ public class StateWait extends GameState implements Runnable {
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onMove(PlayerMoveEvent event) {
+		Player player = event.getPlayer();
+		Location spawn = game.getWorld().getSpawnLocation();
+		if (event.getFrom().getX() != event.getTo().getX() || event.getFrom().getZ() != event.getTo().getZ()) {
+			if (event.getFrom().distance(spawn) > 100) {
+				player.sendActionBar("§cDon't go too far from the spawn");
+				player.teleport(spawn);
+			}
+		}
 	}
 }

@@ -14,6 +14,7 @@ import fr.caviar.br.task.UniversalTask;
 public class CaviarPlugin extends JavaPlugin {
 
 	private ConfigSpigot config;
+	private ConfigSpigot playerConfig;
 	private UniversalTask taskManager;
 	private PlayerHandler playerHandler;
 
@@ -28,6 +29,7 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		config = new ConfigSpigot(this, "config.yml", true);
+		playerConfig = new ConfigSpigot(this, "players.yml", true);
 		taskManager = new TaskManagerSpigot(this);
 		playerHandler = new PlayerHandler(this);
 		super.onLoad();
@@ -36,6 +38,7 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		config.load();
+		playerConfig.load();
 		super.onEnable();
 	}
 
@@ -53,6 +56,10 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public ConfigSpigot getConfig() {
 		return config;
+	}
+
+	public ConfigSpigot getPlayerConfig() {
+		return playerConfig;
 	}
 
 	public UniversalTask getTaskManager() {

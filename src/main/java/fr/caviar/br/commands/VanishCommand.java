@@ -1,5 +1,6 @@
 package fr.caviar.br.commands;
 
+import java.util.HashSet;
 import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ public class VanishCommand implements Listener {
 	
 	private CommandAPICommand command;
 	private CaviarBR plugin;
-	private static Set<Player> vanishPlayer;
+	private static Set<Player> vanishPlayer = new HashSet<>();
 	
 	public VanishCommand(CaviarBR plugin) {
 		this.plugin = plugin;

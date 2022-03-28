@@ -4,9 +4,11 @@ import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.PluginManager;
 
 import com.nametagedit.plugin.NametagEdit;
 import com.nametagedit.plugin.api.INametagApi;
@@ -20,6 +22,8 @@ public class Nametag implements Listener {
 
 	private final CommandAPICommand command;
 	private final CaviarBR plugin;
+	private NametagEdit nametagEditPlugin;
+	private INametagApi api;
 	private boolean isEnabled = false;
 
 	public Nametag(CaviarBR plugin) {
@@ -30,17 +34,27 @@ public class Nametag implements Listener {
 			if (playerToReload == null)
 				return ;
 			updatePlayer(playerToReload);
+			if (sender instanceof Player p)
+				api.reloadNametag(p);
 			// TODO add msg
 		}));
 		plugin.getCommands().registerCommand(command);
 	}
 	
 	public void enable() {
-		isEnabled = plugin.getServer().getPluginManager().isPluginEnabled("NametagEdit");
+		PluginManager pluginManager = plugin.getServer().getPluginManager();
+		isEnabled = pluginManager.isPluginEnabled("NametagEdit");
 		if (!isEnabled)
 			return;
-		plugin.getServer().getPluginManager().registerEvents(this, plugin);
+		pluginManager.registerEvents(this, plugin);
 		plugin.getConfig().addLoadTask("nametag_update", config -> plugin.getServer().getOnlinePlayers().forEach(p -> updatePlayer(p)));
+		api = NametagEdit.getApi();
+		if (pluginManager.getPlugin("NametagEdit") instanceof NametagEdit ntePl) {
+			nametagEditPlugin = ntePl;
+		} else {
+			plugin.getLogger().log(Level.SEVERE, "Can't get Main class of plugin NametagEdit");
+			nametagEditPlugin = null;
+		}
 	}
 	
 	public void disable() {
@@ -51,12 +65,14 @@ public class Nametag implements Listener {
 		isEnabled = false;
 	}
 	
+	public void refreshAllTeams(Player player) {
+		//nametagEditPlugin.getManager().reset(null);
+	}
+	
 	public void updatePlayer(Player player) {
 		if (!isEnabled)
 			return;
-		INametagApi api = NametagEdit.getApi();
-		
-		if (player.isOp()) {
+		/*if (player.isOp()) {
 			CaviarBR.getInstance().getPlayerHandler().get(player.getUniqueId(), (cPlayer, e) -> {
 				if (e != null) {
 					e.printStackTrace();
@@ -64,10 +80,13 @@ public class Nametag implements Listener {
 					api.setPrefix(player, "&dGroup: " + cPlayer.getGroup().toUpperCase() + " ");
 				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Update nameTag : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
 			});
-		} else if (player.hasPermission("caviar.admin.prefix"))
+		} else */
+		if (player.hasPermission("caviar.admin.prefix"))
 			api.setPrefix(player, "&cADMIN ");
 		else if (player.hasPermission("caviar.mod.prefix"))
 			api.setPrefix(player, "&cMOD ");
+		else if (player.hasPermission("caviar.DEV.prefix"))
+			api.setPrefix(player, "&2DEV ");
 		else
 			api.setPrefix(player, "&7");
 	}	
@@ -75,18 +94,16 @@ public class Nametag implements Listener {
 	public void setSpectator(Player player) {
 		if (!isEnabled)
 			return;
-		INametagApi api = NametagEdit.getApi();
 		api.setPrefix(player, new StringBuilder("&7[SPECTATOR] ").append(api.getNametag(player).getPrefix()).toString());
 	}
 
 	public void delete(Player player) {
 		if (!isEnabled)
 			return;
-		INametagApi api = NametagEdit.getApi();
 		api.clearNametag(player);
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		this.updatePlayer(player);

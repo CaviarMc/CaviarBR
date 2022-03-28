@@ -18,7 +18,7 @@ public class PlayerHandler extends BasicCache<UUID, CaviarPlayerSpigot> {
 	private static PlayerHandler INSTANCE;
 
 	private static Entry<CaviarPlayerSpigot, ? extends Exception> loadPlayer(UUID uuid) {
-		ConfigSpigot config = CaviarBR.getInstance().getConfig();
+		ConfigSpigot config = CaviarBR.getInstance().getPlayerConfig();
 		@Nullable
 		CaviarPlayerSpigot uPlayer = config.getPlayer(uuid);
 
@@ -59,7 +59,9 @@ public class PlayerHandler extends BasicCache<UUID, CaviarPlayerSpigot> {
 	}
 
 	public void savePlayer(CaviarPlayerSpigot uPlayer) {
-		ConfigSpigot config = CaviarBR.getInstance().getConfig();
+		if (uPlayer.isFakePlayer())
+			return;
+		ConfigSpigot config = plugin.getPlayerConfig();
 		config.setPlayer(uPlayer);
 		config.save();
 	}

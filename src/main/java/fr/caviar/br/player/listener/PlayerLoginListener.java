@@ -86,6 +86,7 @@ public class PlayerLoginListener implements Listener {
 			} else {
 				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("FAKE PLAYER Succes load player from cache : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
 			}
+			cPlayer.setFakePlayer(true);
 		} catch (Exception e) {
 			player.kick(CaviarStrings.LOGIN_SCREEN_ERROR_KICK.toComponent());
 			System.err.printf("Fake player can't load data %s\n", player.getName());

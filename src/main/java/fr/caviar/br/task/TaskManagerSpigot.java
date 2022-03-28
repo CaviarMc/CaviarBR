@@ -32,10 +32,8 @@ public class TaskManagerSpigot implements UniversalTask {
 	@Override
 	public boolean cancelTaskByName(String taskName) {
 		if (taskExist(taskName)) {
-			taskList.remove(taskName);
-			BukkitTask task = (BukkitTask) getTask(taskName);
-			if (task != null) {
-				int taskId = task.getTaskId();
+			Integer taskId = taskList.remove(taskName);
+			if (taskId != null) {
 				cancelTaskById(taskId);
 				return true;
 			}
@@ -73,11 +71,14 @@ public class TaskManagerSpigot implements UniversalTask {
 	@Override
 	public int runTaskAsynchronously(String taskName, Runnable runnable) {
 		Integer oldTask = taskList.get(taskName);
-		if (oldTask != null)
-			getTask(oldTask).cancel();
-		int bukkitTask = this.runTaskAsynchronously(runnable);
-		addTask(taskName, bukkitTask);
-		return bukkitTask;
+		if (oldTask != null) {
+			BukkitTask bukkitTask = getTask(oldTask);
+			if (bukkitTask != null)
+				bukkitTask.cancel();
+		}
+		int bukkitTaskId = this.runTaskAsynchronously(runnable);
+		addTask(taskName, bukkitTaskId);
+		return bukkitTaskId;
 	}
 
 	@Override
@@ -93,8 +94,11 @@ public class TaskManagerSpigot implements UniversalTask {
 	@Override
 	public int runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
 		Integer oldTask = taskList.get(taskName);
-		if (oldTask != null)
-			getTask(oldTask).cancel();
+		if (oldTask != null) {
+			BukkitTask bukkitTask = getTask(oldTask);
+			if (bukkitTask != null)
+				bukkitTask.cancel();
+		}
 		int taskId = runTaskLater(runnable, delay, timeUnit);
 		addTask(taskName, taskId);
 		this.runTaskLater(() -> {
