@@ -29,7 +29,7 @@ fi
 #fi
 
 cp ../$PLUGINS_PATH plugins/
-cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
+#cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
 rm -f log.txt error.txt
 
 function kill_server {
@@ -72,3 +72,4 @@ else
 	# Exit status if error
 	(! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt < log.txt
 fi
+exit 0

@@ -127,7 +127,7 @@ public class StateWait extends GameState implements Runnable {
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 //		int online = game.getAllPlayers().size() - 1;
-		int online = game.getAllPlayers().size() - 1;
+		int online = game.getAllPlayers().size();
 		
 		updatePlayers(online);
 		
@@ -185,7 +185,7 @@ public class StateWait extends GameState implements Runnable {
 		disableEvent(event.getPlayer(), event);
 	}
 	
-	@EventHandler
+	/*@EventHandler
 	public void onMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
 		Location spawn = game.getWorld().getSpawnLocation();
@@ -195,5 +195,5 @@ public class StateWait extends GameState implements Runnable {
 				player.teleport(spawn);
 			}
 		}
-	}
+	}*/
 }

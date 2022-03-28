@@ -151,7 +151,7 @@ public class WorldLoader {
 			long avrageChunksPerSecond = chunkAlreadyGenerate / timeDiff;
 			long timeToEndSecs = (chunkToLoad.size() - chunkAlreadyGenerate) / avrageChunksPerSecond;
 			plugin.getLogger().log(Level.INFO, String.format("Generate %d/%d chunks - %d%% | %d chunks/s | started %s ago | ETA %s - %s",
-					chunkAlreadyGenerate, chunkToLoad.size(), chunkToLoad.size() / 100 / chunkAlreadyGenerate, avrageChunksPerSecond,  Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
+					chunkAlreadyGenerate, chunkToLoad.size(), chunkToLoad.size() / chunkAlreadyGenerate, avrageChunksPerSecond,  Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
 					Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
 		}, 1, 5, TimeUnit.MINUTES);
 		

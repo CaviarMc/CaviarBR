@@ -21,7 +21,6 @@ else
 fi
 
 cd $TEST_DIR
-
 cp ../$PLUGINS_PATH plugins/
 
 if [ ! -f "plugins/TitanBoxRFP.jar" ]; then
