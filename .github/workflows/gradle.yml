@@ -179,11 +179,12 @@ jobs:
       run: |
         wget -qO gotty.tar.gz https://github.com/yudai/gotty/releases/latest/download/gotty_linux_amd64.tar.gz
         sudo tar xf gotty.tar.gz -C /usr/local/bin
+        gotty --version
       shell: bash
 
     - name: "Launch server"
       run: ./launchFakeGame.sh
-      shell: sudo script -e -c {0}
+      shell: bash
 #      continue-on-error: true
 
 # Push .jar to repo Release 
