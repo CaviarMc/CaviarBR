@@ -175,9 +175,15 @@ jobs:
         java-version: '17'
         distribution: 'adopt-openj9'
 
+    - name: "Install Requirement"
+      run: |
+        wget -qO gotty.tar.gz https://github.com/yudai/gotty/releases/latest/download/gotty_linux_amd64.tar.gz
+        sudo tar xf gotty.tar.gz -C /usr/local/bin
+      shell: bash
+
     - name: "Launch server"
       run: ./launchFakeGame.sh
-      shell: bash
+      shell: script -e -c {0}
 #      continue-on-error: true
 
 # Push .jar to repo Release 

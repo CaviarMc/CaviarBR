@@ -4,7 +4,7 @@ SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
 
-sudo apt install getty -y
+#sudo apt install getty -y
 getty tty
 # script /dev/null
 
@@ -59,4 +59,4 @@ function control_server {
 	sudo screen -S $SCREEN -p 0 -X stuff "gameadmin finish @p confirm^M"
 }
 
-sudo screen -dmS $SCREEN java -jar $SPIGOT_JAR_NAME & control_server & sleep 5 && sudo screen -x $SCREEN
+sudo screen -dmS $SCREEN java -jar $SPIGOT_JAR_NAME && control_server & sleep 5 && sudo screen -x $SCREEN
