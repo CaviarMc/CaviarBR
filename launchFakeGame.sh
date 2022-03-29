@@ -4,8 +4,9 @@ SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
 
-apt install getty -y
-script /dev/null
+sudo apt install getty -y
+getty tty
+# script /dev/null
 
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
@@ -39,9 +40,9 @@ function control_server {
 		grep -E -q "Done \([0-9]+\.[0-9]+s\)! For help, type \"help\"" logs/latest.log
 		status=$?
 	done
-	screen -S $SCREEN -p 0 -X stuff "settings minPlayers 100^M"
-	screen -S $SCREEN -p 0 -X stuff "settings mapSize 1000^M"
-	screen -S $SCREEN -p 0 -X stuff "gameadmin generate start^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "settings minPlayers 100^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "settings mapSize 1000^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "gameadmin generate start^M"
 	status=1
 	while [ $status -eq 1 ]
 	do
@@ -50,12 +51,12 @@ function control_server {
 		status=$?
 	done
 
-	screen -S $SCREEN -p 0 -X stuff "trfp add 70^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "trfp add 70^M"
 	sleep 30
-	screen -S $SCREEN -p 0 -X stuff "trfp add 30^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "trfp add 30^M"
 
 	sleep 3600
-	screen -S $SCREEN -p 0 -X stuff "gameadmin finish @p confirm^M"
+	sudo screen -S $SCREEN -p 0 -X stuff "gameadmin finish @p confirm^M"
 }
 
-screen -dmS $SCREEN java -jar $SPIGOT_JAR_NAME & control_server & sleep 5 && screen -x $SCREEN
+sudo screen -dmS $SCREEN java -jar $SPIGOT_JAR_NAME & control_server & sleep 5 && sudo screen -x $SCREEN
