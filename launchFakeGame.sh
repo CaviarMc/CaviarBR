@@ -4,6 +4,7 @@ SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
 
+apt install getty -y
 script /dev/null
 
 # Create server folder and download spigot
