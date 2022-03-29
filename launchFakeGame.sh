@@ -4,6 +4,8 @@ SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
 
+script /dev/null
+
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
 	mkdir $TEST_DIR/
@@ -20,7 +22,6 @@ else
 	echo -e "\e[93mWARN > Script updatePaper.sh not found. You sould check manually the spigot jar at $TEST_DIR\$SPIGOT_JAR_NAME\e[0m"
 fi
 
-cd $TEST_DIR
 cp ../$PLUGINS_PATH plugins/
 
 if [ ! -f "plugins/TitanBoxRFP.jar" ]; then

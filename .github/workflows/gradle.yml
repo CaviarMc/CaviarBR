@@ -175,7 +175,7 @@ jobs:
         java-version: '17'
         distribution: 'adopt-openj9'
 
-    - name: "Launch serveur"
+    - name: "Launch server"
       run: ./launchFakeGame.sh
       shell: bash
       continue-on-error: true
