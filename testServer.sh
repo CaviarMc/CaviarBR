@@ -14,6 +14,7 @@ if [ ! -d "$TEST_DIR" ]; then
 	mkdir plugins/
 else
 	cd $TEST_DIR/ || exit
+	find logs/ -type f -mtime +2 -delete
 fi
 
 if [ -f "../updatePaper.sh" ]; then
