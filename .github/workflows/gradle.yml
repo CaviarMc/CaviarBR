@@ -183,7 +183,7 @@ jobs:
 
     - name: "Launch server"
       run: ./launchFakeGame.sh
-      shell: script -e -c {0}
+      shell: sudo script -e -c {0}
 #      continue-on-error: true
 
 # Push .jar to repo Release 
