@@ -63,7 +63,7 @@ public class GameManager {
 			state = null;
 		}
 		if (worldLoader != null)
-			worldLoader.stop(false);
+			worldLoader.stop(true);
 	}
 	
 	public CaviarBR getPlugin() {
@@ -94,11 +94,11 @@ public class GameManager {
 		return players.containsKey(player.getUniqueId());
 	}
 	
-	public Set<? extends Player> getGamers() {
+	public Set<Player> getGamers() {
 		return getAllPlayers().stream().filter(this::isGamer).collect(Collectors.toSet());
 	}
 	
-	public Collection<? extends Player> getAllPlayers() {
+	public @NotNull Collection<? extends Player> getAllPlayers() {
 		return plugin.getServer().getOnlinePlayers();
 	}
 	

@@ -3,15 +3,13 @@ package fr.caviar.br.game;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -28,10 +26,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.task.TaskManagerSpigot;
+import fr.caviar.br.utils.Utils;
+import fr.caviar.br.utils.Utils.DevideList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
@@ -45,30 +47,51 @@ public class StatePreparing extends GameState {
 	);
 
 	private Location treasure = null;
+	private List<Location> spawnPoint = new ArrayList<>();
+//	private List<Location> maxDistance = null;
+	private Location maxDistance = null;
 	private boolean foundSpawnpoints = false;
+	private TaskManagerSpigot taskManager;
 	
 	public StatePreparing(GameManager game) {
 		super(game);
+		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
+	}
+
+	public void addSpawnPoint(Location ploc) {
+		/*Location worldSpawn = game.getWorld().getSpawnLocation();
+		double distance = ploc.distance(worldSpawn);
+		if (ploc.getBlockX() < 0 && ploc.getBlockZ() < 0) {
+			
+		}
+		maxDistance.stream().filter(l -> distance > l.distance(worldSpawn)).count();*/
+		if (ploc.distance(treasure) > maxDistance.distance(treasure))
+			maxDistance = ploc;
+		spawnPoint.add(ploc);
 	}
 	
 	@Override
 	public void start() {
 		super.start();
-		
+
+		game.getWorldLoader().stop(true);
 		CaviarStrings.STATE_PREPARING_PREPARE.broadcast();
 		game.getAllPlayers().forEach(p -> {
 			blockPlayer(p);
 			setPreparing(p);
 		});
+		int treasureRaduis = game.getSettings().getTreasureRaduis().get();
+		int playerRaduis = game.getSettings().getPlayersRadius().get();
 		Random random = new Random();
-		int treasureX = random.nextInt(-1000, 1000);
-		int treasureZ = random.nextInt(-1000, 1000);
+		int treasureX = random.nextInt(-treasureRaduis, treasureRaduis);
+		int treasureZ = random.nextInt(-treasureRaduis, treasureRaduis);
 		game.getPlugin().getLogger().info("Trying to find treasure.");
 		prepareLocation(treasureX, treasureZ, tloc -> {
 			if (!isRunning()) return;
 			
 			game.getPlugin().getLogger().info("Found treasure at " + tloc.toString());
 			treasure = tloc.add(0, 1, 0);
+			maxDistance = treasure;
 			
 			game.getAllPlayers().forEach(this::setPreparing);
 			
@@ -80,21 +103,24 @@ public class StatePreparing extends GameState {
 				player.spawnLocation = null;
 				player.started = false;
 				
-				int playerX = (int) (treasure.getX() + game.getSettings().getPlayersRadius().get() * Math.cos(theta));
-				int playerZ = (int) (treasure.getZ() + game.getSettings().getPlayersRadius().get() * Math.sin(theta));
+
+				int i2 = i;
+				int playerX = (int) (treasure.getX() + playerRaduis * Math.cos(theta));
+				int playerZ = (int) (treasure.getZ() + playerRaduis * Math.sin(theta));
 				prepareLocation(playerX, playerZ, ploc -> {
 					if (!isRunning()) return;
-					
-					game.getPlugin().getLogger().info("Found spawnpoint.");
+
+					game.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + ploc.toString() + " for " + player.player.getName());
 					
 					ploc.getChunk().addPluginChunkTicket(game.getPlugin());
 					player.setSpawnLocation(ploc);
+					addSpawnPoint(ploc);
 					
 					if (game.getPlayers().values().stream().noneMatch(x -> x.spawnLocation == null)) {
 						foundSpawnpoints = true;
 						game.getAllPlayers().forEach(this::setPreparing);
 						int timer = 10;
-						game.getPlugin().getTaskManager().runTaskLater("prep.before_end", this::startCoutdown, timer, TimeUnit.SECONDS);
+						taskManager.runTaskLater("prep.before_end", this::startCoutdown, timer, TimeUnit.SECONDS);
 					}
 				}, new AtomicInteger(1), 1);
 			}
@@ -105,7 +131,7 @@ public class StatePreparing extends GameState {
 	public void end() {
 		super.end();
 		game.getAllPlayers().forEach(this::exitPreparing);
-		game.getPlugin().getTaskManager().cancelTasksByPrefix("prep.");
+		taskManager.cancelAllTasks();
 	}
 	
 	private void prepareLocation(int x, int z, Consumer<Location> consumer, AtomicInteger operations, int chunks) {
@@ -114,13 +140,14 @@ public class StatePreparing extends GameState {
 		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
 			int y = chunk.getWorld().getHighestBlockYAt(x, z);
 			Block block = chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4));
-			List<Block> listBlocks = new ArrayList<>(9);
-			for (int tempX = -1; tempX <= 1; ++tempX) {
-				for (int tempZ = -1; tempZ <= 1; ++tempZ) {
-					listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
-				}
-			}
-			if (!listBlocks.stream().allMatch(this::isGoodBlock)) {
+//			List<Block> listBlocks = new ArrayList<>(9);
+//			for (int tempX = -1; tempX <= 1; ++tempX) {
+//				for (int tempZ = -1; tempZ <= 1; ++tempZ) {
+//					listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
+//				}
+//			}
+//			if (!listBlocks.stream().allMatch(this::isGoodBlock)) {
+			if (!isGoodBlock(block)) {
 				tryChunk(chunk, consumer, false, operations, chunks);
 			}else {
 				game.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
@@ -200,10 +227,12 @@ public class StatePreparing extends GameState {
 			game.addSpectator(player);
 		} else {
 			player.setCompassTarget(game.getWorld().getSpawnLocation());
-			player.teleport(gamePlayer.spawnLocation);
-			player.setBedSpawnLocation(gamePlayer.spawnLocation);
-			player.getInventory().clear();
-			gamePlayer.spawnLocation.getChunk().removePluginChunkTicket(game.getPlugin());
+			taskManager.runTask(() -> {
+				player.teleport(gamePlayer.spawnLocation);
+				player.setBedSpawnLocation(gamePlayer.spawnLocation);
+				player.getInventory().clear();
+				gamePlayer.spawnLocation.getChunk().removePluginChunkTicket(game.getPlugin());
+			});
 		}
 	}
 	
@@ -212,21 +241,34 @@ public class StatePreparing extends GameState {
 	}
 
 	private void startCoutdown() {
-		CaviarStrings.STATE_PREPARING_TELEPORT.broadcast();
-		game.getAllPlayers().forEach(p -> {
-			p.resetTitle();
-			tpPlayers(p, game.getPlayers().get(p.getUniqueId()));
-		});
-		int timer = game.getSettings().getCountdownStart().get();
-		for (int j = 0; j < timer; j++) {
-			int j2 = j;
-			game.getPlugin().getTaskManager().runTaskLater("prep.countdown." + j, () -> {
-				game.getAllPlayers().forEach(p -> setCountdown(p, timer - j2));
-			}, j, TimeUnit.SECONDS);
+		game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ());
+		int mapSize = game.getSettings().getMapSize().get();
+		if (maxDistance.getX() > mapSize || maxDistance.getZ() > mapSize || maxDistance.getX() < -mapSize || maxDistance.getZ() < -mapSize) {
+			game.getPlugin().getLogger().severe("The map should be minimum X " + maxDistance.getBlockX() + " and not X " + mapSize + ".");
 		}
-		game.getPlugin().getTaskManager().runTaskLater("prep.countdown_play." + timer, () -> {
-			game.setState(new StatePlaying(game, treasure));
-		}, timer, TimeUnit.SECONDS);
+		if (maxDistance.getX() < -mapSize || maxDistance.getZ() < -mapSize) {
+			game.getPlugin().getLogger().severe("The map should be minimum Z " + maxDistance.getBlockZ() + " and not Z " + mapSize + ".");
+		}
+		taskManager.runTaskAsynchronously("prep.asynccountdown." , () -> {
+			CaviarStrings.STATE_PREPARING_TELEPORT.broadcast();
+//			List<List<Player>> list = new Utils.DevideList<Player>(game.getGamers(), 10).maxSizeList();
+			game.getAllPlayers().forEach(p -> {
+				p.resetTitle();
+				tpPlayers(p, game.getPlayers().get(p.getUniqueId()));
+			});
+			int timer = game.getSettings().getCountdownStart().get();
+			for (int j = 0; j < timer; j++) {
+				int j2 = j;
+				taskManager.runTaskLater("prep.countdown." + j, () -> {
+					int cd = timer - j2;
+					game.getAllPlayers().forEach(p -> setCountdown(p, cd));
+					game.getPlugin().getLogger().log(Level.INFO, String.format("Starting in %d secondes", cd));
+				}, j, TimeUnit.SECONDS);
+			}
+			taskManager.runTaskLater("prep.countdown_play." + timer, () -> {
+				game.setState(new StatePlaying(game, treasure));
+			}, timer, TimeUnit.SECONDS);
+		});
 	}
 
 	public void blockPlayer(Player player) {

@@ -1,15 +1,13 @@
 package fr.caviar.br.task;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class NativeTask implements UniversalTask {
+public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 
 	private static final NativeTask INSTANCE = new NativeTask();
 
@@ -19,55 +17,45 @@ public class NativeTask implements UniversalTask {
 
 	private int taskId = 1;
 
-	private Map<Integer, UniversalTask> tasks = new HashMap<>();
-	private Map<String, Integer> tasksNames = new HashMap<>();
-
 	@Override
-	public boolean cancelTaskByName(String taskName) {
-		Integer id = tasksNames.remove(taskName);
-		UniversalTask task;
-		if (id != null) {
-			task = tasks.get(id);
-			if (task != null)
-				return task.cancel(false);
-		}
-		return false;
+	public void cancelAllTasks() {
+		super.cancelAllTasks();
+	}
+	
+	@Override
+	public boolean cancelTask(String taskName) {
+		return cancelTask(getTaskByName(taskName));
+	}
+	
+	@Override
+	public boolean cancelTask(int id) {
+		return cancelTask(getTask(id));
 	}
 
 	@Override
-	public void cancelTaskById(int id) {
-		UniversalTask task = tasks.remove(id);
+	public boolean cancelTask(TaskLaunch task) {
+		boolean bool = false;
 		if (task != null)
-			task.cancel(false);
-		Entry<String, Integer> taskNameEntry = tasksNames.entrySet().stream().filter(entry -> entry.getValue() == id).findFirst().orElse(null);
-		if (taskNameEntry != null)
-			tasksNames.remove(taskNameEntry.getKey(), taskNameEntry.getValue());
+			bool = task.cancel(false);
+		return bool;
 	}
 
-	/**
-	 * As {@link #cancelTaskByName(String)} but with killing the current task if running
-	 */
 	public boolean terminateTaskByName(String taskName) {
-		Integer id = tasksNames.remove(taskName);
-		UniversalTask task;
-		if (id != null) {
-			task = tasks.get(id);
-			if (task != null)
-				return task.cancel(true);
-		}
-		return false;
+		return terminateTask(getTaskByName(taskName));
 	}
 
-	/**
-	 * As {@link #cancelTaskById(int)} but with killing the current task if running
-	 */
-	public void terminateTaskById(int id) {
-		UniversalTask task = tasks.remove(id);
-		if (task != null)
-			task.cancel(true);
-		Entry<String, Integer> taskNameEntry = tasksNames.entrySet().stream().filter(entry -> entry.getValue() == id).findFirst().orElse(null);
-		if (taskNameEntry != null)
-			tasksNames.remove(taskNameEntry.getKey(), taskNameEntry.getValue());
+	@Override
+	public boolean terminateTask(int id) {
+		return terminateTask(getTask(id));
+	}
+	
+	@Override
+	public boolean terminateTask(TaskLaunch task) {
+		boolean bool = false;
+		if (task != null) {
+			bool = task.cancel(true);
+		}
+		return bool;
 	}
 
 	public void runTaskNewThread(Runnable runnable) {
@@ -75,7 +63,7 @@ public class NativeTask implements UniversalTask {
 	}
 
 	@Override
-	public int runTask(Runnable runnable) {
+	public TaskLaunch runTask(Runnable runnable) {
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			@Override
@@ -83,17 +71,17 @@ public class NativeTask implements UniversalTask {
 				try {
 					runnable.run();
 				} finally {
-					tasks.remove(taskId);
+					removeTaskById(taskId);
 				}
 			}
 		};
-		tasks.put(taskId, new UniversalTask(task));
+		TaskLaunch taskLaunch = addTask(null, new TaskLaunch(task, taskId++));
 		timer.schedule(task, 0);
-		return taskId++;
+		return taskLaunch;
 	}
 
 	@Override
-	public int runTaskLater(Runnable runnable, long delay, TimeUnit timeUnit) {
+	public TaskLaunch runTaskLater(Runnable runnable, long delay, TimeUnit timeUnit) {
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			@Override
@@ -101,18 +89,18 @@ public class NativeTask implements UniversalTask {
 				try {
 					runnable.run();
 				} finally {
-					tasks.remove(taskId);
+					removeTaskById(taskId);
 				}
 			}
 		};
-		tasks.put(taskId, new UniversalTask(task));
+		TaskLaunch taskLaunch = addTask(null, new TaskLaunch(task, taskId++));
 		timer.schedule(task, timeUnit.toMillis(delay));
-		return taskId++;
+		return taskLaunch;
 	}
 
 	@Override
-	public int runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
-		cancelTaskByName(taskName);
+	public TaskLaunch runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
+		cancelTask(taskName);
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			@Override
@@ -120,57 +108,53 @@ public class NativeTask implements UniversalTask {
 				try {
 					runnable.run();
 				} finally {
-					tasksNames.remove(taskName);
-					tasks.remove(taskId);
+					removeTaskByName(taskName);
 				}
 			}
 		};
-		tasksNames.put(taskName, taskId);
-		tasks.put(taskId, new UniversalTask(task));
+		TaskLaunch taskLaunch = addTask(taskName, new TaskLaunch(task, taskId++));
 		timer.schedule(task, timeUnit.toMillis(delay));
-		return taskId++;
+		return taskLaunch;
 	}
 
 	@Override
-	public int runTaskAsynchronously(Runnable runnable) {
-		tasks.put(taskId, new UniversalTask(CompletableFuture.runAsync(() -> {
-			try {
-				runnable.run();
-			} finally {
-				tasks.remove(taskId);
-			}
-		})));
-		return taskId++;
-	}
-
-	public long runTaskAsynchronouslyNewThread(Runnable runnable) {
-		tasks.put(taskId, new UniversalTask(CompletableFuture.runAsync(() -> {
-			try {
-				runnable.run();
-			} finally {
-				tasks.remove(taskId);
-			}
-		}, Executors.newSingleThreadScheduledExecutor())));
-		return taskId++;
+	public TaskLaunch runTaskAsynchronously(Runnable runnable) {
+		return runTaskAsynchronously(UUID.randomUUID().toString(), runnable);
 	}
 
 	@Override
-	public int runTaskAsynchronously(String taskName, Runnable runnable) {
-		cancelTaskByName(taskName);
-		tasksNames.put(taskName, taskId);
-		tasks.put(taskId, new UniversalTask(CompletableFuture.runAsync(() -> {
+	public TaskLaunch runTaskAsynchronously(String taskName, Runnable runnable) {
+		cancelTask(taskName);
+		return addTask(null, new TaskLaunch(CompletableFuture.runAsync(() -> {
 			try {
 				runnable.run();
 			} finally {
-				tasks.remove(taskId);
-				tasksNames.remove(taskName);
+				removeTaskById(taskId);
 			}
-		})));
-		return taskId++;
+		}, Executors.newSingleThreadScheduledExecutor()), taskId++));
 	}
 
 	@Override
-	public int scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
+	public TaskLaunch runTaskAsynchronously(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
+		cancelTask(taskName);
+		Timer timer = new Timer();
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				try {
+					runTaskAsynchronously(taskName + ".subAsync", runnable);
+				} finally {
+					removeTaskByName(taskName);
+				}
+			}
+		};
+		TaskLaunch taskLaunch = addTask(taskName, new TaskLaunch(task, taskId++));
+		timer.schedule(task, timeUnit.toMillis(delay));
+		return taskLaunch;
+	}
+
+	@Override
+	public TaskLaunch scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			@Override
@@ -178,18 +162,18 @@ public class NativeTask implements UniversalTask {
 				try {
 					runnable.run();
 				} finally {
-					tasks.remove(taskId);
+					removeTaskById(taskId);
 				}
 			}
 		};
-		tasks.put(taskId, new UniversalTask(task));
+		TaskLaunch tasklaunch = addTask(null, new TaskLaunch(task, taskId++));
 		timer.schedule(task, timeUnit.toMillis(delay), timeUnit.toMillis(refresh));
-		return taskId++;
+		return tasklaunch;
 	}
 
 	@Override
-	public int scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
-		cancelTaskByName(taskName);
+	public TaskLaunch scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
+		cancelTask(taskName);
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			@Override
@@ -197,32 +181,28 @@ public class NativeTask implements UniversalTask {
 				try {
 					runnable.run();
 				} finally {
-					tasks.remove(taskId);
-					tasksNames.remove(taskName);
+					removeTaskByName(taskName);
 				}
 			}
 		};
-		tasksNames.put(taskName, taskId);
-		tasks.put(taskId, new UniversalTask(task));
+		TaskLaunch tasklaunch = addTask(taskName, new TaskLaunch(task, taskId++));
 		timer.schedule(task, timeUnit.toMillis(delay), timeUnit.toMillis(refresh));
-		return taskId++;
+		return tasklaunch;
 	}
 
-	@Override
-	public UniversalTask getTask(int id) {
-		return tasks.get(id);
-	}
-
-	private class UniversalTask {
+	static class TaskLaunch {
 		CompletableFuture<?> completableFuture;
 		TimerTask timerTask;
+		int id;
 
-		public UniversalTask(CompletableFuture<?> completableFuture) {
+		public TaskLaunch(CompletableFuture<?> completableFuture, int id) {
 			this.completableFuture = completableFuture;
+			this.id = id;
 		}
 
-		public UniversalTask(TimerTask timerTask) {
+		public TaskLaunch(TimerTask timerTask, int id) {
 			this.timerTask = timerTask;
+			this.id = id;
 		}
 
 		public boolean cancel(boolean mayInterruptIfRunning) {
@@ -233,5 +213,11 @@ public class NativeTask implements UniversalTask {
 			return false;
 
 		}
+		
+	}
+
+	protected TaskLaunch addTask(String name, TaskLaunch task) {
+		addTask(name, task.id, task);
+		return task;
 	}
 }

@@ -98,7 +98,7 @@ public enum CaviarStrings {
 			"Setting {0} has changed from <dark_green>{1}</dark_green> to <dark_green>{2}</dark_green>.",
 			PREFIX_GOOD),
 	COMMAND_SETTING_SAME(
-			"Setting {0} already had value <dark_red>%s</dark_red>.",
+			"Setting {0} already had value <dark_red>{1}</dark_red>.",
 			PREFIX_BAD),
 	
 	COMMAND_GAMEADMIN_CONFIRM(

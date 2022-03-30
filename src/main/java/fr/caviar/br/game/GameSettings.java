@@ -23,6 +23,8 @@ public class GameSettings {
 	
 	private final GameSettingInt mapSize = new GameSettingInt(5000, "mapSize", 10);
 	
+	private final GameSettingInt treasureRaduis = new GameSettingInt(300, "treasureRaduis", 10);
+	
 	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 1);
 	
 	private final GameSettingInt waitCompass = new GameSettingInt(10, "waitCompass", 1);
@@ -93,6 +95,10 @@ public class GameSettings {
 
 	public GameSettingInt getCountdownStart() {
 		return countdownStart;
+	}
+
+	public GameSettingInt getTreasureRaduis() {
+		return treasureRaduis;
 	}
 
 	public abstract class GameSetting<T> extends AbstractObservable {

@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -18,9 +17,9 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.observable.Observable.Observer;
 
 public class StateWait extends GameState implements Runnable {
@@ -29,16 +28,17 @@ public class StateWait extends GameState implements Runnable {
 	
 	private Lock lock = new ReentrantLock();
 	private int left = -1;
-	private int task = -1;
+	private TaskManagerSpigot taskManager;
 	
 	public StateWait(GameManager game) {
 		super(game);
+		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
 	
 	@Override
 	public void start() {
 		super.start();
-		task = game.getPlugin().getTaskManager().scheduleSyncRepeatingTask(this, 0L, 1L, TimeUnit.SECONDS);
+		taskManager.scheduleSyncRepeatingTask(this, 0L, 1L, TimeUnit.SECONDS);
 		
 		Observer observer = () -> updatePlayers(Bukkit.getOnlinePlayers().size());
 		game.getSettings().getMinPlayers().observe(OBSERVER_KEY, observer);
@@ -54,13 +54,12 @@ public class StateWait extends GameState implements Runnable {
 	@Override
 	public void end() {
 		super.end();
-		if (task != -1) game.getPlugin().getTaskManager().cancelTaskById(task);
+		taskManager.cancelAllTasks();
 		
 		game.getSettings().getMinPlayers().unobserve(OBSERVER_KEY);
 		game.getSettings().getMaxPlayers().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeLong().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeShort().unobserve(OBSERVER_KEY);
-		game.getWorldLoader().stop(false);
 	}
 	
 	@Override

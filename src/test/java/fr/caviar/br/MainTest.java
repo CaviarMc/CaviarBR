@@ -59,7 +59,7 @@ public class MainTest {
 	public void testDevideList() {
 		List<String> list = List.of("Ceci", "Début", "est la", "de", "1ère", "la 2ème", "ligne", "ligne");
 		Utils.DevideList<String> devideList = new Utils.DevideList<>(list, 2);
-		List<List<String>> newLists = devideList.execute();
+		List<List<String>> newLists = devideList.nbList();
 		if (newLists.size() != 2) {
 			throw new RuntimeException("Utils.DevideList not good size test");
 		}

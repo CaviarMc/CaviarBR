@@ -1,126 +1,75 @@
 package fr.caviar.br.task;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-public interface UniversalTask {
+import fr.caviar.br.task.NativeTask.TaskLaunch;
 
-	Map<String, Integer> taskList = new ConcurrentHashMap<>();
+public interface UniversalTask<T> {
 
-	default void addTask(String name, int id) {
-		taskList.put(name, id);
-	}
+	boolean taskExist(String taskName);
 
-	default boolean taskExist(String taskName) {
-		return taskList.containsKey(taskName);
-	}
-
-	default boolean taskExist(int id) {
-		return taskList.entrySet().stream().anyMatch(e -> e.getValue() == id);
-	}
+	boolean taskExist(int id);
 
 	/**
 	 * Non recommandé, supprime l'entrée de la task, ne l'arrête pas
 	 * @param id
 	 */
-	default void removeTaskByName(String taskName) {
-		taskList.remove(taskName);
-	}
+	Integer removeTaskByName(String taskName);
 
 	/**
 	 * Non recommandé, supprime l'entrée de la task, ne l'arrête pas
 	 * @param id
 	 */
-	default void removeTaskById(int id) {
-		String task = getTaskNameById(id);
-		if (task != null)
-			taskList.remove(task);
-	}
+	T removeTaskById(int id);
 
-	default String getTaskNameById(int id) {
-		return taskList.entrySet().stream().filter(e -> e.getValue() == id).map(Entry::getKey).findFirst().orElse(null);
-	}
+	T getTask(int id);
 
-	default Integer getTaskIdByName(String taskName) {
-		return taskList.get(taskName);
-	}
+	T getTask(String taskName);
+
+	String getTaskName(int id);
+
+	Integer getTaskId(String taskName);
+
+	String getUniqueTaskName(String string);
+
+	boolean terminateTask(T task);
 	
-	default boolean cancelTaskByName(String taskName) {
-		if (taskExist(taskName)) {
-			cancelTaskById(taskList.get(taskName));
-			removeTaskByName(taskName);
-			return true;
-		}
-		return false;
-	}
+	boolean terminateTask(int id);
+	
+	void terminateAllTasks();
+	
+	boolean cancelTask(T task);
 
-	default boolean cancelTasksByPrefix(String taskPrefix) {
-		Set<Integer> tasks = taskList.entrySet().stream().filter(e -> e.getKey().startsWith(taskPrefix)).map(Entry::getValue).collect(Collectors.toSet());
-		if (tasks.isEmpty())
-			return false;
-		tasks.forEach(this::cancelTaskById);
-		return true;
-	}
+	boolean cancelTask(int id);
 
-	default void checkIfExist(String taskName) {
-		if (taskExist(taskName))
-			cancelTaskByName(taskName);
-	}
+	boolean cancelTask(String taskName);
 
-	default String getUniqueTaskName(String string) {
-		String taskName;
-		do
-			taskName = string + "_" + new Random().nextInt(99999);
-		while (taskExist(taskName));
-		return taskName;
-	}
+	boolean cancelTasksByPrefix(String taskPrefix);
 
-	default void cancelAllTask() {
-		for (int taskId : taskList.values())
-			cancelTaskById(taskId);
-		taskList.clear();
-	}
+	void cancelAllTasks();
 
-	void cancelTaskById(int id);
+	T runTask(Runnable runnable);
 
-	int runTask(Runnable runnable);
+	T runTaskAsynchronously(Runnable runnable);
 
-	int runTaskAsynchronously(Runnable runnable);
+	T runTaskAsynchronously(String taskName, Runnable runnable);
 
-	int runTaskAsynchronously(String taskName, Runnable runnable);
+	T runTaskAsynchronously(String taskName, Runnable runnable, long delay, TimeUnit timeUnit);
 
-	default int runTaskLater(Runnable runnable, long tick) {
-		return runTaskLater(runnable, tick * 50l, TimeUnit.MILLISECONDS);
-	}
+	T runTaskLater(Runnable runnable, long tick);
 
-	default int runTaskLater(String taskName, Runnable runnable, long tick) {
-		return runTaskLater(taskName, runnable, tick * 50l, TimeUnit.MILLISECONDS);
-	}
+	T runTaskLater(String taskName, Runnable runnable, long tick);
 
-	int runTaskLater(Runnable runnable, long delay, TimeUnit timeUnit);
+	T runTaskLater(Runnable runnable, long delay, TimeUnit timeUnit);
 
-	int runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit);
+	T runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit);
 
-	default int scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh) {
-		return scheduleSyncRepeatingTask(runnable, delay * 50l, refresh * 50l, TimeUnit.MILLISECONDS);
-	}
+	T scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh);
 
-	int scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
+	T scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
 
-	int scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
+	T scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
 
-	Object getTask(int id);
 
-	default Object getTask(String taskName) {
-		Integer taskId = getTaskIdByName(taskName);
-		if (taskId != null)
-			return getTask(taskId);
-		return null;
-	}
 
 }

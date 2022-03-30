@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.bukkit.entity.Player;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -582,24 +584,41 @@ public class Utils {
 	}
 	
 	public static class DevideList<T> {
-		private List<T> list;
-		private int nbList;
+		private Collection<T> list;
+		private int nb;
 		
-		public DevideList(List<T> list, int nbList) {
+		public DevideList(Collection<T> list, int nb) {
 			this.list = list;
-			this.nbList = nbList;
+			this.nb = nb;
 		}
 
-		public List<List<T>> execute() {
-			List<List<T>> lists = new ArrayList<>(nbList);
-			int itemPerList = (list.size() / nbList) + 1;
-			for (int i2 = 0; i2 < nbList; ++i2) {
+		public List<List<T>> maxSizeList() {
+			int itemPerList = nb;
+			int listSize = list.size() / itemPerList;
+			List<List<T>> lists = new ArrayList<>(listSize);
+			for (int i2 = 0; i2 < listSize; ++i2) {
 				lists.add(new ArrayList<>(itemPerList));
 			}
 			int i = 0;
 			for (Iterator<T> it = list.iterator(); it.hasNext(); ++i) {
 				lists.get(i).add(it.next());
-				if (i + 1 == nbList)
+				if (i + 1 == listSize)
+					i = -1;
+			}
+			return lists;
+		}
+
+		public List<List<T>> nbList() {
+			int listSize = nb;
+			int itemPerList = (list.size() / listSize) + 1;
+			List<List<T>> lists = new ArrayList<>(listSize);
+			for (int i2 = 0; i2 < listSize; ++i2) {
+				lists.add(new ArrayList<>(itemPerList));
+			}
+			int i = 0;
+			for (Iterator<T> it = list.iterator(); it.hasNext(); ++i) {
+				lists.get(i).add(it.next());
+				if (i + 1 == listSize)
 					i = -1;
 			}
 			return lists;

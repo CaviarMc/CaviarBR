@@ -5,6 +5,7 @@ import java.io.File;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
+import org.bukkit.scheduler.BukkitTask;
 
 import fr.caviar.br.api.config.ConfigSpigot;
 import fr.caviar.br.player.PlayerHandler;
@@ -15,7 +16,7 @@ public class CaviarPlugin extends JavaPlugin {
 
 	private ConfigSpigot config;
 	private ConfigSpigot playerConfig;
-	private UniversalTask taskManager;
+	private UniversalTask<BukkitTask> taskManager;
 	private PlayerHandler playerHandler;
 
 	protected CaviarPlugin() { super(); }
@@ -45,7 +46,7 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		ConfigSpigot.unloadAll();
-		taskManager.cancelAllTask();
+		taskManager.cancelAllTasks();
 		super.onDisable();
 	}
 
@@ -62,7 +63,7 @@ public class CaviarPlugin extends JavaPlugin {
 		return playerConfig;
 	}
 
-	public UniversalTask getTaskManager() {
+	public UniversalTask<BukkitTask> getTaskManager() {
 		return taskManager;
 	}
 }

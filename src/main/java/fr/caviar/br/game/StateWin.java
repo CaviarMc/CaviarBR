@@ -15,19 +15,21 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.task.TaskManagerSpigot;
 
 public class StateWin extends GameState {
 	
 	private GamePlayer winner;
+	private TaskManagerSpigot taskManager;
 	
 	private int timer = 0;
-	private int task = -1;
 	
 	private Random random = new Random();
 	
 	public StateWin(GameManager game, GamePlayer winner) {
 		super(game);
 		this.winner = winner;
+		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
 	
 	@Override
@@ -50,7 +52,7 @@ public class StateWin extends GameState {
 		if (endingDuration == 0) {
 			game.shutdown();
 		}else {
-			task = game.getPlugin().getTaskManager().scheduleSyncRepeatingTask(() -> {
+			taskManager.scheduleSyncRepeatingTask(() -> {
 				timer++;
 				if (timer >= game.getSettings().getEndingDuration().get()) {
 					game.shutdown();
@@ -66,8 +68,7 @@ public class StateWin extends GameState {
 	@Override
 	public void end() {
 		super.end();
-		
-		if (task != -1) game.getPlugin().getTaskManager().cancelTaskById(task);
+		taskManager.cancelAllTasks();
 	}
 	
 	private void spawnFirework(Location location) {

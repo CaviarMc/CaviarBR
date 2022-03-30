@@ -74,16 +74,16 @@ public class StatePlaying extends GameState {
 	public void end() {
 		super.end();
 		UniversalTask taskManager = game.getPlugin().getTaskManager();
-		taskManager.cancelTaskByName("playing.compass.give");
-		taskManager.cancelTaskByName("playing.treasure");
-		taskManager.cancelTaskByName("playing.scoreboard.compass");
-		taskManager.cancelTaskByName("playing.scoreboard.compass_waiting");
+		taskManager.cancelTask("playing.compass.give");
+		taskManager.cancelTask("playing.treasure");
+		taskManager.cancelTask("playing.scoreboard.compass");
+		taskManager.cancelTask("playing.scoreboard.compass_waiting");
 		setTreasure(null);
 	}
 
 	public void giveCompass() {
 		UniversalTask taskManager = game.getPlugin().getTaskManager();
-		taskManager.cancelTaskByName("playing.scoreboard.compass_waiting");
+		taskManager.cancelTask("playing.scoreboard.compass_waiting");
 		Validate.notNull(treasure);
 		CaviarStrings.STATE_PLAYING_COMPASS.broadcast();
 		game.getSpigotPlayers().forEach((player, gamePlayer) -> {
@@ -110,7 +110,7 @@ public class StatePlaying extends GameState {
 			player.getInventory().remove(compassItem);
 		});
 		UniversalTask taskManager = game.getPlugin().getTaskManager();
-		taskManager.cancelTaskByName("playing.scoreboard.compass");
+		taskManager.cancelTask("playing.scoreboard.compass");
 		CaviarStrings.STATE_PLAYING_COMPASS_STOP.broadcast();
 		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + 60 * game.getSettings().getWaitCompass().get();
 		waitCompass();
