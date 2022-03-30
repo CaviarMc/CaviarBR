@@ -26,14 +26,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.jetbrains.annotations.NotNull;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.task.TaskManagerSpigot;
-import fr.caviar.br.utils.Utils;
-import fr.caviar.br.utils.Utils.DevideList;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
@@ -42,7 +40,7 @@ public class StatePreparing extends GameState {
 	
 	private static final List<Material> UNSPAWNABLE_ON = Arrays.asList(
 			Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK, // because they deal damage
-			Material.WATER, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS, Material.TUBE_CORAL, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.CONDUIT, // because it's in water
+			Material.WATER, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.TALL_SEAGRASS, Material.CONDUIT, // because it's in water
 			Material.ICE, Material.FROSTED_ICE, Material.BLUE_ICE // because it means on a frozen river
 	);
 
@@ -197,9 +195,8 @@ public class StatePreparing extends GameState {
 		Material blockType = block.getType();
 		if (UNSPAWNABLE_ON.contains(blockType)) return false;
 		
+		if (Tag.UNDERWATER_BONEMEALS.isTagged(blockType)) return false;
 		if (Tag.LEAVES.isTagged(blockType)) return false;
-		if (Tag.PREVENT_MOB_SPAWNING_INSIDE.isTagged(blockType)) return false;
-		if (Tag.UNSTABLE_BOTTOM_CENTER.isTagged(blockType)) return false;
 		return true;
 	}
 	
