@@ -2,12 +2,15 @@ package fr.caviar.br.task;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+
+import fr.caviar.br.CaviarBR;
 
 public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 	
@@ -26,12 +29,14 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 	@Override
 	public boolean terminateTask(BukkitTask task) {
 		cancelTask(task);
+		CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", task.getTaskId(), this.getClass().getSimpleName()));
 		return false;
 	}
 
 	@Override
 	public boolean terminateTask(int id) {
 		cancelTask(id);
+		CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, this.getClass().getSimpleName()));
 		return false;
 	}
 
@@ -118,12 +123,21 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 
 	@Override
 	public BukkitTask scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
-		return scheduleSyncRepeatingTask(runnable, timeUnit.toMillis(delay) / 50l, timeUnit.toMillis(refresh) / 50l);
+		return this.scheduleSyncRepeatingTask(runnable, timeUnit.toMillis(delay) / 50l, timeUnit.toMillis(refresh) / 50l);
 	}
 
 	@Override
 	public BukkitTask scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh) {
-		String taskName = UUID.randomUUID().toString();
+		return this.scheduleSyncRepeatingTask(UUID.randomUUID().toString(), runnable, delay, refresh);
+	}
+	
+	@Override
+	public BukkitTask scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
+		return this.scheduleSyncRepeatingTask(taskName, runnable, timeUnit.toMillis(delay) / 50l, timeUnit.toMillis(refresh) / 50l);
+	}
+
+	@Override
+	public BukkitTask scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh) {
 		int taskId = getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
 			try {
 				runnable.run();
@@ -135,12 +149,6 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 		BukkitTask task = getScheduler().getPendingTasks().stream().filter(t -> t.getTaskId() == taskId).findFirst().orElse(null);
 		addTask(taskName, task);
 		return task;
-	}
-
-	@Override
-	public BukkitTask scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
-		cancelTask(taskName);
-		return scheduleSyncRepeatingTask(runnable, delay, refresh, timeUnit);
 	}
 	
 	protected void addTask(String name, BukkitTask task) {

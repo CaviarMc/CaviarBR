@@ -3,6 +3,7 @@ package fr.caviar.br.game;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
-import fr.caviar.br.task.UniversalTask;
+import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.Utils;
 
 public class StatePlaying extends GameState {
@@ -36,56 +37,68 @@ public class StatePlaying extends GameState {
 	private Location treasure;
 	private ItemStack[] compass;
 	private ItemStack compassItem;
+	private TaskManagerSpigot taskManager;
 
 	public StatePlaying(GameManager game, Location treasure) {
 		super(game);
-
 		this.treasure = treasure;
+		this.taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void start() {
 		super.start();
 
 		compassItem = new ItemStack(Material.COMPASS);
 		game.timestampStart = Utils.getCurrentTimeInSeconds();
+		game.timestampTreasureSpawn = game.timestampStart + game.getSettings().getWaitTreasure().getInSecond();
+		game.timestampNextCompass = game.timestampStart + game.getSettings().getWaitCompass().getInSecond() + game.getSettings().getWaitTreasure().getInSecond();
 		ItemMeta meta = compassItem.getItemMeta();
-		meta.setDisplayName(CaviarStrings.ITEM_COMPASS_NAME.toString());
+		if (game.getPlugin().isPaper()) {
+			meta.displayName(CaviarStrings.ITEM_COMPASS_NAME.toComponent());
+		} else {
+			meta.setDisplayName(CaviarStrings.ITEM_COMPASS_NAME.toString());
+		}
 		compassItem.setItemMeta(meta);
 		compass = new ItemStack[] { compassItem };
 		game.getGamers().forEach(player -> {
 			join(player, game.getPlayers().get(player.getUniqueId()));
 		});
 		CaviarStrings.STATE_PLAYING_START.broadcast();
-		UniversalTask taskManager = game.getPlugin().getTaskManager();
-		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + 60 * (game.getSettings().getWaitCompass().get() + game.getSettings().getWaitTreasure().get());
+		
 		waitCompass();
 		taskManager.runTaskLater("playing.treasure", () -> {
 			Location tmp = treasure;
 			treasure = null;
 			setTreasure(tmp);
+			if (!taskManager.cancelTask("playing.scoreboard.treasure_waiting")) {
+				this.getGame().getPlugin().getLogger().log(Level.SEVERE, "Can't cancel task playing.scoreboard.treasure_waiting");
+			}
 			CaviarStrings.STATE_PLAYING_TREASURE_SPAWN.broadcast();
-			taskManager.scheduleSyncRepeatingTask("playing.compass.give", this::giveCompass, game.getSettings().getWaitCompass().get(), game.getSettings().getWaitCompass().get(), TimeUnit.MINUTES);
+			taskManager.scheduleSyncRepeatingTask("playing.compass.give", this::giveCompass, game.getSettings().getWaitCompass().getInMinute(), game.getSettings().getWaitCompass().getInMinute(), TimeUnit.MINUTES);
 		}, game.getSettings().getWaitTreasure().get(), TimeUnit.MINUTES);
+		taskManager.scheduleSyncRepeatingTask("playing.scoreboard.treasure_waiting", () -> {
+			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().treasureWaiting(p));
+		}, 0, 1, TimeUnit.SECONDS);
 		game.getWorld().setPVP(true);
 	}
 
 	@Override
 	public void end() {
 		super.end();
-		UniversalTask taskManager = game.getPlugin().getTaskManager();
-		taskManager.cancelTask("playing.compass.give");
-		taskManager.cancelTask("playing.treasure");
-		taskManager.cancelTask("playing.scoreboard.compass");
-		taskManager.cancelTask("playing.scoreboard.compass_waiting");
+//		taskManager.cancelTask("playing.compass.give");
+//		taskManager.cancelTask("playing.treasure");
+//		taskManager.cancelTask("playing.scoreboard.compass");
+//		taskManager.cancelTask("playing.scoreboard.compass_waiting");
+		taskManager.cancelAllTasks();
 		setTreasure(null);
 	}
 
 	public void giveCompass() {
-		UniversalTask taskManager = game.getPlugin().getTaskManager();
 		taskManager.cancelTask("playing.scoreboard.compass_waiting");
 		Validate.notNull(treasure);
-		CaviarStrings.STATE_PLAYING_COMPASS.broadcast();
+		CaviarStrings.STATE_PLAYING_COMPASS.broadcast(game.getSettings().getCompassDuration().getInSecond());
 		game.getSpigotPlayers().forEach((player, gamePlayer) -> {
 			game.getGamers().forEach(x -> x.setCompassTarget(treasure));
 			@NotNull
@@ -98,7 +111,7 @@ public class StatePlaying extends GameState {
 				player.getWorld().dropItem(player.getLocation(), item);
 			});
 		});
-		taskManager.runTaskLater(this::removeCompassPower, game.getSettings().getCompassDuration().get(), TimeUnit.MINUTES);
+		taskManager.runTaskLater(this::removeCompassPower, game.getSettings().getCompassDuration().get(), TimeUnit.SECONDS);
 		taskManager.scheduleSyncRepeatingTask("playing.scoreboard.compass", () -> {
 			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().compassEndEffest(p));
 		}, 0, 1, TimeUnit.SECONDS);
@@ -109,19 +122,23 @@ public class StatePlaying extends GameState {
 			player.setCompassTarget(game.getWorld().getSpawnLocation());
 			player.getInventory().remove(compassItem);
 		});
-		UniversalTask taskManager = game.getPlugin().getTaskManager();
+		
 		taskManager.cancelTask("playing.scoreboard.compass");
 		CaviarStrings.STATE_PLAYING_COMPASS_STOP.broadcast();
-		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + 60 * game.getSettings().getWaitCompass().get();
+		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + game.getSettings().getWaitCompass().get();
 		waitCompass();
 	}
 
+
 	public void waitCompass() {
-		game.timestampCompassEnd = game.timestampNextCompass + 60 * game.getSettings().getCompassDuration().get();
-		UniversalTask taskManager = game.getPlugin().getTaskManager();
+		setCompassEnd();
+		
 		taskManager.scheduleSyncRepeatingTask("playing.scoreboard.compass_waiting", () -> {
-			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().compassTreasureWaiting(p));
+			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().compassWaiting(p));
 		}, 0, 1, TimeUnit.SECONDS);
+	}
+	private void setCompassEnd() {
+		game.timestampCompassEnd = game.timestampNextCompass + game.getSettings().getCompassDuration().get();
 	}
 
 	public Location getTreasure() {

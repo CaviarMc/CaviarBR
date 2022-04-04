@@ -39,7 +39,7 @@ elif [ $UPDATE_PLUGIN = "github" ]; then
 		echo -e "\e[36mRécupération de la dernière pre-release de $GITHUB_JAR_FILE sur $UPDATE_PLUGIN:\e[0m"
 	fi
 fi
-	
+
 
 re='^[0-9]+$'
 if [ -n "$2" ]; then

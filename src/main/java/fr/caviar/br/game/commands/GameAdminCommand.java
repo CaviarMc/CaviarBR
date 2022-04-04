@@ -88,7 +88,7 @@ public class GameAdminCommand {
 		CaviarStrings.COMMAND_GAMEADMIN_CONFIRM.send(
 				sender,
 				game.getState().getClass().getSimpleName(),
-				targetState.getClass().getSimpleName());
+				targetState.getSimpleName());
 	}
 	
 	private <T extends GameState> T testGameState(Class<T> targetState, CommandSender sender) {

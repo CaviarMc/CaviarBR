@@ -10,12 +10,8 @@ import javax.annotation.Nullable;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.jetbrains.annotations.NotNull;
-
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.task.NativeTask;
-import fr.caviar.br.task.UniversalTask;
 import fr.caviar.br.utils.Utils;
 
 public class WorldLoader {
@@ -53,17 +49,17 @@ public class WorldLoader {
 		isGenerating = true;
 		timeStarted = Utils.getCurrentTimeInSeconds();
 		int mapSize = settings.getMapSize().get();
-		int mapChunkSiwe = mapSize / 16;
+		int mapChunkSize = mapSize / 16;
 		int mapLength = mapSize * 2;
 		int chunksLength = mapLength / 16;
 		int totalChunks = chunksLength * chunksLength;
 		chunkToLoad = new ArrayList<>(totalChunks);
 		Runnable runnable = () -> {
 			plugin.getLogger().log(Level.INFO, String.format("Calculation the order of chunks for a map of -%d -%d to %d %d : %d chunks", mapSize, mapSize, mapSize, mapSize, totalChunks));
-			for (int r = 1; mapChunkSiwe >= r; r++) {
-				for (int x = -r; r >= x; x++) {
+			for (int r = 1; mapChunkSize >= r; ++r) {
+				for (int x = -r; r >= x; ++x) {
 					if (x == -r || r == x) {
-						for (int z = -r; r >= z; z++) {
+						for (int z = -r; r >= z; ++z) {
 							addChunkIfNeeded(x, z);
 						}
 					} else {
@@ -77,15 +73,16 @@ public class WorldLoader {
 				stop(false);
 				return;
 			}
-			plugin.getLogger().log(Level.INFO, String.format("Total chunk to generate : %d | started %s ago | %d threads",
-					chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted), threadUses));
+			long diff = Utils.getCurrentTimeInSeconds() - timeStarted;
+			plugin.getLogger().log(Level.INFO, String.format("End calculation %d chunks/s | %d to generate| started %s ago | %d threads",
+					chunkToLoad.size(), chunkToLoad.size() / diff, Utils.hrDuration(diff), threadUses));
 			/*if (chunkToLoad.stream().map(ChunkLoad::getCode).distinct().count() != chunkToLoad.size()) {
 				plugin.getLogger().log(Level.SEVERE, "Algo to calcul chunks add duplicating chunks");
 			}*/
 			launchTask();
 		};
 		if (force) {
-			taskHandler.runTaskAsynchronously(runnable);
+			taskHandler.runTaskAsynchronously("generate.calculate", runnable);
 			return;
 		}
 		plugin.getLogger().log(Level.INFO, String.format("Launch generation for a map of -%d -%d to %d %d check in 10 secondes.", mapSize, mapSize, mapSize, mapSize));
@@ -99,15 +96,20 @@ public class WorldLoader {
 			return;
 		isGenerating = false;
 		threads.forEach(Thread::interrupt);
+		int averageChunksPerSecond;
+		if (chunkAlreadyGenerate > 0 && chunkToLoad.size() > 0)
+			averageChunksPerSecond = (chunkAlreadyGenerate / chunkToLoad.size()) * 100;
+		else
+			averageChunksPerSecond = 0;
 		if (force) {
 			taskHandler.terminateAllTasks();
-			plugin.getLogger().log(Level.INFO, String.format("Generating is stopped | %d/%d chunks generate | time taken %s",
-					chunkAlreadyGenerate, chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+			plugin.getLogger().log(Level.INFO, String.format("Generating is stopped | %d/%d chunks generate - %d%% | time taken %s",
+					chunkAlreadyGenerate, chunkToLoad.size(), averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
 		}
 		else {
 			taskHandler.cancelAllTasks();
-			plugin.getLogger().log(Level.INFO, String.format("Generating is finish | %d/%d chunks generate | time taken %s",
-					chunkAlreadyGenerate, chunkToLoad.size(), Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+			plugin.getLogger().log(Level.INFO, String.format("Generating is finish | %d/%d chunks generate - %d%% | time taken %s",
+					chunkAlreadyGenerate, chunkToLoad.size(), averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
 		}
 		if (chunkToLoad != null)
 			chunkToLoad.clear();
@@ -122,11 +124,6 @@ public class WorldLoader {
 			plugin.getLogger().log(Level.INFO, String.format("Removed %d chunks from queue because they are already generated.", tempSize - (tempSize = chunkToLoad.size())));
 			changes = true;
 		}
-		/*Set<Long> allChunkCode = chunkToLoad.stream().map(ChunkLoad::getCode).collect(Collectors.toSet());
-		if (chunkToLoad.removeIf(chunkLoad -> allChunkCode.stream().filter(allCode -> allCode == chunkLoad.getCode()).count() >= 2)) {
-			plugin.getLogger().log(Level.INFO, String.format("Removed %d chunks from queue because they are duplicates", tempSize - (tempSize = chunkToLoad.size())));
-			changes = true;
-		}*/
 		if (changes)
 			plugin.getLogger().log(Level.INFO, String.format("Number of chunks to generate : %d", chunkToLoad.size()));
 	}
@@ -135,9 +132,7 @@ public class WorldLoader {
 		timeChunkStarted = Utils.getCurrentTimeInSeconds();
 		cleanQueue();
 		List<List<ChunkLoad>> lists = new Utils.DevideList<ChunkLoad>(chunkToLoad, threadUses).nbList();
-		Iterator<List<ChunkLoad>> its = lists.iterator();
-		for (@SuppressWarnings("unused")
-		int i = 0; its.hasNext(); ++i) {
+		for (Iterator<List<ChunkLoad>> its = lists.iterator(); its.hasNext();) {
 			Iterator<ChunkLoad> it = its.next().iterator();
 			Thread t = new Thread(() -> {
 				loadChunk(it);
@@ -155,12 +150,17 @@ public class WorldLoader {
 //		loadChunk(it);
 		taskHandler.scheduleSyncRepeatingTask("generate.chunk", () -> {
 			long timeDiff = Utils.getCurrentTimeInSeconds() - timeChunkStarted;
-			long avrageChunksPerSecond = chunkAlreadyGenerate / chunkToLoad.size() * 100;
 			long timeToEndSecs;
-			if (avrageChunksPerSecond >= 0)
-				timeToEndSecs = (chunkToLoad.size() - chunkAlreadyGenerate) / avrageChunksPerSecond;
-			else
+			int averageChunksPerSecond, percentageChunk;
+			if (chunkAlreadyGenerate > 0 &&  chunkToLoad.size() > 0) {
+				percentageChunk = (chunkAlreadyGenerate / chunkToLoad.size()) * 100;
+				averageChunksPerSecond = (int) (chunkAlreadyGenerate / timeDiff);
+				timeToEndSecs = (chunkToLoad.size() - chunkAlreadyGenerate) / averageChunksPerSecond;
+			} else {
+				percentageChunk = 0;
+				averageChunksPerSecond = 0;
 				timeToEndSecs = 0;
+			}
 			Location loc;
 			if (lastChunkLoad == null || lastChunkLoad.chunk == null) {
 				loc = gameManager.getWorld().getSpawnLocation();
@@ -168,10 +168,10 @@ public class WorldLoader {
 				loc = lastChunkLoad.chunk.getBlock(0, 100, 0).getLocation();
 				loc = gameManager.getWorld().getHighestBlockAt(loc.getBlockX(), loc.getBlockZ()).getLocation();
 			}
-			plugin.getLogger().log(Level.INFO, String.format("Generate %d/%d chunks - %d%% | last chunk x/y/z %d %d %d | %d chunks/s | started %s ago | ETA %s - %s",
-					chunkAlreadyGenerate, chunkToLoad.size(), avrageChunksPerSecond, 
-					loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
-					Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
+			plugin.getLogger().log(Level.INFO, String.format("Generate %d/%d chunks - %d%% | %d chunks/s | last chunk x/y/z %d %d %d | started %s ago | ETA %s - %s",
+				chunkAlreadyGenerate, chunkToLoad.size(), percentageChunk, averageChunksPerSecond, 
+				loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
+				Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
 		}, 1, 5, TimeUnit.MINUTES);
 		
 //		taskHandler.scheduleSyncRepeatingTask("generate.chunk", new BukkitRunnable() {
@@ -213,7 +213,7 @@ public class WorldLoader {
 		if (world.isChunkGenerated(x, z)) {
 			return null;
 		}
-		ChunkLoad chunkLoad = new ChunkLoad(null, x, z);
+		ChunkLoad chunkLoad = new ChunkLoad(x, z);
 		chunkToLoad.add(chunkLoad);
 		return chunkLoad;
 	}
@@ -228,6 +228,11 @@ public class WorldLoader {
 		private Long code;
 
 		public ChunkLoad() {}
+		
+		public ChunkLoad(int xChunk, int zChunk) {
+			this.xChunk = xChunk;
+			this.zChunk = zChunk;
+		}
 
 		public ChunkLoad(Chunk chunk, int xChunk, int zChunk) {
 			this.xChunk = xChunk;
@@ -235,10 +240,6 @@ public class WorldLoader {
 			this.chunk = chunk;
 			if (chunk != null)
 				this.code = chunk.getChunkKey();
-		}
-
-		public ChunkLoad(int xChunk, int zChunk) {
-			this(null, xChunk, zChunk);
 		}
 
 		public ChunkLoad(Chunk chunk) {

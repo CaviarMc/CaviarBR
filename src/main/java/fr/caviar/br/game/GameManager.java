@@ -8,15 +8,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +38,11 @@ public class GameManager {
 	private final Map<Player, GamePlayer> spectator = new HashMap<>();
 	private final WorldLoader worldLoader;
 	protected long timestampStart;
+	protected long timestampTreasureSpawn;
 	protected long timestampNextCompass;
 	protected long timestampCompassEnd;
+//	private Location treasure = null;
+//	private List<Location> spawnPoints = null;
 
 	private GameState state;
 	
@@ -66,6 +73,80 @@ public class GameManager {
 			worldLoader.stop(true);
 	}
 	
+	/*public void calculateSpawnPoint() {
+		int treasureRaduis = settings.getTreasureRaduis().get();
+		int playerRaduis = settings.getPlayersRadius().get();
+		Random random = new Random();
+		int treasureX = random.nextInt(-treasureRaduis, treasureRaduis);
+		int treasureZ = random.nextInt(-treasureRaduis, treasureRaduis);
+		plugin.getLogger().info("Trying to find treasure.");
+		prepareLocation(treasureX, treasureZ, tloc -> {
+			
+			plugin.getLogger().info("Found treasure at " + tloc.toString());
+			treasure = tloc.add(0, 1, 0);
+//			maxDistance = treasure;
+			
+//			this.getAllPlayers().forEach(this::setPreparing);
+			
+			int online = this.getPlayers().size();
+			int i = 0;
+			for (GamePlayer player : this.getPlayers().values()) {
+				double theta = i++ * 2 * Math.PI / online;
+				//Player bukkitPlayer = ((Player) player.player.getPlayer());
+				player.spawnLocation = null;
+				player.started = false;
+				
+
+				int i2 = i;
+				int playerX = (int) (treasure.getX() + playerRaduis * Math.cos(theta));
+				int playerZ = (int) (treasure.getZ() + playerRaduis * Math.sin(theta));
+				prepareLocation(playerX, playerZ, ploc -> {
+//					if (!isRunning()) return;
+
+					this.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + ploc.toString() + " for " + player.player.getName());
+					
+					ploc.getChunk().addPluginChunkTicket(plugin);
+					player.setSpawnLocation(ploc);
+//					addSpawnPoint(ploc);
+					
+//					if (game.getPlayers().values().stream().noneMatch(x -> x.spawnLocation == null)) {
+//						foundSpawnpoints = true;
+//						game.getAllPlayers().forEach(this::setPreparing);
+//						int timer = 10;
+//						taskManager.runTaskLater("prep.before_end", this::startCoutdown, timer, TimeUnit.SECONDS);
+//					}
+				}, new AtomicInteger(1), 1);
+			}
+		}, new AtomicInteger(1), 1);
+	}
+
+	
+	private void prepareLocation(int x, int z, Consumer<Location> consumer, AtomicInteger operations, int chunks) {
+		/*int chunkX = x >> 4;
+		int chunkZ = z >> 4;
+		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+			int y = chunk.getWorld().getHighestBlockYAt(x, z);
+			Block block = chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4));
+//			List<Block> listBlocks = new ArrayList<>(9);
+//			for (int tempX = -1; tempX <= 1; ++tempX) {
+//				for (int tempZ = -1; tempZ <= 1; ++tempZ) {
+//					listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
+//				}
+//			}
+//			if (!listBlocks.stream().allMatch(this::isGoodBlock)) {
+			if (!isGoodBlock(block)) {
+				tryChunk(chunk, consumer, false, operations, chunks);
+			}else {
+				game.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
+				consumer.accept(new Location(game.getWorld(), x, y, z));
+			}
+		}).exceptionally(throwable -> {
+			throwable.printStackTrace();
+			consumer.accept(new Location(game.getWorld(), 0.5, 80, 0.5));
+			return null;
+		});
+	}*/
+
 	public CaviarBR getPlugin() {
 		return plugin;
 	}
@@ -156,17 +237,10 @@ public class GameManager {
 		});
 		Bukkit.shutdown();
 	}
+
 	
-	public void setTimestampSec(long timestampSec) {
-		this.timestampStart = timestampSec;
-	}
-
-	public void setTimeNextCompass(long timeNextCompass) {
-		this.timestampNextCompass = timeNextCompass;
-	}
-
-	public void setTimeCompassDuration(long timeCompassDuration) {
-		this.timestampCompassEnd = timeCompassDuration;
+	public long getTimestampTreasureSpawn() {
+		return timestampTreasureSpawn;
 	}
 
 	public long getTimestampStart() {

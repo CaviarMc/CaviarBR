@@ -5,6 +5,7 @@
 TEST_DIR=test_server
 SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
+DATA_PACK=caviarbr_datapack.zip
 
 # Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
@@ -30,7 +31,7 @@ fi
 #fi
 
 cp ../$PLUGINS_PATH plugins/
-#cp ../vanilla_worldgen_no_ocean.zip world/datapacks/
+cp ../$DATA_PACK world/datapacks/
 rm -f log.txt error.txt
 
 function kill_server {

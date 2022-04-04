@@ -1,8 +1,9 @@
 package fr.caviar.br.scoreboard;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
-import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -12,8 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.jetbrains.annotations.NotNull;
-
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.commands.VanishCommand;
 import fr.caviar.br.game.GameManager;
@@ -27,6 +26,7 @@ public class Scoreboard implements Listener {
 	private static final String ip = ChatColor.GREEN + subdomain + ".caviarwrld.com";
 	private final CaviarBR plugin;
 	private boolean isEnabled = false;
+	private Map<Player, FastBoard> scoreboards = new HashMap<>();
 
 	public Scoreboard(CaviarBR plugin) {
 		this.plugin = plugin;
@@ -46,6 +46,7 @@ public class Scoreboard implements Listener {
 			return;
 		HandlerList.unregisterAll(this);
 		plugin.getServer().getOnlinePlayers().forEach(p -> delete(p));
+		scoreboards.clear();
 		isEnabled = false;
 	}
 	
@@ -74,10 +75,11 @@ public class Scoreboard implements Listener {
 				prefix,
 				ip
 				);
+		scoreboards.put(player, board);
 	}	
 	
 	public void waitToStart(Player player) {
-		FastBoard board = new FastBoard(player);
+		FastBoard board = getBoard(player);
 		GameManager game = plugin.getGame();
 		int needPlayer = game.getSettings().getMinPlayers().get() - Bukkit.getOnlinePlayers().size();
 		int online = VanishCommand.getOnlineCount();
@@ -88,7 +90,6 @@ public class Scoreboard implements Listener {
 		} else {
 			linePlayerWait = ChatColor.YELLOW + "The game will start ...";
 		}
-		board.updateTitle(ChatColor.AQUA + "CaviarBR");
 		String s1 = Utils.withOrWithoutS(online);
 		PluginDescriptionFile pldesc = plugin.getDescription();
 		board.updateLines(
@@ -106,10 +107,27 @@ public class Scoreboard implements Listener {
 				);
 	}	
 	
-	public void compassTreasureWaiting(Player player) {
-		FastBoard board = new FastBoard(player);
+	public void treasureWaiting(Player player) {
+		FastBoard board = getBoard(player);
 		GameManager game = plugin.getGame();
 		board.updateTitle(ChatColor.AQUA + "CaviarBR - In Game");
+		board.updateLines(
+				prefix,
+				"",
+				ChatColor.YELLOW + "Treasure in",
+				ChatColor.YELLOW + Utils.hrFormatDuration(game.getTimestampTreasureSpawn()),
+				"",
+				ChatColor.YELLOW + "Compass in",
+				ChatColor.YELLOW + Utils.hrFormatDuration(game.getTimestampNextCompass()),
+				"",
+				prefix,
+				ip
+				);
+	}
+	
+	public void compassWaiting(Player player) {
+		FastBoard board = getBoard(player);
+		GameManager game = plugin.getGame();
 		board.updateLines(
 				prefix,
 				"",
@@ -122,9 +140,8 @@ public class Scoreboard implements Listener {
 	}
 	
 	public void compassEndEffest(Player player) {
-		FastBoard board = new FastBoard(player);
+		FastBoard board = getBoard(player);
 		GameManager game = plugin.getGame();
-		board.updateTitle(ChatColor.AQUA + "CaviarBR - In Game");
 		board.updateLines(
 				prefix,
 				"",
@@ -137,8 +154,12 @@ public class Scoreboard implements Listener {
 	}
 	
 	public void delete(Player player) {
-		FastBoard board = new FastBoard(player);
+		FastBoard board = getBoard(player);
 		board.delete();
+	}
+	
+	public FastBoard getBoard(Player player) {
+		return scoreboards.get(player);
 	}
 
 	@EventHandler
@@ -149,7 +170,8 @@ public class Scoreboard implements Listener {
 
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
-
+		Player player = event.getPlayer();
+		scoreboards.remove(player);
 	}
 
 }

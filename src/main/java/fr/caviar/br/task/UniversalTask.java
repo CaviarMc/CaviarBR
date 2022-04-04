@@ -2,6 +2,8 @@ package fr.caviar.br.task;
 
 import java.util.concurrent.TimeUnit;
 
+import org.bukkit.scheduler.BukkitTask;
+
 import fr.caviar.br.task.NativeTask.TaskLaunch;
 
 public interface UniversalTask<T> {
@@ -67,8 +69,11 @@ public interface UniversalTask<T> {
 	T scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh);
 
 	T scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
+	
+	T scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh);
 
 	T scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
+
 
 
 

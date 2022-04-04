@@ -53,7 +53,7 @@ public enum CaviarStrings {
 			"We are preparing your game. This will only take a few seconds.",
 			PREFIX_GOOD),
 	STATE_PREPARING_TELEPORT(
-			"Teleportation in progress for all players",
+			"Teleportation in progress for all players...",
 			PREFIX_GOOD),
 	STATE_PREPARING_TITLE(
 			"<yellow>Preparing..."),
@@ -73,13 +73,14 @@ public enum CaviarStrings {
 			"<yellow><bold>A treasure has spawn on the map. Good luck to find it !",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS(
-			"<bold>Here is a compass that points to the treasure. It will work for 2 minutes.",
+			"<bold>Here is a compass that points to the treasure. It will work for %s secondes.",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS_GROUND(
-			"Compass is on ground, your inventory is full",
+			"Compass is on ground, your inventory is full.",
 			PREFIX_BAD),
 	STATE_PLAYING_COMPASS_STOP(
-			"The bousole no longer points to the treasure"),
+			"The bousole no longer points to the treasure.",
+			PREFIX_BAD),
 	STATE_PLAYING_BREAK_TREASURE(
 			"<gold>You cannot break the treasure... click on it!",
 			PREFIX_BAD),

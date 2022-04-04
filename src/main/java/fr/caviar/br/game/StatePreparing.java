@@ -297,11 +297,11 @@ public class StatePreparing extends GameState {
 			event.getPlayer().sendActionBar("§cYou cannot move during preparation.");
 		}
 	}
-	
-	@EventHandler
-	public void onPlayerJump(PlayerJumpEvent event) {
-		disableEvent(event.getPlayer(), event);
-	}
+//	
+//	@EventHandler
+//	public void onPlayerJump(PlayerJumpEvent event) {
+//		disableEvent(event.getPlayer(), event);
+//	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {

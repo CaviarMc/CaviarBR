@@ -6,6 +6,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+import fr.caviar.br.CaviarBR;
 
 public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 
@@ -173,6 +176,11 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 
 	@Override
 	public TaskLaunch scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
+		return this.scheduleSyncRepeatingTask(taskName, runnable, timeUnit.toMillis(delay), timeUnit.toMillis(refresh));
+	}
+
+	@Override
+	public TaskLaunch scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh) {
 		cancelTask(taskName);
 		Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
@@ -186,10 +194,10 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 			}
 		};
 		TaskLaunch tasklaunch = addTask(taskName, new TaskLaunch(task, taskId++));
-		timer.schedule(task, timeUnit.toMillis(delay), timeUnit.toMillis(refresh));
+		timer.schedule(task, delay, refresh);
 		return tasklaunch;
 	}
-
+	
 	static class TaskLaunch {
 		CompletableFuture<?> completableFuture;
 		TimerTask timerTask;
@@ -208,8 +216,11 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 		public boolean cancel(boolean mayInterruptIfRunning) {
 			if (completableFuture != null)
 				return completableFuture.cancel(mayInterruptIfRunning);
-			else if (timerTask != null)
+			else if (timerTask != null) {
+				CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, this.getClass().getSimpleName()));
 				return timerTask.cancel();
+				
+			}
 			return false;
 
 		}

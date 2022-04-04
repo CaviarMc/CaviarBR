@@ -1,6 +1,7 @@
 package fr.caviar.br.api;
 
 import java.io.File;
+import java.util.logging.Level;
 
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +19,9 @@ public class CaviarPlugin extends JavaPlugin {
 	private ConfigSpigot playerConfig;
 	private UniversalTask<BukkitTask> taskManager;
 	private PlayerHandler playerHandler;
+	private boolean isPaper;
+	private boolean isTunity;
+	private boolean isPurpur;
 
 	protected CaviarPlugin() { super(); }
 
@@ -29,10 +33,10 @@ public class CaviarPlugin extends JavaPlugin {
 
 	@Override
 	public void onLoad() {
-		config = new ConfigSpigot(this, "config.yml", true);
-		playerConfig = new ConfigSpigot(this, "players.yml", true);
-		taskManager = new TaskManagerSpigot(this);
-		playerHandler = new PlayerHandler(this);
+		this.config = new ConfigSpigot(this, "config.yml", true);
+		this.playerConfig = new ConfigSpigot(this, "players.yml", true);
+		this.taskManager = new TaskManagerSpigot(this);
+		this.playerHandler = new PlayerHandler(this);
 		super.onLoad();
 	}
 
@@ -41,6 +45,25 @@ public class CaviarPlugin extends JavaPlugin {
 		config.load();
 		playerConfig.load();
 		super.onEnable();
+		try {
+			isPaper = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;
+		} catch (ClassNotFoundException e) {
+			isPaper = false;
+		}
+		try {
+			isTunity = Class.forName("com.tuinity.tuinity.util.TickThread") != null;
+		} catch (ClassNotFoundException e) {
+			isTunity = false;
+		}
+		try {
+			isPurpur = Class.forName("net.pl3x.purpur.event.PlayerAFKEvent") != null;
+		} catch (ClassNotFoundException e) {
+			isPurpur = false;
+		}
+		this.getLogger().log(Level.INFO, String.format("Detected %s as server framework.", getVersionBukkit()));
+		if (!isPaper) {
+			this.getLogger().log(Level.SEVERE, "You sould use PaperSpigot instead of Spigot : https://papermc.io/downloads");
+		}
 	}
 
 	@Override
@@ -65,5 +88,13 @@ public class CaviarPlugin extends JavaPlugin {
 
 	public UniversalTask<BukkitTask> getTaskManager() {
 		return taskManager;
+	}
+
+	public boolean isPaper() {
+		return isPaper;
+	}
+
+	public String getVersionBukkit() {
+		return isPaper ? isTunity ? isPurpur ? "Purpur" : "Tunity" : "PaperSpigot" : "Spigot";
 	}
 }

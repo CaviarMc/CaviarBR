@@ -22,22 +22,16 @@ public class GameSettings {
 	private final GameSettingInt playersRadius = new GameSettingInt(450, "playersRadius", 10);
 	
 	private final GameSettingInt mapSize = new GameSettingInt(5000, "mapSize", 10);
-	
 	private final GameSettingInt treasureRaduis = new GameSettingInt(300, "treasureRaduis", 10);
-	
 	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 1);
-	
-	private final GameSettingInt waitCompass = new GameSettingInt(10, "waitCompass", 1);
-	
-	private final GameSettingInt compassDuration = new GameSettingInt(2, "compassDuration", 1);
-	
-	private final GameSettingInt waitTreasure = new GameSettingInt(20, "waitTreasure", 1);
-	
-	private final GameSettingInt countdownStart = new GameSettingInt(60, "countdownStart", 10);
+	private final GameSettingMinute waitCompass = new GameSettingMinute(3, "waitCompass");
+	private final GameSettingSecond compassDuration = new GameSettingSecond(10, "compassDuration");
+	private final GameSettingMinute waitTreasure = new GameSettingMinute(1, "waitTreasure");
+	private final GameSettingSecond countdownStart = new GameSettingSecond(60, "countdownStart");
 	
 	private final GameManager game;
 	
-	private List<GameSetting> settings;
+	private List<GameSetting<?>> settings;
 	
 	public GameSettings(@NotNull GameManager game) {
 		this.game = game;
@@ -49,7 +43,7 @@ public class GameSettings {
 		return game;
 	}
 	
-	public List<GameSetting> getSettings() {
+	public List<GameSetting<?>> getSettings() {
 		return settings;
 	}
 	
@@ -77,15 +71,15 @@ public class GameSettings {
 		return endingDuration;
 	}
 	
-	public GameSettingInt getWaitCompass() {
+	public GameSettingMinute getWaitCompass() {
 		return waitCompass;
 	}
 
-	public GameSettingInt getCompassDuration() {
+	public GameSettingSecond getCompassDuration() {
 		return compassDuration;
 	}
 
-	public GameSettingInt getWaitTreasure() {
+	public GameSettingMinute getWaitTreasure() {
 		return waitTreasure;
 	}
 
@@ -93,7 +87,7 @@ public class GameSettings {
 		return mapSize;
 	}
 
-	public GameSettingInt getCountdownStart() {
+	public GameSettingSecond getCountdownStart() {
 		return countdownStart;
 	}
 
@@ -154,7 +148,63 @@ public class GameSettings {
 		public Integer getValueFromArguments(Object[] args) {
 			return (Integer) args[0];
 		}
-		
 	}
 	
+	public class GameSettingSecond extends GameSetting<Integer> {
+		
+		private int min, max;
+		
+		public GameSettingSecond(int value, String key) {
+			super(value, key);
+			this.min = 1;
+			this.max = Integer.MAX_VALUE;
+		}
+		
+		public int getInSecond() {
+			return super.get();
+		}
+		
+		public int getInMinute() {
+			return Math.round(super.get() / 60f);
+		}
+		
+		@Override
+		public Argument[] getArguments() {
+			return new Argument[] { new IntegerArgument(getKey() + "inSeconds", min, max) };
+		}
+		
+		@Override
+		public Integer getValueFromArguments(Object[] args) {
+			return (Integer) args[0];
+		}
+	}
+	
+	public class GameSettingMinute extends GameSetting<Integer> {
+		
+		private int min, max;
+		
+		public GameSettingMinute(int value, String key) {
+			super(value, key);
+			this.min = 1;
+			this.max = Integer.MAX_VALUE;
+		}
+		
+		@Override
+		public Argument[] getArguments() {
+			return new Argument[] { new IntegerArgument(getKey() + "inMinutes", min, max) };
+		}		
+		
+		public int getInSecond() {
+			return super.get() * 60;
+		}
+		
+		public int getInMinute() {
+			return super.get();
+		}
+		
+		@Override
+		public Integer getValueFromArguments(Object[] args) {
+			return (Integer) args[0];
+		}
+	}
 }
