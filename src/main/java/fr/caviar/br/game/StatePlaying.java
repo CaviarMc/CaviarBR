@@ -34,14 +34,12 @@ import fr.caviar.br.utils.Utils;
 
 public class StatePlaying extends GameState {
 
-	private Location treasure;
 	private ItemStack[] compass;
 	private ItemStack compassItem;
 	private TaskManagerSpigot taskManager;
 
-	public StatePlaying(GameManager game, Location treasure) {
+	public StatePlaying(GameManager game) {
 		super(game);
-		this.treasure = treasure;
 		this.taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
 
@@ -69,8 +67,8 @@ public class StatePlaying extends GameState {
 		
 		waitCompass();
 		taskManager.runTaskLater("playing.treasure", () -> {
-			Location tmp = treasure;
-			treasure = null;
+			Location tmp = game.getTreasure();
+			game.setTreasure(null);
 			setTreasure(tmp);
 			if (!taskManager.cancelTask("playing.scoreboard.treasure_waiting")) {
 				this.getGame().getPlugin().getLogger().log(Level.SEVERE, "Can't cancel task playing.scoreboard.treasure_waiting");
@@ -97,10 +95,10 @@ public class StatePlaying extends GameState {
 
 	public void giveCompass() {
 		taskManager.cancelTask("playing.scoreboard.compass_waiting");
-		Validate.notNull(treasure);
+		Validate.notNull(game.getTreasure());
 		CaviarStrings.STATE_PLAYING_COMPASS.broadcast(game.getSettings().getCompassDuration().getInSecond());
 		game.getSpigotPlayers().forEach((player, gamePlayer) -> {
-			game.getGamers().forEach(x -> x.setCompassTarget(treasure));
+			game.getGamers().forEach(x -> x.setCompassTarget(game.getTreasure()));
 			@NotNull
 			HashMap<Integer, ItemStack> itemNotGive = player.getInventory().addItem(getCompass()[0]);
 			if (itemNotGive.isEmpty())
@@ -141,13 +139,9 @@ public class StatePlaying extends GameState {
 		game.timestampCompassEnd = game.timestampNextCompass + game.getSettings().getCompassDuration().get();
 	}
 
-	public Location getTreasure() {
-		return treasure;
-	}
-
 	public void setTreasure(Location treasure) {
-		Location oldTreasure = this.treasure;
-		this.treasure = treasure;
+		Location oldTreasure = game.getTreasure();
+//		this.treasure = treasure;
 
 		if (treasure != null) {
 			//Bukkit.getOnlinePlayers().forEach(x -> x.setCompassTarget(treasure));
@@ -217,7 +211,7 @@ public class StatePlaying extends GameState {
 			return;
 
 		Location loc = event.getClickedBlock().getLocation();
-		if (loc.subtract(0, 1, 0).equals(treasure)) {
+		if (loc.subtract(0, 1, 0).equals(game.getTreasure())) {
 			event.setCancelled(true);
 			game.setState(new StateWin(game, game.getPlayers().get(event.getPlayer().getUniqueId())));
 		}
@@ -226,7 +220,7 @@ public class StatePlaying extends GameState {
 	@EventHandler
 	public void onBreakBlock(BlockBreakEvent event) {
 		Location loc = event.getBlock().getLocation();
-		if (loc.equals(treasure) || loc.subtract(0, 1, 0).equals(treasure)) {
+		if (loc.equals(game.getTreasure()) || loc.subtract(0, 1, 0).equals(game.getTreasure())) {
 			event.setCancelled(true);
 			CaviarStrings.STATE_PLAYING_BREAK_TREASURE.send(event.getPlayer());
 		}
@@ -292,7 +286,7 @@ public class StatePlaying extends GameState {
 			game.getPlayers().remove(player.getUniqueId());
 			event.setQuitMessage(event.getQuitMessage() + " §cHe dies from disconnection");
 		}
-		this.getGame().getSpectator().remove(event.getPlayer());
+		this.getGame().getSpectators().remove(event.getPlayer());
 		return false;
 	}
 

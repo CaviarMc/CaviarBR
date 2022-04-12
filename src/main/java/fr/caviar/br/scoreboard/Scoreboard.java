@@ -91,7 +91,6 @@ public class Scoreboard implements Listener {
 			linePlayerWait = ChatColor.YELLOW + "The game will start ...";
 		}
 		String s1 = Utils.withOrWithoutS(online);
-		PluginDescriptionFile pldesc = plugin.getDescription();
 		board.updateLines(
 				prefix,
 				"",
@@ -100,7 +99,7 @@ public class Scoreboard implements Listener {
 				ChatColor.YELLOW + String.valueOf(online) + " player" + s1 + " online" + s1,
 				"",
 				ChatColor.AQUA + "Version",
-				ChatColor.AQUA + pldesc.getVersion(),
+				ChatColor.AQUA + Utils.getPluginVersion(plugin),
 				"",
 				prefix,
 				ip

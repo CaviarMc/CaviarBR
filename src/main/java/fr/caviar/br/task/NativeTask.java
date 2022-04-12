@@ -8,14 +8,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.annotation.Nullable;
+
 import fr.caviar.br.CaviarBR;
 
 public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 
-	private static final NativeTask INSTANCE = new NativeTask();
+	private static final NativeTask INSTANCE = new NativeTask(null);
 
 	public static NativeTask getInstance() {
 		return INSTANCE;
+	}
+	
+	@Nullable
+	private Class<?> clazz;
+
+	public NativeTask(Class<?> clazz) {
+		this.clazz = clazz;
 	}
 
 	private int taskId = 1;
@@ -43,7 +52,8 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 		return bool;
 	}
 
-	public boolean terminateTaskByName(String taskName) {
+	@Override
+	public boolean terminateTask(String taskName) {
 		return terminateTask(getTaskByName(taskName));
 	}
 
@@ -164,8 +174,9 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 			public void run() {
 				try {
 					runnable.run();
-				} finally {
-					removeTaskById(taskId);
+				} catch (Exception e) {
+					cancelTask(taskId);
+					e.printStackTrace();
 				}
 			}
 		};
@@ -188,8 +199,9 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 			public void run() {
 				try {
 					runnable.run();
-				} finally {
-					removeTaskByName(taskName);
+				} catch (Exception e) {
+					cancelTask(taskName);
+					e.printStackTrace();
 				}
 			}
 		};
@@ -198,7 +210,7 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 		return tasklaunch;
 	}
 	
-	static class TaskLaunch {
+	class TaskLaunch {
 		CompletableFuture<?> completableFuture;
 		TimerTask timerTask;
 		int id;
@@ -217,7 +229,7 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 			if (completableFuture != null)
 				return completableFuture.cancel(mayInterruptIfRunning);
 			else if (timerTask != null) {
-				CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, this.getClass().getSimpleName()));
+				CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, clazz.getSimpleName()));
 				return timerTask.cancel();
 				
 			}

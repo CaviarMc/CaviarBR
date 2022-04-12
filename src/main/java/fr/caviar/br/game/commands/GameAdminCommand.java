@@ -11,7 +11,8 @@ import fr.caviar.br.game.StatePlaying;
 import fr.caviar.br.game.StatePreparing;
 import fr.caviar.br.game.StateWait;
 import fr.caviar.br.game.StateWin;
-
+import fr.caviar.br.generate.WorldLoader;
+import io.reactivex.functions.Consumer;
 import net.kyori.adventure.text.Component;
 
 import dev.jorel.commandapi.CommandAPICommand;
@@ -117,13 +118,18 @@ public class GameAdminCommand {
 	}
 	
 	private void startGenerate(CommandSender sender, Object[] args) {
-		game.getWorldLoader().start(true);
-		CaviarStrings.COMMAND_GAMEADMIN_ENABLE_GENERATE.send(sender);
+		WorldLoader worldLoader = game.getWorldLoader();
+		worldLoader.start(true);
+		CaviarStrings.COMMAND_GAMEADMIN_ENABLE_GENERATE.send(sender,worldLoader.getRealMapMinX(), worldLoader.getRealMapMinZ(),
+				worldLoader.getRealMapMaxX(), worldLoader.getRealMapMaxZ(), worldLoader.getTotalChunks());
 	}
 	
-	private void forceStart(CommandSender sender, Object[] args) {
-		game.setState(new StatePlaying(game, (Location) args[0]));
-		CaviarStrings.COMMAND_GAMEADMIN_FORCESTARTED.send(sender);
+	private void forceStart(CommandSender s, Object[] args) {
+		tryCommand(s, sender -> {
+			game.setTreasure((Location) args[0]);
+			game.setState(new StatePlaying(game));
+			CaviarStrings.COMMAND_GAMEADMIN_FORCESTARTED.send(sender);
+		});
 	}
 	
 	private void finish(CommandSender sender, Object[] args) {
@@ -154,11 +160,11 @@ public class GameAdminCommand {
 		StatePlaying state = testGameState(StatePlaying.class, player);
 		if (state == null) return;
 		
-		if (state.getTreasure() == null) {
+		if (game.getTreasure() == null) {
 			CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED_NOT_EXIST.send(player);
 			return;
 		}
-		player.teleport(state.getTreasure());
+		player.teleport(game.getTreasure());
 		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED.send(player);
 	}
 	
@@ -167,7 +173,7 @@ public class GameAdminCommand {
 		if (state == null) return;
 		
 		Player target = (Player) args[0];
-		state.giveCompass();
+		// state.giveCompass(); // Is this the correct functionality of this cmd?
 		target.getInventory().addItem(state.getCompass());
 		CaviarStrings.COMMAND_GAMEADMIN_COMPASS_GIVEN.send(sender, target.getName());
 		CaviarStrings.STATE_PLAYING_COMPASS.send(target);
@@ -178,4 +184,11 @@ public class GameAdminCommand {
 		CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_DONE.send(sender);
 	}
 	
+	private void tryCommand(CommandSender sender, Consumer<CommandSender> consumer) {
+		try {
+			consumer.accept(sender);
+		} catch (Exception e) {
+			CaviarStrings.COMMAND_GAMEADMIN_ERROR.send(sender, e.getMessage());
+		}
+	}
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,9 +20,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,9 +34,17 @@ import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.commands.GameAdminCommand;
 import fr.caviar.br.game.commands.SettingsCommand;
+import fr.caviar.br.generate.WorldLoader;
+import fr.caviar.br.utils.Utils;
 
 public class GameManager {
-	
+
+	private static final List<Material> UNSPAWNABLE_ON = Arrays.asList(
+			Material.LAVA, Material.CACTUS, Material.MAGMA_BLOCK, // because they deal damage
+			Material.WATER, Material.BUBBLE_COLUMN, Material.KELP, Material.KELP_PLANT, Material.TALL_SEAGRASS, Material.CONDUIT, // because it's in water
+			Material.ICE, Material.FROSTED_ICE, Material.BLUE_ICE // because it means on a frozen river
+	);
+
 	private final CaviarBR plugin;
 	private final GameSettings settings;
 	private final Map<UUID, GamePlayer> players = new HashMap<>();
@@ -41,7 +54,7 @@ public class GameManager {
 	protected long timestampTreasureSpawn;
 	protected long timestampNextCompass;
 	protected long timestampCompassEnd;
-//	private Location treasure = null;
+	private Location treasure = null;
 //	private List<Location> spawnPoints = null;
 
 	private GameState state;
@@ -61,7 +74,9 @@ public class GameManager {
 		new SettingsCommand(this);
 		new GameAdminCommand(this);
 		worldLoader.addGameManager(this);
-		worldLoader.start(false);
+		this.calculateTreasureSpawnPoint(treasure -> {
+			worldLoader.start(false);
+		});
 	}
 	
 	public void disable() {
@@ -73,79 +88,94 @@ public class GameManager {
 			worldLoader.stop(true);
 	}
 	
-	/*public void calculateSpawnPoint() {
-		int treasureRaduis = settings.getTreasureRaduis().get();
-		int playerRaduis = settings.getPlayersRadius().get();
+	private void calculateTreasureSpawnPoint(Consumer<Location> consumer) {
+		int treasureRaduis = this.getSettings().getTreasureRaduis().get();
 		Random random = new Random();
 		int treasureX = random.nextInt(-treasureRaduis, treasureRaduis);
 		int treasureZ = random.nextInt(-treasureRaduis, treasureRaduis);
-		plugin.getLogger().info("Trying to find treasure.");
+		this.getPlugin().getLogger().info("Trying to find treasure.");
 		prepareLocation(treasureX, treasureZ, tloc -> {
-			
-			plugin.getLogger().info("Found treasure at " + tloc.toString());
+			this.getPlugin().getLogger().info("Found treasure at " + Utils.locToStringH(tloc));
 			treasure = tloc.add(0, 1, 0);
-//			maxDistance = treasure;
-			
-//			this.getAllPlayers().forEach(this::setPreparing);
-			
-			int online = this.getPlayers().size();
-			int i = 0;
-			for (GamePlayer player : this.getPlayers().values()) {
-				double theta = i++ * 2 * Math.PI / online;
-				//Player bukkitPlayer = ((Player) player.player.getPlayer());
-				player.spawnLocation = null;
-				player.started = false;
-				
-
-				int i2 = i;
-				int playerX = (int) (treasure.getX() + playerRaduis * Math.cos(theta));
-				int playerZ = (int) (treasure.getZ() + playerRaduis * Math.sin(theta));
-				prepareLocation(playerX, playerZ, ploc -> {
-//					if (!isRunning()) return;
-
-					this.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + ploc.toString() + " for " + player.player.getName());
-					
-					ploc.getChunk().addPluginChunkTicket(plugin);
-					player.setSpawnLocation(ploc);
-//					addSpawnPoint(ploc);
-					
-//					if (game.getPlayers().values().stream().noneMatch(x -> x.spawnLocation == null)) {
-//						foundSpawnpoints = true;
-//						game.getAllPlayers().forEach(this::setPreparing);
-//						int timer = 10;
-//						taskManager.runTaskLater("prep.before_end", this::startCoutdown, timer, TimeUnit.SECONDS);
-//					}
-				}, new AtomicInteger(1), 1);
-			}
+			consumer.accept(treasure);
 		}, new AtomicInteger(1), 1);
 	}
 
-	
-	private void prepareLocation(int x, int z, Consumer<Location> consumer, AtomicInteger operations, int chunks) {
-		/*int chunkX = x >> 4;
+	public void prepareLocation(int x, int z, Consumer<Location> consumer, AtomicInteger operations, int chunks) {
+		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
-		game.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
+		this.getWorld().getChunkAtAsync(chunkX, chunkZ).thenAccept(chunk -> {
 			int y = chunk.getWorld().getHighestBlockYAt(x, z);
 			Block block = chunk.getBlock(x - (chunkX << 4), y, z - (chunkZ << 4));
-//			List<Block> listBlocks = new ArrayList<>(9);
-//			for (int tempX = -1; tempX <= 1; ++tempX) {
-//				for (int tempZ = -1; tempZ <= 1; ++tempZ) {
-//					listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
-//				}
-//			}
-//			if (!listBlocks.stream().allMatch(this::isGoodBlock)) {
+			/*List<Block> listBlocks = new ArrayList<>(9);
+			for (int tempX = -1; tempX <= 1; ++tempX) {
+				for (int tempZ = -1; tempZ <= 1; ++tempZ) {
+					listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
+				}
+			}
+			if (!listBlocks.stream().allMatch(this::isGoodBlock)) {*/
 			if (!isGoodBlock(block)) {
 				tryChunk(chunk, consumer, false, operations, chunks);
 			}else {
-				game.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
-				consumer.accept(new Location(game.getWorld(), x, y, z));
+				this.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
+				consumer.accept(new Location(this.getWorld(), x, y, z));
 			}
 		}).exceptionally(throwable -> {
 			throwable.printStackTrace();
-			consumer.accept(new Location(game.getWorld(), 0.5, 80, 0.5));
+			consumer.accept(new Location(this.getWorld(), 0.5, 80, 0.5));
 			return null;
 		});
-	}*/
+	}
+	
+	private Location getNicestBlock(Chunk chunk, AtomicInteger operations) {
+		for (int x = 0; x < 16; x++) {
+			for (int z = 0; z < 16; z++) {
+				operations.incrementAndGet();
+				int globalX = (chunk.getX() << 4) + x;
+				int globalZ = (chunk.getZ() << 4) + z;
+				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
+				Block block = chunk.getBlock(x, y, z);
+				if (isGoodBlock(block)) {
+					return block.getLocation();
+				}
+			}
+		}
+		return null;
+	}
+	
+	private boolean isGoodBlock(Block block) {
+		if (block.getY() < 60) return false;
+		Material blockType = block.getType();
+		if (UNSPAWNABLE_ON.contains(blockType)) return false;
+		
+		if (Tag.UNDERWATER_BONEMEALS.isTagged(blockType)) return false;
+		if (Tag.LEAVES.isTagged(blockType)) return false;
+		return true;
+	}
+	
+	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged, AtomicInteger operations, int chunks) {
+		Location location = getNicestBlock(chunk, operations);
+		if (location == null) { // have not found good spawnpoint in this chunk
+			this.getWorld()
+				.getChunkAtAsync(chunk.getX() + (xChanged ? 0 : 1), chunk.getZ() + (xChanged ? 1 : 0))
+				.thenAccept(next -> tryChunk(next, consumer, !xChanged, operations, chunks + 1))
+				.exceptionally(throwable -> {
+					throwable.printStackTrace();
+					return null;
+				});
+		}else {
+			this.getPlugin().getLogger().info("Success in " + operations + " operations, in " + chunks + " chunks.");
+			consumer.accept(location);
+		}
+	}
+
+	public Location getTreasure() {
+		return treasure;
+	}
+
+	public void setTreasure(Location treasure) {
+		this.treasure = treasure;
+	}
 
 	public CaviarBR getPlugin() {
 		return plugin;
@@ -187,8 +217,21 @@ public class GameManager {
 		return players.entrySet().stream().collect(Collectors.toMap(entry -> Bukkit.getPlayer(entry.getKey()), entry -> entry.getValue()));
 	}
 	
-	public Map<Player, GamePlayer> getSpectator() {
+	public Map<Player, GamePlayer> getSpectators() {
 		return spectator;
+	}
+	
+	public Map<Player, GamePlayer> getModerators() {
+		Map<Player, GamePlayer> moderators = new HashMap<>();
+		getSpigotPlayers().forEach((player, gamePlayer) -> {
+			if (player.hasPermission("caviarbr.moderator"))
+				moderators.put(player, gamePlayer);
+		});
+		getSpectators().forEach((player, gamePlayer) -> {
+			if (player.hasPermission("caviarbr.moderator"))
+				moderators.put(player, gamePlayer);
+		});
+		return moderators;
 	}
 	
 	public GamePlayer addSpectator(Player player) {

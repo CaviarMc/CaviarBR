@@ -9,6 +9,7 @@ import fr.caviar.br.game.GameManager;
 import fr.caviar.br.nametag.Nametag;
 import fr.caviar.br.player.listener.PlayerLoginListener;
 import fr.caviar.br.scoreboard.Scoreboard;
+import fr.caviar.br.utils.Utils;
 
 public class CaviarBR extends CaviarPlugin {
 
@@ -29,7 +30,7 @@ public class CaviarBR extends CaviarPlugin {
 		nameTag = new Nametag(this);
 		scoreboard = new Scoreboard(this);
 
-		sendMessage("§6%s§e (%s) est chargé.", getDescription().getName(), getDescription().getVersion());
+		sendMessage("§6%s§e (%s) est chargé.", getDescription().getName(), Utils.getPluginVersion(this));
 	}
 
 	@Override
@@ -46,7 +47,7 @@ public class CaviarBR extends CaviarPlugin {
 		new VanishCommand(this);
 
 
-		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), getDescription().getVersion());
+		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), Utils.getPluginVersion(this));
 	}
 
 	@Override
@@ -59,7 +60,7 @@ public class CaviarBR extends CaviarPlugin {
 		scoreboard.disable();
 		nameTag.disable();
 
-		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), getDescription().getVersion());
+		sendMessage("§4%s§c (%s) est désactivé.", getDescription().getName(), Utils.getPluginVersion(this));
 	}
 
 	public CaviarCommands getCommands() {

@@ -27,6 +27,12 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 	}
 
 	@Override
+	public boolean terminateTask(String taskName) {
+		cancelTask(taskName);
+		CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task %s in %s. Just cancel it", taskName, this.getClass().getSimpleName()));
+		return false;
+	}
+	@Override
 	public boolean terminateTask(BukkitTask task) {
 		cancelTask(task);
 		CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", task.getTaskId(), this.getClass().getSimpleName()));
@@ -141,8 +147,9 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 		int taskId = getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
 			try {
 				runnable.run();
-			} finally {
-				removeTaskByName(taskName);
+			} catch (Exception e) {
+				cancelTask(taskName);
+				e.printStackTrace();
 			}
 		}, delay, refresh);
 		@Nullable

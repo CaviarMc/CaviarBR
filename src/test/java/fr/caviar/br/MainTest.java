@@ -38,8 +38,8 @@ public class MainTest {
 	}
 
 	@Test
-	public void test() {
-		server.setPlayers(10);
+	public void testPluginVersion() {
+		System.out.println(Utils.getPluginVersion(plugin));
 	}
 	
 	@Test

@@ -1,5 +1,6 @@
 package fr.caviar.br;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -115,11 +116,14 @@ public enum CaviarStrings {
 			"You have launched the preparation state to start the game.",
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_ENABLE_GENERATE(
-			"You have activated chunk generator.",
+			"You have activated chunk generator for a map of %d %d to %d %d (%d chunks).",
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_DISABLE_GENERATE(
 			"You have disabled chunk generator.",
 			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_ERROR(
+			"An error has occurred :",
+			PREFIX_BAD),
 	COMMAND_GAMEADMIN_FORCESTARTED(
 			"You have forced the start of the game.",
 			PREFIX_GOOD),
@@ -178,6 +182,9 @@ public enum CaviarStrings {
 	ENTER_SPECTATOR_MODE(
 			"<gray>You are now in specator mode. Use the wheel-click to change the player",
 			PREFIX_GOOD),
+	NOT_ENOUGH_SPAWNPOINTS(
+			"They are not enough spawn points for %d players. They are only %d. Maybe some chunks are not load, or settings of game is impossible. Try <bold>/game start</bold> to retry it.",
+			PREFIX_BAD),
 	
 	;
 	
@@ -262,6 +269,11 @@ public enum CaviarStrings {
 	
 	public void broadcast(Object... args) {
 		Bukkit.broadcast(format(args));
+	}
+	
+	public void send(Collection<? extends CommandSender> senders, Object... args) {
+		Component msg = format(args);
+		senders.forEach(sender -> sender.sendMessage(msg));
 	}
 	
 	public void send(CommandSender sender, Object... args) {

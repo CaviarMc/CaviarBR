@@ -17,6 +17,8 @@ import java.text.Normalizer.Form;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -35,7 +37,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -45,16 +49,37 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import fr.caviar.br.CaviarBR;
 import fr.caviar.br.api.regex.MatcherPattern;
 
 public class Utils {
 
 	private Utils() {}
+	
 
 	private static final Collector<?, ?, ?> SHUFFLER = Collectors.collectingAndThen(Collectors.toList(), list -> {
 		Collections.shuffle(list);
 		return list;
 	});
+
+	public static String locToStringH(Location loc) {
+		return loc.getWorld().getName() + "(" + loc.getX() + " " + loc.getY() + " " + loc.getBlockZ() + ")";
+	}
+	
+	public static String getPluginVersion(Plugin plugin) {
+		String pluginVersion = plugin.getDescription().getVersion();
+		String[] split = pluginVersion.split("-");
+		if (split.length < 4)
+			return pluginVersion;
+		String buildTime;
+		try {
+			buildTime = Utils.timestampToDateAndHour(new SimpleDateFormat("yyyyMMddHHmmss").parse(split[2]).getTime() / 1000L);
+		} catch (java.text.ParseException e) {
+			buildTime = split[2];
+			e.printStackTrace();
+		}
+		return "v" + split[0] + " " + split[1] + " " + split[3] + " " + buildTime;
+	}
 	
 	public static String hrFormatDuration(long timestampSecond) {
 		long now = Utils.getCurrentTimeInSeconds(), distance;

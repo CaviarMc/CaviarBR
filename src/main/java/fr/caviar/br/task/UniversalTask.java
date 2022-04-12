@@ -34,6 +34,8 @@ public interface UniversalTask<T> {
 
 	String getUniqueTaskName(String string);
 
+	boolean terminateTask(String taskName);
+	
 	boolean terminateTask(T task);
 	
 	boolean terminateTask(int id);
@@ -73,6 +75,7 @@ public interface UniversalTask<T> {
 	T scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh);
 
 	T scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit);
+
 
 
 
