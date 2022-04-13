@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.annotation.Nonnull;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -12,7 +14,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.PluginDescriptionFile;
+
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.commands.VanishCommand;
 import fr.caviar.br.game.GameManager;
@@ -64,7 +66,8 @@ public class Scoreboard implements Listener {
 		}
 	}
 	
-	public void create(Player player) {
+	@Nonnull
+	public FastBoard create(Player player) {
 		FastBoard board = new FastBoard(player);
 		board.updateTitle(ChatColor.AQUA + "CaviarBR");
 		board.updateLines(
@@ -76,6 +79,7 @@ public class Scoreboard implements Listener {
 				ip
 				);
 		scoreboards.put(player, board);
+		return board;
 	}	
 	
 	public void waitToStart(Player player) {
@@ -158,7 +162,12 @@ public class Scoreboard implements Listener {
 	}
 	
 	public FastBoard getBoard(Player player) {
-		return scoreboards.get(player);
+		FastBoard fb = scoreboards.get(player);
+		if (fb == null) {
+			fb = create(player);
+			CaviarBR.getInstance().getLogger().warning(String.format("Scoreboad for %s didn't exist. We have created it but it should not happen.", player.getName()));
+		}
+		return fb;
 	}
 
 	@EventHandler

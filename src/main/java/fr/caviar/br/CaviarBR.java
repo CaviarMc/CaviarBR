@@ -6,6 +6,7 @@ import fr.caviar.br.api.CaviarPlugin;
 import fr.caviar.br.commands.ConfigCommand;
 import fr.caviar.br.commands.VanishCommand;
 import fr.caviar.br.game.GameManager;
+import fr.caviar.br.motd.MotdHandler;
 import fr.caviar.br.nametag.Nametag;
 import fr.caviar.br.player.listener.PlayerLoginListener;
 import fr.caviar.br.scoreboard.Scoreboard;
@@ -39,6 +40,7 @@ public class CaviarBR extends CaviarPlugin {
 		PluginManager pluginManager = getServer().getPluginManager();
 
 		pluginManager.registerEvents(new PlayerLoginListener(), this);
+		pluginManager.registerEvents(new MotdHandler(), this);
 		commands.enable();
 		game.enable();
 		scoreboard.enable();

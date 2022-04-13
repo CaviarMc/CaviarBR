@@ -17,8 +17,6 @@ import java.text.Normalizer.Form;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -30,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -49,7 +47,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
-import fr.caviar.br.CaviarBR;
 import fr.caviar.br.api.regex.MatcherPattern;
 
 public class Utils {
@@ -63,7 +60,15 @@ public class Utils {
 	});
 
 	public static String locToStringH(Location loc) {
-		return loc.getWorld().getName() + "(" + loc.getX() + " " + loc.getY() + " " + loc.getBlockZ() + ")";
+		StringJoiner sj = new StringJoiner(" ", "(", ")");
+		sj.add(String.valueOf(loc.getX()));
+		sj.add(String.valueOf(loc.getY()));
+		sj.add(String.valueOf(loc.getZ()));
+		if (loc.getPitch() != 0 && loc.getYaw() != 0) {
+			sj.add(String.valueOf(loc.getPitch()));
+			sj.add(String.valueOf(loc.getYaw()));
+		}
+		return loc.getWorld().getName() + sj.toString();
 	}
 	
 	public static String getPluginVersion(Plugin plugin) {

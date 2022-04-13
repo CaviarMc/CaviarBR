@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import fr.caviar.br.utils.observable.AbstractObservable;
 
 import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 
 public class GameSettings {
@@ -28,6 +29,7 @@ public class GameSettings {
 	private final GameSettingSecond compassDuration = new GameSettingSecond(10, "compassDuration");
 	private final GameSettingMinute waitTreasure = new GameSettingMinute(1, "waitTreasure");
 	private final GameSettingSecond countdownStart = new GameSettingSecond(60, "countdownStart");
+	private final GameSettingBoolean chunkGenerateAsync = new GameSettingBoolean(true, "chunkGenerateAsync");
 	
 	private final GameManager game;
 	
@@ -93,6 +95,10 @@ public class GameSettings {
 
 	public GameSettingInt getTreasureRaduis() {
 		return treasureRaduis;
+	}
+
+	public GameSettingBoolean getChunkGenerateAsync() {
+		return chunkGenerateAsync;
 	}
 
 	public abstract class GameSetting<T> extends AbstractObservable {
@@ -205,6 +211,23 @@ public class GameSettings {
 		@Override
 		public Integer getValueFromArguments(Object[] args) {
 			return (Integer) args[0];
+		}
+	}
+	
+	public class GameSettingBoolean extends GameSetting<Boolean> {
+		
+		public GameSettingBoolean(boolean value, String key) {
+			super(value, key);
+		}
+		
+		@Override
+		public Argument[] getArguments() {
+			return new Argument[] { new BooleanArgument(getKey()) };
+		}
+		
+		@Override
+		public Boolean getValueFromArguments(Object[] args) {
+			return (boolean) args[0];
 		}
 	}
 }

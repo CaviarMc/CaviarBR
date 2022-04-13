@@ -31,6 +31,9 @@ fi
 #fi
 
 cp ../$PLUGINS_PATH plugins/
+if [ ! -d "world/datapacks/" ]; then
+	mkdir -p world/datapacks/
+fi
 cp ../$DATA_PACK world/datapacks/
 rm -f log.txt error.txt
 

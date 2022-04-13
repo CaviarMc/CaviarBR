@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -69,7 +70,7 @@ public class GameManager {
 	
 	public void enable() {
 		world = Bukkit.getWorlds().get(0);
-		world.setSpawnLocation(world.getHighestBlockAt(0, 0).getLocation().add(0.5, 5, 0.5));
+		world.setSpawnLocation(world.getHighestBlockAt(0, 0, HeightMap.MOTION_BLOCKING_NO_LEAVES).getLocation().add(0.5, 1, 0.5));
 		setState(new StateWait(this));
 		new SettingsCommand(this);
 		new GameAdminCommand(this);

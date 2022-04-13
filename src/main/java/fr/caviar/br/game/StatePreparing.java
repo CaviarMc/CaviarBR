@@ -11,21 +11,25 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.task.TaskManagerSpigot;
-
+import fr.caviar.br.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
@@ -44,13 +48,8 @@ public class StatePreparing extends GameState {
 	}
 
 	public void addSpawnPoint(Location ploc) {
-		/*Location worldSpawn = game.getWorld().getSpawnLocation();
-		double distance = ploc.distance(worldSpawn);
-		if (ploc.getBlockX() < 0 && ploc.getBlockZ() < 0) {
-			
-		}
-		maxDistance.stream().filter(l -> distance > l.distance(worldSpawn)).count();*/
-		if (ploc.distance(game.getTreasure()) > maxDistance.distance(game.getTreasure()))
+		Location treasure = game.getTreasure();
+		if (maxDistance == null || ploc.distance(treasure) > maxDistance.distance(treasure))
 			maxDistance = ploc;
 		spawnPoint.add(ploc);
 	}
@@ -59,8 +58,15 @@ public class StatePreparing extends GameState {
 	public void start() {
 		super.start();
 		Validate.notNull(game.getTreasure());
+		WorldBorder worldBoader = game.getWorld().getWorldBorder();
+		worldBoader.reset();
+		worldBoader.setCenter(game.getTreasure());
+		worldBoader.setSize(game.getSettings().getMapSize().get() * 2 + 2);
+		worldBoader.setDamageBuffer(1);
+		worldBoader.setWarningDistance(25);
 
 		game.getWorldLoader().stop(true);
+		
 		CaviarStrings.STATE_PREPARING_PREPARE.broadcast();
 		game.getAllPlayers().forEach(p -> {
 			blockPlayer(p);
@@ -75,6 +81,7 @@ public class StatePreparing extends GameState {
 			setSpawnPointsToPlayers(this.spawnPoint);
 		} else
 			calculateSpawnPoints(playerRaduis, online, this::setSpawnPointsToPlayers);
+
 	}
 
 	@Override
@@ -127,7 +134,7 @@ public class StatePreparing extends GameState {
 			game.prepareLocation(playerX, playerZ, ploc -> {
 				if (!isRunning()) return;
 
-				game.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + ploc.toString());
+				game.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + Utils.locToStringH(ploc));
 				
 				addSpawnPoint(ploc);
 				spawnPoints.add(ploc);
@@ -167,6 +174,8 @@ public class StatePreparing extends GameState {
 				player.teleport(gamePlayer.spawnLocation);
 				player.setBedSpawnLocation(gamePlayer.spawnLocation);
 				player.getInventory().clear();
+				player.setHealth(player.getMaxHealth());
+				player.setFoodLevel(20);
 				gamePlayer.spawnLocation.getChunk().removePluginChunkTicket(game.getPlugin());
 			});
 		}
@@ -242,23 +251,24 @@ public class StatePreparing extends GameState {
 //	public void onPlayerJump(PlayerJumpEvent event) {
 //		disableEvent(event.getPlayer(), event);
 //	}
-	
+
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (event.getEntity() instanceof Player p)
+		if (event.getEntity() instanceof Player p) {
 			disableEvent(p, event);
+		}
 	}
-	
+
 	@EventHandler
 	public void onEntityPickupItem(EntityPickupItemEvent event) {
 		if (event.getEntity() instanceof Player p)
@@ -271,8 +281,34 @@ public class StatePreparing extends GameState {
 			disableEvent(p, event);
 	}
 
+	
 	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event) {
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+		if (event.getDamager() instanceof Player p) {
+			disableEvent(p, event);
+		}
+	}
+
+	@EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
 		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+	
+	@EventHandler
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+		disableEvent(event.getPlayer(), event);
+	}
+
+	@EventHandler
+	public void onEntityTarget(EntityTargetEvent event) {
+		if (event.getTarget() instanceof Player p) {
+			event.setTarget(null);
+			//event.setCancelled(true);
+		}
 	}
 }

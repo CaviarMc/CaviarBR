@@ -4,20 +4,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.bukkit.Bukkit;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
+
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.observable.Observable.Observer;
@@ -49,6 +55,12 @@ public class StateWait extends GameState implements Runnable {
 		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
 		if (left == -1) CaviarStrings.STATE_WAIT_CANCEL.broadcast();
+		
+		WorldBorder worldBoader = game.getWorld().getWorldBorder();
+		worldBoader.reset();
+		worldBoader.setCenter(game.getWorld().getSpawnLocation());
+		worldBoader.setSize(50 * 2 + 2);
+		worldBoader.setWarningDistance(25);
 	}
 	
 	@Override
@@ -115,9 +127,11 @@ public class StateWait extends GameState implements Runnable {
 	
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
+		Player p = event.getPlayer();
 		int online = game.getAllPlayers().size();
 
-		event.getPlayer().setBedSpawnLocation(game.getWorld().getSpawnLocation());
+//		p.setBedSpawnLocation(game.getWorld().getSpawnLocation());
+		p.teleport(game.getWorld().getSpawnLocation());
 		updatePlayers(online);
 		
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
@@ -144,12 +158,6 @@ public class StateWait extends GameState implements Runnable {
 	public void onBlockPlace(BlockPlaceEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	@EventHandler
-    public void onInteract(PlayerInteractEvent event) {
-        if (!event.getAction().equals(Action.PHYSICAL))
-        	return;
-		disableEvent(event.getPlayer(), event);
-	}
 	
 	@EventHandler
 	public void onEntityPickupItem(EntityPickupItemEvent event) {
@@ -165,12 +173,23 @@ public class StateWait extends GameState implements Runnable {
 	
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (event.getEntity() instanceof Player p)
+		if (event.getEntity() instanceof Player p) {
+			if (event.getCause().equals(DamageCause.SUFFOCATION)) { // Worldboarder damage
+				p.teleport(game.getWorld().getSpawnLocation());
+			}
 			disableEvent(p, event);
+		}
+	}
+	
+	@EventHandler
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+		if (event.getDamager() instanceof Player p) {
+			disableEvent(p, event);
+		}
 	}
 
 	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event) {
+    public void onPlayerInteract(PlayerInteractEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
 	
@@ -182,6 +201,14 @@ public class StateWait extends GameState implements Runnable {
 	@EventHandler
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		disableEvent(event.getPlayer(), event);
+	}
+
+	@EventHandler
+	public void onEntityTarget(EntityTargetEvent event) {
+		if (event.getTarget() instanceof Player p) {
+			event.setTarget(null);
+			//event.setCancelled(true);
+		}
 	}
 	
 	/*@EventHandler
