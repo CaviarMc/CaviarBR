@@ -21,7 +21,6 @@ import fr.caviar.br.utils.Utils;
 public class MainTest {
 
 	private ServerMock server;
-	@SuppressWarnings("unused")
 	private CaviarPlugin plugin;
 
 	@BeforeEach

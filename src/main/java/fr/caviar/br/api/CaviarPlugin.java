@@ -50,15 +50,6 @@ public class CaviarPlugin extends JavaPlugin {
 		config.load();
 		playerConfig.load();
 		msgConfig.load();
-		try {
-			if (Utils.isEmptyFile(msgConfig.getFile())) {
-				for (CaviarStrings cs : CaviarStrings.values()) {
-					msgConfig.set(cs.name().toLowerCase(), cs.getValue());
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		super.onEnable();
 		try {
 			isPaper = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;
@@ -75,9 +66,19 @@ public class CaviarPlugin extends JavaPlugin {
 		} catch (ClassNotFoundException e) {
 			isPurpur = false;
 		}
-		this.getLogger().log(Level.INFO, String.format("Detected %s as server framework.", getVersionBukkit()));
+		this.getLogger().info(String.format("Detected %s as server framework.", getVersionBukkit()));
 		if (!isPaper) {
-			this.getLogger().log(Level.SEVERE, "You sould use PaperSpigot instead of Spigot : https://papermc.io/downloads");
+			this.getLogger().severe("You sould use PaperSpigot instead of Spigot : https://papermc.io/downloads. Message config won't work.");
+		} else {
+			try {
+				if (Utils.isEmptyFile(msgConfig.getFile())) {
+					for (CaviarStrings cs : CaviarStrings.values()) {
+						msgConfig.set(cs.name().toLowerCase(), cs.getValue());
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

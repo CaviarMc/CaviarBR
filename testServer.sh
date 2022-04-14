@@ -75,6 +75,5 @@ else
 	done
 
 	# Exit status if error
-	(! grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt < log.txt
+	! (grep -P "(ERROR|^\tat |Exception|^Caused by: |\t... \d+ more)") &> error.txt < log.txt
 fi
-exit 0
