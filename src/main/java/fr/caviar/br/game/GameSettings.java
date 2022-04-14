@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.utils.observable.AbstractObservable;
 
@@ -35,7 +34,7 @@ public class GameSettings {
 	
 	private List<GameSetting<?>> settings;
 	
-	public GameSettings(@NotNull GameManager game) {
+	public GameSettings(GameManager game) {
 		this.game = game;
 		this.settings = Arrays.asList(minPlayers, maxPlayers, waitingTimeLong, waitingTimeShort, playersRadius, endingDuration, mapSize, waitCompass, compassDuration, waitTreasure);
 		maxPlayers.observe("update_bukkit", () -> Bukkit.setMaxPlayers(maxPlayers.get()));

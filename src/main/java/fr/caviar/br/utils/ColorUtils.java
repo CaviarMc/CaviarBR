@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.api.regex.MatcherPattern;
 import fr.caviar.br.api.regex.RegexMatcher;
@@ -48,7 +47,7 @@ public class ColorUtils {
 	 * Method copied from Paper {@link org.bukkit.ChatColor#getLastColors(String)}
 	 */
 	@Nullable
-	public static ChatColor getLastColor(@NotNull String input) {
+	public static ChatColor getLastColor(String input) {
 		Validate.notNull(input, "Cannot get last colors from null text");
 
 		ChatColor result = null;

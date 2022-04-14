@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -161,7 +162,7 @@ public class Scoreboard implements Listener {
 		board.delete();
 	}
 	
-	public FastBoard getBoard(Player player) {
+	private FastBoard getBoard(Player player) {
 		FastBoard fb = scoreboards.get(player);
 		if (fb == null) {
 			fb = create(player);
@@ -176,7 +177,7 @@ public class Scoreboard implements Listener {
 		create(player);
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		scoreboards.remove(player);

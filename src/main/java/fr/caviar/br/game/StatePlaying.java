@@ -25,7 +25,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
@@ -99,7 +98,6 @@ public class StatePlaying extends GameState {
 		CaviarStrings.STATE_PLAYING_COMPASS.broadcast(game.getSettings().getCompassDuration().getInSecond());
 		game.getSpigotPlayers().forEach((player, gamePlayer) -> {
 			game.getGamers().forEach(x -> x.setCompassTarget(game.getTreasure()));
-			@NotNull
 			HashMap<Integer, ItemStack> itemNotGive = player.getInventory().addItem(getCompass()[0]);
 			if (itemNotGive.isEmpty())
 				return;

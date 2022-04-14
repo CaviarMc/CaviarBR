@@ -1,6 +1,7 @@
 package fr.caviar.br.api;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -8,14 +9,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.scheduler.BukkitTask;
 
+import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.api.config.ConfigSpigot;
 import fr.caviar.br.player.PlayerHandler;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.task.UniversalTask;
+import fr.caviar.br.utils.Utils;
 
 public class CaviarPlugin extends JavaPlugin {
 
 	private ConfigSpigot config;
+	private ConfigSpigot msgConfig;
 	private ConfigSpigot playerConfig;
 	private UniversalTask<BukkitTask> taskManager;
 	private PlayerHandler playerHandler;
@@ -34,6 +38,7 @@ public class CaviarPlugin extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		this.config = new ConfigSpigot(this, "config.yml", true);
+		this.msgConfig = new ConfigSpigot(this, "messageEn.yml", true);
 		this.playerConfig = new ConfigSpigot(this, "players.yml", true);
 		this.taskManager = new TaskManagerSpigot(this);
 		this.playerHandler = new PlayerHandler(this);
@@ -44,6 +49,16 @@ public class CaviarPlugin extends JavaPlugin {
 	public void onEnable() {
 		config.load();
 		playerConfig.load();
+		msgConfig.load();
+		try {
+			if (Utils.isEmptyFile(msgConfig.getFile())) {
+				for (CaviarStrings cs : CaviarStrings.values()) {
+					msgConfig.set(cs.name().toLowerCase(), cs.getValue());
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		super.onEnable();
 		try {
 			isPaper = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;

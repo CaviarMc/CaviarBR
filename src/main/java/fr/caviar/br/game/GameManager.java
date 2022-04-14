@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
@@ -29,7 +31,6 @@ import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
@@ -210,7 +211,7 @@ public class GameManager {
 		return getAllPlayers().stream().filter(this::isGamer).collect(Collectors.toSet());
 	}
 	
-	public @NotNull Collection<? extends Player> getAllPlayers() {
+	public @Nonnull Collection<? extends Player> getAllPlayers() {
 		return plugin.getServer().getOnlinePlayers();
 	}
 	
