@@ -62,7 +62,7 @@ jobs:
       id: gradle
       uses: gradle/gradle-build-action@v2.1.3
       with:
-        arguments: jar
+        arguments: clean jar
 #        arguments: build --scan
         gradle-version: 7.4
 #    - name: "Get build-scan-url if build fail"

@@ -59,7 +59,6 @@ fi
 #getty tty
 # script /dev/null
 
-# Create server folder and download spigot
 if [ ! -d "$TEST_DIR" ]; then
 	echo -e "\e[36mInitialisation du dossier du serveur:\e[0m"
 	mkdir $TEST_DIR/

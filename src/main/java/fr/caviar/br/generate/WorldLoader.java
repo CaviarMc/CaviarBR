@@ -11,7 +11,6 @@ import fr.caviar.br.utils.Utils;
 
 public class WorldLoader {
 
-	private final static int threadsUses = Runtime.getRuntime().availableProcessors();
 	
 	private final CaviarBR plugin;
 	private GameManager gameManager;
@@ -26,12 +25,14 @@ public class WorldLoader {
 	private int mapLength;
 	private int chunksLength;
 	private boolean isGenerating = false;
+	private int threadsUses;
 	
 	private CalculateChunk calculateChunk;
 	private GenerateChunk generateChunk;
 
 	public WorldLoader(CaviarBR plugin) {
 		this.plugin = plugin;
+		this.threadsUses = Runtime.getRuntime().availableProcessors();
 	}
 
 	public void addGameManager(GameManager gameManager) {
