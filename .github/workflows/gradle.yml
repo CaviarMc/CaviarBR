@@ -11,12 +11,13 @@ on:
       - 'v*'
 
 jobs:
-  build_jar:
+  build:
 #    strategy:
 #      matrix:
 #        os: [ubuntu-latest, windows-latest]
 #    runs-on: ${{ matrix.os }}
     runs-on: ubuntu-latest
+    name: Build JAR
     steps:
  
     - name: "Git clone"
@@ -79,6 +80,7 @@ jobs:
   jar_test:
     runs-on: ubuntu-latest
     needs: build
+    name: Test JAR
     steps:
 
     - name: "Git clone"
@@ -124,6 +126,7 @@ jobs:
   start_server:
     runs-on: ubuntu-latest
     needs: build
+    name: Test JAR on Spigot Server
     steps:
 
     - name: "Git clone"
@@ -158,6 +161,7 @@ jobs:
   launch_fake_game:
      runs-on: ubuntu-latest
      needs: build
+     name: Launch a fake game on server
      steps:
 
      - name: "Git clone"
@@ -190,7 +194,8 @@ jobs:
 # Push .jar to repo Release 
   push_release:
     runs-on: ubuntu-latest
-    needs: [start, build_test]
+    needs: [start_server, jar_test]
+    name: Publish Release
     steps:
 
     - name: "Git clone"
