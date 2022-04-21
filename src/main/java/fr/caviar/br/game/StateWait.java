@@ -4,17 +4,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.WorldBorder;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -48,6 +53,7 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getMaxPlayers().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeLong().observe(OBSERVER_KEY, observer);
 		game.getSettings().getWaitingTimeShort().observe(OBSERVER_KEY, observer);
+		game.getSettings().getTreasureRaduis().observe(OBSERVER_KEY, () -> game.calculateTreasureSpawnPoint(null));
 
 		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
@@ -56,8 +62,9 @@ public class StateWait extends GameState implements Runnable {
 		WorldBorder worldBoader = game.getWorld().getWorldBorder();
 		worldBoader.reset();
 		worldBoader.setCenter(game.getWorld().getSpawnLocation());
-		worldBoader.setSize(50 * 2 + 2);
-		worldBoader.setWarningDistance(25);
+		worldBoader.setSize(50 * 2);
+		worldBoader.setWarningDistance(10);
+		game.getWorld().setGameRule(GameRule.REDUCED_DEBUG_INFO, true);
 	}
 	
 	@Override
@@ -69,6 +76,7 @@ public class StateWait extends GameState implements Runnable {
 		game.getSettings().getMaxPlayers().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeLong().unobserve(OBSERVER_KEY);
 		game.getSettings().getWaitingTimeShort().unobserve(OBSERVER_KEY);
+		game.getSettings().getTreasureRaduis().unobserve(OBSERVER_KEY);
 	}
 	
 	@Override
@@ -76,15 +84,15 @@ public class StateWait extends GameState implements Runnable {
 		lock.lock();
 		
 		if (left != -1) {
-			
 			if (left == 0) {
 				game.setState(new StatePreparing(game));
-			}else {
-				if (left == game.getSettings().getWaitingTimeLong().get() || left == game.getSettings().getWaitingTimeShort().get() || left == 60 || left == 30 || left == 15 || left == 10 || left <= 5) {
+			} else {
+				if (left == game.getSettings().getWaitingTimeLong().get() || left == game.getSettings().getWaitingTimeShort().get()
+						|| left == 60 || left == 30 || left == 15 || left == 10 || left <= 5) {
 					CaviarStrings.STATE_WAIT_COUNTDOWN.broadcast(left);
 				}
 			}
-			left--;
+			--left;
 		}
 		
 		lock.unlock();
@@ -118,8 +126,10 @@ public class StateWait extends GameState implements Runnable {
 	
 	private String getOnlineFormat(int online) {
 		int min = game.getSettings().getMinPlayers().get();
-		
-		return (online >= min ? "§a" : "§c") + " (" + online + "/" + min + ")";
+		int max = game.getSettings().getMaxPlayers().get();
+		if (online >= min)
+			return String.format(" §a(%d/%d)", online, max);
+		return String.format(" §c(%d/%d)", online, min);
 	}
 	
 	@Override
@@ -145,7 +155,7 @@ public class StateWait extends GameState implements Runnable {
 		
 		return true;
 	}
-
+	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		disableEvent(event.getPlayer(), event);
@@ -205,6 +215,26 @@ public class StateWait extends GameState implements Runnable {
 		if (event.getTarget() instanceof Player p) {
 			event.setTarget(null);
 			//event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
+	public void onEntityDeath(EntityDeathEvent event) {
+		event.setDroppedExp(0);
+		event.getDrops().clear();
+	}
+
+	@EventHandler
+	public void onEntityChangeBlock(EntityChangeBlockEvent e) {
+		if (e.getEntity() == null || e.getEntity().getType() != EntityType.ENDERMAN)
+			return;
+		e.setCancelled(true);
+	}
+
+	@EventHandler
+	public void onFoodLevelChange(FoodLevelChangeEvent event) {
+		if (event.getEntity() instanceof Player p) {
+			disableEvent(p, event);
 		}
 	}
 	

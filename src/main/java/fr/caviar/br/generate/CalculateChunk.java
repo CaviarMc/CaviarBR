@@ -27,6 +27,8 @@ public class CalculateChunk {
 	private int totalChunks = 0;
 	private int threadsUses;
 	private long timeStarted;
+	
+	private int percentageChunk, averageChunksPerSecond;
 
 	CalculateChunk(WorldLoader worldLoader, int threadUses) {
 		this.worldLoader = worldLoader;
@@ -36,8 +38,9 @@ public class CalculateChunk {
 	void start(boolean force) {
 		timeStarted = Utils.getCurrentTimeInSeconds();
 		Chunk spawnLoader = worldLoader.getSpawnLoader();
+		int mapChunkSize = worldLoader.getMapSize() / 16;
 		Runnable runnable = () -> {
-			for (int r = 1; worldLoader.getMapChunkSize() >= r; ++r) {
+			for (int r = 1; mapChunkSize >= r; ++r) {
 				for (int x = -r; r >= x; ++x) {
 					if (x == -r || r == x) {
 						for (int z = -r; r >= z; ++z) {
@@ -62,7 +65,6 @@ public class CalculateChunk {
 			taskHandler.scheduleSyncRepeatingTask("generate.calculate.info", () -> {
 				long timeDiff = Utils.getCurrentTimeInSeconds() - timeStarted;
 				long timeToEndSecs;
-				int averageChunksPerSecond, percentageChunk;
 				if (chunkAlreadyCalculate > 0 && totalChunks > 0) {
 					percentageChunk = (int) (((float) chunkAlreadyCalculate / totalChunks) * 100);
 					averageChunksPerSecond = (int) (chunkAlreadyCalculate / timeDiff);
@@ -80,6 +82,7 @@ public class CalculateChunk {
 					lastXChunk = lastChunkOperation.getXChunk();
 					lastZChunk = lastChunkOperation.getZChunk();
 				}
+				worldLoader.updatePlayerScoreboard();
 				worldLoader.getPlugin().getLogger().info(String.format("Calculate (1/2) %d/%d chunks - %d%% | %d chunks/s | last x z chunk %d %d | started %s ago | ETA %s - %s",
 					chunkAlreadyCalculate, totalChunks, percentageChunk, averageChunksPerSecond, lastXChunk, lastZChunk, Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
 					Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
@@ -125,8 +128,8 @@ public class CalculateChunk {
 		threads.clear();
 		int mapSize = worldLoader.getGameManager().getSettings().getMapSize().get();
 		if (chunkToLoad.isEmpty()) {
-			worldLoader.getPlugin().getLogger().info(String.format("World is already generate from -%d -%d to %d %d (size %d)", worldLoader.getRealMapMinX(),
-					worldLoader.getRealMapMinZ(), worldLoader.getRealMapMaxX(), mapSize));
+			worldLoader.getPlugin().getLogger().info(String.format("World is already generate from %d %d to %d %d (size %d)", worldLoader.getRealMapMinX(),
+					worldLoader.getRealMapMinZ(), worldLoader.getRealMapMaxX(), worldLoader.getRealMapMaxZ(), mapSize));
 			//worldLoader.stop(false);
 			return;
 		}
@@ -164,5 +167,18 @@ public class CalculateChunk {
 			}
 		}
 	}
+
+	public int getTotalChunks() {
+		return totalChunks;
+	}
+
+	public int getPercentageChunk() {
+		return percentageChunk;
+	}
+
+	public int getAverageChunksPerSecond() {
+		return averageChunksPerSecond;
+	}
+
 
 }

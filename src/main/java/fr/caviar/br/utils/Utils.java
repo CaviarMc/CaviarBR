@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -602,6 +603,11 @@ public class Utils {
 		return list.isEmpty() ? null : list.get(random.nextInt(list.size()));
 	}
 
+	public static <T> T getRandomFrom(Random random, Collection<T> collection) {
+		return collection.isEmpty() ? null : collection.stream().skip(random.nextInt(collection.size())).findFirst().orElse(null);
+	}
+	
+	
 	public static <T> T getRandomFrom(Random random, T[] array) {
 		return array.length == 0 ? null : array[random.nextInt(array.length)];
 	}

@@ -74,7 +74,7 @@ public enum CaviarStrings {
 			"<yellow><bold>A treasure has spawn on the map. Good luck to find it !",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS(
-			"<bold>Here is a compass that points to the treasure. It will work for %s secondes.",
+			"<bold>Here is a compass that points to the treasure. It will work for {0} secondes.",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS_GROUND(
 			"Compass is on ground, your inventory is full.",
@@ -96,6 +96,9 @@ public enum CaviarStrings {
 	ITEM_COMPASS_NAME(
 			"<yellow>Treasure Compass"),
 	
+	COMMAND_SETTING_SHOW(
+			"Setting {0} is set to <dark_green>{1}</dark_green>.",
+			PREFIX),
 	COMMAND_SETTING_SET(
 			"Setting {0} has changed from <dark_green>{1}</dark_green> to <dark_green>{2}</dark_green>.",
 			PREFIX_GOOD),

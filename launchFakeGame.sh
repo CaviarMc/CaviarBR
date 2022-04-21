@@ -134,10 +134,10 @@ function control_server {
 		status=$?
 	done
 	
-	echo -e "\e[36mSet mapSize $MAP_SIZE\e[0m"
-	screen -S $SCREEN -p 0 -X stuff "settings mapSize $MAP_SIZE^M"
-	echo -e "\e[36mStart generating\e[0m"
-	screen -S $SCREEN -p 0 -X stuff "gameadmin generate start^M"
+	#echo -e "\e[36mSet mapSize $MAP_SIZE\e[0m"
+	#screen -S $SCREEN -p 0 -X stuff "settings mapSize $MAP_SIZE^M"
+	#echo -e "\e[36mStart generating\e[0m"
+	#screen -S $SCREEN -p 0 -X stuff "gameadmin generate start^M"
 	if [ $FAKE_PLAYERS = "0" ] || [ $FAKE_PLAYERS = "-1" ]; then
 		exit 0
 	else
@@ -148,6 +148,14 @@ function control_server {
 			sleep 30
 			grep -E -q "Generating is finish" logs/latest.log
 			status=$?
+			if [ $status -eq 1 ]; then
+				grep -E -q "Generating is stopped" logs/latest.log
+				status=$?
+			fi
+			if [ $status -eq 1 ]; then
+				grep -E -q "World is already generate" logs/latest.log
+				status=$?
+			fi
 		done
 		echo -e "\e[36mGenerating is finish\e[0m"
 		screen -S $SCREEN -p 0 -X stuff "trfp add $FAKE_PLAYERS^M"
@@ -160,9 +168,9 @@ function control_server {
 			grep -E -q "The game has started" logs/latest.log
 			status=$?
 		done
-		TIME=300 # 5 mins # 3600 = 1h
-		echo -e "\e[36mThe game has started for $(TIME / 1000) secondse[0m"
-		sleep $TIME
+		T=300 # 5 mins # 3600 = 1h
+		echo -e "\e[36mThe game has started for $(T / 1000) secondse[0m"
+		sleep $T
 		echo -e "\e[36mThe game will stop with random winner\e[0m"
 		screen -S $SCREEN -p 0 -X stuff "gameadmin finish @p confirm^M"
 		echo -e "\e[36mThe game is going to stop\e[0m"

@@ -37,7 +37,7 @@ public class SettingsCommand {
 					if (oldValue != newValue) {
 						setting.set(newValue);
 						CaviarStrings.COMMAND_SETTING_SET.send(sender, setting.getKey(), Objects.toString(oldValue), Objects.toString(newValue));
-					}else {
+					} else {
 						CaviarStrings.COMMAND_SETTING_SAME.send(sender, setting.getKey(), Objects.toString(oldValue));
 					}
 				});

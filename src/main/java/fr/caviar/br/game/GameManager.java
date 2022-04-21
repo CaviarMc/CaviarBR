@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,12 +32,15 @@ import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.jetbrains.annotations.Nullable;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.commands.GameAdminCommand;
 import fr.caviar.br.game.commands.SettingsCommand;
 import fr.caviar.br.generate.WorldLoader;
+import fr.caviar.br.utils.Cuboid;
 import fr.caviar.br.utils.Utils;
 
 public class GameManager {
@@ -57,6 +61,7 @@ public class GameManager {
 	protected long timestampNextCompass;
 	protected long timestampCompassEnd;
 	private Location treasure = null;
+	private Cuboid mapCub = null;
 //	private List<Location> spawnPoints = null;
 
 	private GameState state;
@@ -71,14 +76,20 @@ public class GameManager {
 	
 	public void enable() {
 		world = Bukkit.getWorlds().get(0);
-		world.setSpawnLocation(world.getHighestBlockAt(0, 0, HeightMap.MOTION_BLOCKING_NO_LEAVES).getLocation().add(0.5, 1, 0.5));
+		world.setStorm(false);
+		world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
 		setState(new StateWait(this));
 		new SettingsCommand(this);
 		new GameAdminCommand(this);
 		worldLoader.addGameManager(this);
-		this.calculateTreasureSpawnPoint(treasure -> {
-			worldLoader.start(false);
-		});
+		prepareLocation(0, 0, tloc -> {
+			tloc = tloc.add(0, 1, 0);
+			this.getPlugin().getLogger().info("Found world spawn at " + Utils.locToStringH(tloc));
+			world.setSpawnLocation(tloc);
+			this.calculateTreasureSpawnPoint(treasure -> {
+				worldLoader.start(false);
+			});
+		}, new AtomicInteger(1), 1);
 	}
 	
 	public void disable() {
@@ -90,7 +101,11 @@ public class GameManager {
 			worldLoader.stop(true);
 	}
 	
-	private void calculateTreasureSpawnPoint(Consumer<Location> consumer) {
+	public void calculateTreasureSpawnPoint(Consumer<Location> consumer) {
+		if (state != null && !(state instanceof StateWait)) {
+			this.getPlugin().getLogger().warning("Can't calculte treasure while they are a game");
+			return;
+		}
 		int treasureRaduis = this.getSettings().getTreasureRaduis().get();
 		Random random = new Random();
 		int treasureX = random.nextInt(-treasureRaduis, treasureRaduis);
@@ -99,7 +114,8 @@ public class GameManager {
 		prepareLocation(treasureX, treasureZ, tloc -> {
 			this.getPlugin().getLogger().info("Found treasure at " + Utils.locToStringH(tloc));
 			treasure = tloc.add(0, 1, 0);
-			consumer.accept(treasure);
+			if (consumer != null)
+				consumer.accept(treasure);
 		}, new AtomicInteger(1), 1);
 	}
 
@@ -137,7 +153,23 @@ public class GameManager {
 				int globalZ = (chunk.getZ() << 4) + z;
 				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
 				Block block = chunk.getBlock(x, y, z);
-				if (isGoodBlock(block)) {
+				
+				if (!isGoodBlock(block))
+					continue;
+				List<Block> listBlocks = new ArrayList<>(9);
+				for (int tempX = -1; tempX <= 1; ++tempX) {
+					for (int tempZ = -1; tempZ <= 1; ++tempZ) {
+						listBlocks.add(block.getLocation().add(tempX, 0, tempZ).getBlock());
+					}
+				}
+				List<Block> listBlocksAir = new ArrayList<>(18);
+				for (int tempX = -1; tempX <= 1; ++tempX) {
+					for (int tempZ = -1; tempZ <= 1; ++tempZ) {
+						listBlocksAir.add(block.getLocation().add(tempX, 1, tempZ).getBlock());
+						listBlocksAir.add(block.getLocation().add(tempX, 2, tempZ).getBlock());
+					}
+				}
+				if (listBlocksAir.stream().allMatch(b -> b.isPassable()) && listBlocks.stream().allMatch(this::isGoodBlock)) {
 					return block.getLocation();
 				}
 			}
@@ -245,6 +277,20 @@ public class GameManager {
 		CaviarBR.getInstance().getNameTag().setSpectator(player);
 		player.setGameMode(GameMode.SPECTATOR);
 		CaviarStrings.ENTER_SPECTATOR_MODE.send(player);
+		if (player.getGameMode().equals(GameMode.SPECTATOR)) {
+			if (player.getKiller() != null)
+				player.setSpectatorTarget(player.getKiller());
+			else if (!getPlayers().isEmpty()) {
+				Player target = getGamers().stream()
+						.sorted((p1, p2) -> (int) (p2.getLocation().distance(player.getLocation()) - p1.getLocation().distance(player.getLocation())))
+						.findFirst().orElse(null);
+				//Player target = Utils.getRandomFrom(new Random(), getGamers());
+				if (target != null) {
+					player.setSpectatorTarget(target);
+				}
+			}
+			
+		}
 		return gamePlayer;
 	}
 	
@@ -299,4 +345,14 @@ public class GameManager {
 	public long getTimestampCompassEnd() {
 		return timestampCompassEnd;
 	}
+
+	public Cuboid getMapCub() {
+		return mapCub;
+	}
+
+	public void setMapCub(Cuboid mapCub) {
+		this.mapCub = mapCub;
+	}
+	
+	
 }

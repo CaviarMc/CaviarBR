@@ -25,6 +25,8 @@ public class GenerateChunk {
 	private int threadsUses;
 	private boolean async;
 	private Lock mutex = new ReentrantLock();
+	
+	private int averageChunksPerSecond, percentageChunk;
 
 	public GenerateChunk(WorldLoader worldLoader, List<ChunkLoad> chunksToLoad, int threadsUses, boolean async) {
 		this.worldLoader = worldLoader;
@@ -44,8 +46,7 @@ public class GenerateChunk {
 		taskHandler.scheduleSyncRepeatingTask("generate.chunk.info", () -> {
 			long timeDiff = Utils.getCurrentTimeInSeconds() - timeStarted;
 			long timeToEndSecs;
-			int averageChunksPerSecond, percentageChunk;
-			if (chunkAlreadyGenerate > 0 &&  chunksToLoad.size() > 0) {
+			if (chunkAlreadyGenerate > 0 && chunksToLoad.size() > 0) {
 				percentageChunk = (int) (((float) chunkAlreadyGenerate / chunksToLoad.size()) * 100);
 				averageChunksPerSecond = (int) (chunkAlreadyGenerate / timeDiff);
 				timeToEndSecs = (chunksToLoad.size() - chunkAlreadyGenerate) / averageChunksPerSecond;
@@ -60,6 +61,7 @@ public class GenerateChunk {
 			} else {
 				lastchunk = lastChunkOperation.getChunk();
 			}
+			worldLoader.updatePlayerScoreboard();
 			worldLoader.getPlugin().getLogger().info(String.format("Generate (2/2) %d/%d chunks - %d%% | %d chunks/s | last x z chunk %d %d | started %s ago | ETA %s - %s",
 				chunkAlreadyGenerate, chunksToLoad.size(), percentageChunk, averageChunksPerSecond, 
 				lastchunk.getX(), lastchunk.getZ(), Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
@@ -80,6 +82,7 @@ public class GenerateChunk {
 			taskHandler.terminateAllTasks();
 			worldLoader.getPlugin().getLogger().info(String.format("Generating is stopped | %d/%d chunks generate - %d%% | time taken %s",
 					chunkAlreadyGenerate, chunksToLoad != null ? chunksToLoad.size() : -1, averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+			worldLoader.getGameManager().setMapCub(worldLoader.getCub());
 		}
 		else {
 			taskHandler.cancelAllTasks();
@@ -177,7 +180,7 @@ public class GenerateChunk {
 			return;
 		boolean changes = false;
 		int tempSize = chunksToLoad.size();
-		if (chunksToLoad.removeIf(cl -> cl.isGenerate())) {
+		if (chunksToLoad.removeIf(cl -> cl != null && cl.isGenerate())) {
 			worldLoader.getPlugin().getLogger().info(String.format("Removed %d chunks from queue because they are already generated.", tempSize - (tempSize = chunksToLoad.size())));
 			changes = true;
 		}
@@ -185,4 +188,12 @@ public class GenerateChunk {
 			worldLoader.getPlugin().getLogger().info(String.format("Number of chunks to generate : %d", chunksToLoad.size()));
 	}
 
+
+	public int getPercentageChunk() {
+		return percentageChunk;
+	}
+
+	public int getAverageChunksPerSecond() {
+		return averageChunksPerSecond;
+	}
 }

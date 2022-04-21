@@ -120,7 +120,7 @@ public class GameAdminCommand {
 	private void startGenerate(CommandSender sender, Object[] args) {
 		WorldLoader worldLoader = game.getWorldLoader();
 		worldLoader.start(true);
-		CaviarStrings.COMMAND_GAMEADMIN_ENABLE_GENERATE.send(sender,worldLoader.getRealMapMinX(), worldLoader.getRealMapMinZ(),
+		CaviarStrings.COMMAND_GAMEADMIN_ENABLE_GENERATE.send(sender, worldLoader.getRealMapMinX(), worldLoader.getRealMapMinZ(),
 				worldLoader.getRealMapMaxX(), worldLoader.getRealMapMaxZ(), worldLoader.getTotalChunks());
 	}
 	

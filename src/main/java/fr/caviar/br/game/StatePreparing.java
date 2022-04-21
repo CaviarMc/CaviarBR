@@ -12,7 +12,9 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Shulker;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -27,8 +29,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.generate.WorldLoader;
 import fr.caviar.br.task.TaskManagerSpigot;
+import fr.caviar.br.utils.Cuboid;
 import fr.caviar.br.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -37,6 +42,7 @@ import net.kyori.adventure.title.Title.Times;
 public class StatePreparing extends GameState {
 
 	private List<Location> spawnPoint = new ArrayList<>();
+	private List<Shulker> shulkers = new ArrayList<>();
 //	private List<Location> maxDistance = null;
 	private Location maxDistance = null;
 	private boolean foundSpawnpoints = false;
@@ -49,7 +55,7 @@ public class StatePreparing extends GameState {
 
 	public void addSpawnPoint(Location ploc) {
 		Location treasure = game.getTreasure();
-		if (maxDistance == null || ploc.distance(treasure) > maxDistance.distance(treasure))
+		if (treasure != null && (maxDistance == null || ploc.distance(treasure) > maxDistance.distance(treasure)))
 			maxDistance = ploc;
 		spawnPoint.add(ploc);
 	}
@@ -58,12 +64,6 @@ public class StatePreparing extends GameState {
 	public void start() {
 		super.start();
 		Validate.notNull(game.getTreasure());
-		WorldBorder worldBoader = game.getWorld().getWorldBorder();
-		worldBoader.reset();
-		worldBoader.setCenter(game.getTreasure());
-		worldBoader.setSize(game.getSettings().getMapSize().get() * 2 + 2);
-		worldBoader.setDamageBuffer(1);
-		worldBoader.setWarningDistance(25);
 
 		game.getWorldLoader().stop(true);
 		
@@ -72,7 +72,8 @@ public class StatePreparing extends GameState {
 			blockPlayer(p);
 			setPreparing(p);
 		});
-		game.getAllPlayers().forEach(this::setPreparing);
+		WorldBorder worldBoader = game.getWorld().getWorldBorder();
+		worldBoader.reset();
 
 		int playerRaduis = game.getSettings().getPlayersRadius().get();
 		int online = game.getPlayers().size();
@@ -87,6 +88,8 @@ public class StatePreparing extends GameState {
 	@Override
 	public void end() {
 		super.end();
+		shulkers.forEach(shulk -> shulk.remove());
+		shulkers.clear();
 		game.getAllPlayers().forEach(this::exitPreparing);
 		taskManager.cancelAllTasks();
 	}
@@ -125,10 +128,20 @@ public class StatePreparing extends GameState {
 			double theta = i * 2 * Math.PI / nbSpawnPoints;
 
 			int i2 = i;
-			int playerX = (int) (game.getTreasure().getX() + playerRadius * Math.cos(theta));
-			int playerZ = (int) (game.getTreasure().getZ() + playerRadius * Math.sin(theta));
+			int playerX = (int) (game.getTreasure().getBlockX() + playerRadius * Math.cos(theta));
+			int playerZ = (int) (game.getTreasure().getBlockZ() + playerRadius * Math.sin(theta));
 			
-			if (!game.getWorld().isChunkGenerated(playerX, playerZ)) {
+			Cuboid cub = game.getMapCub();
+			if (cub != null) {
+				if (!cub.isIn(cub.getWorld(), playerX, 0, playerZ)) {
+					game.getPlugin().getLogger().severe(String.format("Found spawnpoint in %d %d out of map (%d %d to %d %d).", playerX, playerZ,
+							cub.getMin().getBlockX(), cub.getMin().getBlockZ(), cub.getMax().getBlockX(), cub.getMax().getBlockZ()));
+				}
+			}
+
+			int chunkX = playerX >> 4;
+			int chunkZ = playerZ >> 4;
+			if (!game.getWorld().isChunkGenerated(chunkX, chunkZ)) {
 				game.getPlugin().getLogger().info(String.format("Chunk x=%d - z=%d is not generated, wait for it before check if it is a good spawnpoint.", playerX, playerZ));
 			}
 			game.prepareLocation(playerX, playerZ, ploc -> {
@@ -139,6 +152,13 @@ public class StatePreparing extends GameState {
 				addSpawnPoint(ploc);
 				spawnPoints.add(ploc);
 				
+				if (game.getSettings().isDebug().get()) {
+		            Shulker shulk = (Shulker) ploc.getWorld().spawnEntity(ploc, EntityType.SHULKER);
+		            shulk.setInvisible(true);
+		            shulk.setAI(false);
+		            shulk.setGlowing(true);
+		            shulkers.add(shulk);
+				}
 				if (spawnPoints.size() == nbSpawnPoints && consumer != null) {
 					consumer.accept(spawnPoints);
 				}
@@ -166,7 +186,7 @@ public class StatePreparing extends GameState {
 	private void tpPlayers(Player player, GamePlayer gamePlayer) {
 		if (gamePlayer == null || gamePlayer.spawnLocation == null) {
 			if (gamePlayer != null)
-				game.getPlugin().getLogger().severe("No spawn location for player " + player.getName());
+				game.getPlugin().getLogger().severe("No spawn location for player " + player.getName() + ". He is now spectator.");
 			game.addSpectator(player);
 		} else {
 			player.setCompassTarget(game.getWorld().getSpawnLocation());
@@ -186,13 +206,19 @@ public class StatePreparing extends GameState {
 	}
 
 	private void startCoutdown() {
-		game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ());
-		int mapSize = game.getSettings().getMapSize().get();
-		if (maxDistance.getX() > mapSize || maxDistance.getZ() > mapSize || maxDistance.getX() < -mapSize || maxDistance.getZ() < -mapSize) {
-			game.getPlugin().getLogger().severe("The map should be minimum X " + maxDistance.getBlockX() + " and not X " + mapSize + ".");
+		WorldBorder worldBoader = game.getWorld().getWorldBorder();
+		worldBoader.setCenter(game.getTreasure());
+		worldBoader.setSize(game.getSettings().getMapSize().get() * 2 + 2);
+		worldBoader.setDamageBuffer(1);
+		worldBoader.setWarningDistance(25);
+		game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ()
+			+ " (" + maxDistance.distance(game.getTreasure()) + " from treasure)");
+		WorldLoader worldLoader = game.getWorldLoader();
+		if (maxDistance.getX() > worldLoader.getRealMapMaxX() || maxDistance.getX() < worldLoader.getRealMapMinX()) {
+			game.getPlugin().getLogger().severe(String.format("The map should be minimum between X %d and %d, not X %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
 		}
-		if (maxDistance.getX() < -mapSize || maxDistance.getZ() < -mapSize) {
-			game.getPlugin().getLogger().severe("The map should be minimum Z " + maxDistance.getBlockZ() + " and not Z " + mapSize + ".");
+		if (maxDistance.getZ() > worldLoader.getRealMapMaxZ() || maxDistance.getZ() < worldLoader.getRealMapMinZ()) {
+			game.getPlugin().getLogger().severe(String.format("The map should be minimum between Z %d and %d, not Z %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
 		}
 		taskManager.runTaskAsynchronously("prep.asynccountdown." , () -> {
 			CaviarStrings.STATE_PREPARING_TELEPORT.broadcast();
@@ -207,7 +233,8 @@ public class StatePreparing extends GameState {
 				taskManager.runTaskLater("prep.countdown." + j, () -> {
 					int cd = timer - j2;
 					game.getAllPlayers().forEach(p -> setCountdown(p, cd));
-					game.getPlugin().getLogger().log(Level.INFO, String.format("Starting in %d secondes", cd));
+					if (cd % 10 == 0 || cd <= 5)
+						game.getPlugin().getLogger().log(Level.INFO, String.format("Starting in %d secondes", cd));
 				}, j, TimeUnit.SECONDS);
 			}
 			taskManager.runTaskLater("prep.countdown_play." + timer, () -> {

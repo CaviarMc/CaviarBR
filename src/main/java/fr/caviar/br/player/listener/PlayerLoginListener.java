@@ -72,7 +72,7 @@ public class PlayerLoginListener implements Listener {
 	public void on3PlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 		PlayerHandler playerHandler = CaviarBR.getInstance().getPlayerHandler();
-		CaviarPlayerSpigot uPlayer =  playerHandler.getObjectCached(player.getUniqueId());
+		CaviarPlayerSpigot uPlayer = playerHandler.getObjectCached(player.getUniqueId());
 		if (uPlayer != null) { 
 			return;
 		}
