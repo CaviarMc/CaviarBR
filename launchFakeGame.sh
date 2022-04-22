@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DIR=test_server2
+TEST_DIR=test_server
 SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
@@ -14,7 +14,7 @@ GITHUB_JAR_FILE=CaviarBR.jar
 GITHUB_URL_API=https://api.github.com/repos/$GITHUB_REPO/releases
 GITHUB_USE_PRE_RELEASE=true
 
-script /dev/null
+script /dev/null ; echo Hello world
 
 function usage {
 	echo -e "\e[31m$0 <local|github|none> <mapSize> <players>\e[0m"
