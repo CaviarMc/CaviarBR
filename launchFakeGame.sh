@@ -1,12 +1,13 @@
 #!/bin/bash
-TEST_DIR=test_server
+TEST_DIR=test_server2
 SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer
 MAP_SIZE=1000
-FAKE_PLAYERS=50
+FAKE_PLAYERS=25
 
-UPDATE_PLUGIN=local
+# local github or none
+UPDATE_PLUGIN=github
 GITHUB_REPO=CaviarMc/CaviarBR
 GITHUB_TOKEN=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
 GITHUB_JAR_FILE=CaviarBR.jar
@@ -94,7 +95,7 @@ if [ $UPDATE_PLUGIN = "github" ]; then
 		exit 1
 	fi
 	echo -e "\e[36m$GITHUB_JAR_FILE mise à jour par github (asset: $ASSETS_ID)\e[0m"
-	cd -
+	cd - &> /dev/null || exit
 elif [ $UPDATE_PLUGIN = "local" ]; then
 	cd ..
 	echo -e "\e[36mGradle jar\e[0m"
@@ -103,7 +104,7 @@ elif [ $UPDATE_PLUGIN = "local" ]; then
 		echo -e "\e[31m$0 ERROR > Build of $GITHUB_JAR_FILE failed\e[0m"
 		exit 1
 	fi
-	cd -
+	cd - &> /dev/null || exit
 	cp ../$PLUGINS_PATH plugins/
 fi
 
@@ -121,7 +122,7 @@ if [ ! -f "plugins/TitanBoxRFP.jar" ]; then
 		echo -e "\e[31m$0 ERROR > Unable to download Fake Player plugin from github.\e[0m"
 		exit 1
 	fi
-	cd -
+	cd - &> /dev/null || exit
 fi
 
 function control_server {
@@ -169,7 +170,7 @@ function control_server {
 			status=$?
 		done
 		T=300 # 5 mins # 3600 = 1h
-		echo -e "\e[36mThe game has started for $(T / 1000) secondse[0m"
+		echo -e "\e[36mThe game has started for $($T / 1000) secondse[0m"
 		sleep $T
 		echo -e "\e[36mThe game will stop with random winner\e[0m"
 		screen -S $SCREEN -p 0 -X stuff "gameadmin finish @p confirm^M"

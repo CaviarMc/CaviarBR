@@ -17,6 +17,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.PlayerArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import fr.caviar.br.CaviarBR;
+import fr.caviar.br.permission.Perm;
 
 public class Nametag implements Listener {
 
@@ -28,7 +29,7 @@ public class Nametag implements Listener {
 
 	public Nametag(CaviarBR plugin) {
 		this.plugin = plugin;
-		command = new CommandAPICommand("nametag").withPermission("caviarbr.command.nametag");
+		command = new CommandAPICommand("nametag").withPermission(Perm.DEV_COMMAND_NAMETAG.get());
 		command.withSubcommand(new CommandAPICommand("reload").withArguments(new PlayerArgument("playerToReload")).executes((CommandExecutor) (sender, args) -> {
 			Player playerToReload = args.length == 1 ? (Player) args[0] : null;
 			if (playerToReload == null)
@@ -69,8 +70,8 @@ public class Nametag implements Listener {
 		//nametagEditPlugin.getManager().reset(null);
 	}
 	
-	public void updatePlayer(Player player) {
-		if (!isEnabled)
+	public void updatePlayer(Player p) {
+		if (!isEnabled && api != null)
 			return;
 		/*if (player.isOp()) {
 			CaviarBR.getInstance().getPlayerHandler().get(player.getUniqueId(), (cPlayer, e) -> {
@@ -81,14 +82,18 @@ public class Nametag implements Listener {
 				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Update nameTag : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
 			});
 		} else */
-		if (player.hasPermission("caviar.admin.prefix"))
-			api.setPrefix(player, "&cADMIN ");
-		else if (player.hasPermission("caviar.mod.prefix"))
-			api.setPrefix(player, "&cMOD ");
-		else if (player.hasPermission("caviar.DEV.prefix"))
-			api.setPrefix(player, "&2DEV ");
+		
+		;
+		if (Perm.ADMIN_PREFIX.has(p))
+			api.setPrefix(p, "&cADMIN ");
+		else if (Perm.MODERATOR_PREFIX.has(p))
+			api.setPrefix(p, "&cMOD ");
+		else if (Perm.DEV_PREFIX.has(p))
+			api.setPrefix(p, "&2DEV ");
+		else if (Perm.STAFF_PREFIX.has(p))
+			api.setPrefix(p, "&2STAFF ");
 		else
-			api.setPrefix(player, "&7");
+			api.setPrefix(p, "&7");
 	}	
 
 	public void setSpectator(Player player) {

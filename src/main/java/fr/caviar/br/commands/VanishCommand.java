@@ -16,6 +16,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.permission.Perm;
 
 public class VanishCommand implements Listener {
 	
@@ -25,7 +26,7 @@ public class VanishCommand implements Listener {
 	
 	public VanishCommand(CaviarBR plugin) {
 		this.plugin = plugin;
-		command = new CommandAPICommand("vanish").withPermission("caviarbr.command.vanish").executes((CommandExecutor) (sender, args) -> {
+		command = new CommandAPICommand("vanish").withPermission(Perm.MODERATOR_COMMAND_VANISH.get()).executes((CommandExecutor) (sender, args) -> {
 			if (sender instanceof Player player)  {
 				toggleVanishPlayer(player);
 			} else {
@@ -51,7 +52,7 @@ public class VanishCommand implements Listener {
 	private void vanishPlayer(Player player) {
 		player.setMetadata("vanish.caviar", new FixedMetadataValue(plugin, true));
 		Bukkit.getOnlinePlayers().forEach(p -> {
-			if (!p.hasPermission("caviarbr.vanish.show"))
+			if (!Perm.MODERATOR_VANISH_SHOW.has(p))
 				p.hidePlayer(plugin, player);
 		});
 		vanishPlayer.add(player);
@@ -75,7 +76,7 @@ public class VanishCommand implements Listener {
 		if (player.hasMetadata("vanish.caviar")) {
 			vanishPlayer(player);
 		}
-		if (!player.hasPermission("caviarbr.vanish.show")) {
+		if (!Perm.MODERATOR_VANISH_SHOW.has(player)) {
 			vanishPlayer.forEach(playerVanish -> player.hidePlayer(plugin, playerVanish));
 		}
 	}

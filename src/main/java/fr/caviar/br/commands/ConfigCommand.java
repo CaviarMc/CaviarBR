@@ -11,6 +11,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.api.config.ConfigSpigot;
+import fr.caviar.br.permission.Perm;
 import fr.caviar.br.utils.Prefix;
 
 public class ConfigCommand {
@@ -18,7 +19,7 @@ public class ConfigCommand {
 	private CommandAPICommand command;
 	
 	public ConfigCommand(CaviarBR plugin) {
-		command = new CommandAPICommand("config").withPermission("caviarbr.command.config");
+		command = new CommandAPICommand("config").withPermission(Perm.DEV_COMMAND_CONFIG.get());
 		CommandAPICommand reloadCommand = new CommandAPICommand("reload");
 		CommandAPICommand saveCommand = new CommandAPICommand("save");
 		ConfigSpigot.getConfigs().forEach(config -> {

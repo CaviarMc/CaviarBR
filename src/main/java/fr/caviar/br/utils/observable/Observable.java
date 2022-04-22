@@ -4,7 +4,7 @@ public interface Observable {
 
 	void observe(String name, Observer observer);
 
-	void unobserve(String name);
+	Observer unobserve(String name);
 
 	@FunctionalInterface
 	public interface Observer {

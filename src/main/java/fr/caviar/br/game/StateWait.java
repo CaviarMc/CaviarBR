@@ -47,13 +47,15 @@ public class StateWait extends GameState implements Runnable {
 	public void start() {
 		super.start();
 		taskManager.scheduleSyncRepeatingTask(this, 0L, 1L, TimeUnit.SECONDS);
-		
+
+		GameSettings settings = game.getSettings();
 		Observer observer = () -> updatePlayers(Bukkit.getOnlinePlayers().size());
-		game.getSettings().getMinPlayers().observe(OBSERVER_KEY, observer);
-		game.getSettings().getMaxPlayers().observe(OBSERVER_KEY, observer);
-		game.getSettings().getWaitingTimeLong().observe(OBSERVER_KEY, observer);
-		game.getSettings().getWaitingTimeShort().observe(OBSERVER_KEY, observer);
-		game.getSettings().getTreasureRaduis().observe(OBSERVER_KEY, () -> game.calculateTreasureSpawnPoint(null));
+		settings.getMinPlayers().observe(OBSERVER_KEY, observer);
+		settings.getMaxPlayers().observe(OBSERVER_KEY, observer);
+		settings.getWaitingTimeLong().observe(OBSERVER_KEY, observer);
+		settings.getWaitingTimeShort().observe(OBSERVER_KEY, observer);
+		settings.getTreasureRaduis().observe(OBSERVER_KEY, () -> game.calculateTreasureSpawnPoint(treasure -> game.getWorldLoader().start(true)));
+		settings.getMapSize().observe(OBSERVER_KEY, () -> game.getWorldLoader().start(true));
 
 		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
@@ -72,11 +74,13 @@ public class StateWait extends GameState implements Runnable {
 		super.end();
 		taskManager.cancelAllTasks();
 		
-		game.getSettings().getMinPlayers().unobserve(OBSERVER_KEY);
-		game.getSettings().getMaxPlayers().unobserve(OBSERVER_KEY);
-		game.getSettings().getWaitingTimeLong().unobserve(OBSERVER_KEY);
-		game.getSettings().getWaitingTimeShort().unobserve(OBSERVER_KEY);
-		game.getSettings().getTreasureRaduis().unobserve(OBSERVER_KEY);
+		GameSettings settings = game.getSettings();
+		settings.getMinPlayers().unobserve(OBSERVER_KEY);
+		settings.getMaxPlayers().unobserve(OBSERVER_KEY);
+		settings.getWaitingTimeLong().unobserve(OBSERVER_KEY);
+		settings.getWaitingTimeShort().unobserve(OBSERVER_KEY);
+		settings.getTreasureRaduis().unobserve(OBSERVER_KEY);
+		settings.getMapSize().unobserve(OBSERVER_KEY);
 	}
 	
 	@Override
@@ -103,6 +107,10 @@ public class StateWait extends GameState implements Runnable {
 		// do nothing: players can join
 	}
 	
+	protected void updateScoreboard() {
+		game.getAllPlayers().forEach(player -> game.getPlugin().getScoreboard().waitToStart(player));
+	}
+	
 	protected void updatePlayers(int online) {
 		lock.lock();
 		
@@ -112,7 +120,7 @@ public class StateWait extends GameState implements Runnable {
 				left = -1;
 				CaviarStrings.STATE_WAIT_CANCEL.broadcast();
 			} else 
-				game.getAllPlayers().forEach(player -> game.getPlugin().getScoreboard().waitToStart(player));
+				updateScoreboard();
 		}else {
 			int max = game.getSettings().getMaxPlayers().get();
 			int waitingTime = (online == max ? game.getSettings().getWaitingTimeShort() : game.getSettings().getWaitingTimeLong()).get();
@@ -132,6 +140,7 @@ public class StateWait extends GameState implements Runnable {
 		return String.format(" §c(%d/%d)", online, min);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
 		Player p = event.getPlayer();
@@ -144,6 +153,7 @@ public class StateWait extends GameState implements Runnable {
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 //		int online = game.getAllPlayers().size() - 1;

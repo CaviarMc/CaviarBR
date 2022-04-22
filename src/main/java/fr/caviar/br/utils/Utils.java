@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -94,7 +93,7 @@ public class Utils {
 		} else {
 			distance = now - timestampSecond;
 		}
-		return hrDuration(distance);
+		return durationToString(distance * 1000);
 	}
 
 	public static String hrDuration(long seconds) {
@@ -155,15 +154,15 @@ public class Utils {
 		new JSONParser().parse("your string");
 	}
 
-	public static String durationToString(NumberFormat numberFormat, long time) {
-		return durationToString(numberFormat, time, true);
+	public static String durationToString(long time) {
+		return durationToString(new DecimalFormat("0.###"), time);
 	}
-
-	public static String durationToString(NumberFormat numberFormat, long time, boolean showHours) {
+	
+	public static String durationToString(NumberFormat numberFormat, long time) {
 		StringBuilder sb = new StringBuilder();
 		long days = time / 86_400_000;
 		if (days != 0)
-			sb.append(numberFormat.format(days)).append('J');
+			sb.append(numberFormat.format(days)).append('D');
 		time -= days * 86_400_000;
 		long hours = time / 3_600_000;
 		if (hours != 0) {

@@ -9,7 +9,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.bukkit.Chunk;
-
 import com.google.common.collect.Lists;
 
 import fr.caviar.br.task.NativeTask;
@@ -21,14 +20,10 @@ public class CalculateChunk {
 	private List<Thread> threads = new ArrayList<>();
 	private WorldLoader worldLoader;
 	private NativeTask taskHandler = new NativeTask(this.getClass());
-	private ChunkLoad lastChunkOperation;
 	private Lock lock = new ReentrantLock();
-	private int chunkAlreadyCalculate = 0;
 	private int totalChunks = 0;
 	private int threadsUses;
 	private long timeStarted;
-	
-	private int percentageChunk, averageChunksPerSecond;
 
 	CalculateChunk(WorldLoader worldLoader, int threadUses) {
 		this.worldLoader = worldLoader;
@@ -39,6 +34,21 @@ public class CalculateChunk {
 		timeStarted = Utils.getCurrentTimeInSeconds();
 		Chunk spawnLoader = worldLoader.getSpawnLoader();
 		int mapChunkSize = worldLoader.getMapSize() / 16;
+//		PluginManager plManager = worldLoader.getPlugin().getServer().getPluginManager();
+//		if (plManager.isPluginEnabled("Dynmap")) {
+//			DynmapAPI dynmap = (DynmapAPI) worldLoader.getPlugin().getServer().getPluginManager().getPlugin("Dynmap");
+//			MarkerAPI m = dynmap.getMarkerAPI();
+//			MarkerSet marketSet = m.getMarkerSet("CHUNK");
+//			marketSet.createMarker(UUID.randomUUID().toString(), "Chunk", null, mapChunkSize, mapChunkSize, mapChunkSize, null, false);
+//			MarkerIcon marketIcon = m.getMarkerIcon("CHUNK");
+//			m.createMarkerSet(null, null, null, force);
+//	        AreaMarker am = marketSet.createAreaMarker(UUID.randomUUID().toString(), "Chunk", false, worldLoader.getWorld().getName(), new double[1000], new double[1000], false);
+//	        double[] d1 = {-50, -9};
+//	        double[] d2 = {-720, -679};
+//	        am.setCornerLocations(d1, d2);
+//	        am.setLabel("test");
+//	        am.setDescription("example test");
+//		}
 		Runnable runnable = () -> {
 			for (int r = 1; mapChunkSize >= r; ++r) {
 				for (int x = -r; r >= x; ++x) {
@@ -53,39 +63,33 @@ public class CalculateChunk {
 				}
 			}
 			totalChunks = chunkToLoad.size();
+			worldLoader.getStats().init(1, totalChunks, timeStarted);
 			long diff1 = Utils.getCurrentTimeInSeconds() - timeStarted;
 			worldLoader.getPlugin().getLogger().info(String.format("Chunks are identified | %d chunks will be check | started %s ago | %d threads will be used",
 					totalChunks, Utils.hrDuration(diff1), threadsUses));
 
-			chunkAlreadyCalculate = 0;
+			ChunkStats stats = worldLoader.getStats();
+			stats.setChunkAlready(0);
 			if (chunkToLoad.isEmpty()) {
 				end(false);
 				return;
 			}
+			taskHandler.scheduleSyncRepeatingTask("generate.calculate.info2", () -> {
+				stats.getStats();
+			}, 0, 10, TimeUnit.SECONDS);
 			taskHandler.scheduleSyncRepeatingTask("generate.calculate.info", () -> {
-				long timeDiff = Utils.getCurrentTimeInSeconds() - timeStarted;
-				long timeToEndSecs;
-				if (chunkAlreadyCalculate > 0 && totalChunks > 0) {
-					percentageChunk = (int) (((float) chunkAlreadyCalculate / totalChunks) * 100);
-					averageChunksPerSecond = (int) (chunkAlreadyCalculate / timeDiff);
-					timeToEndSecs = (totalChunks - chunkAlreadyCalculate) / averageChunksPerSecond;
-				} else {
-					percentageChunk = 0;
-					averageChunksPerSecond = 0;
-					timeToEndSecs = 0;
-				}
+				stats.getStats();
 				int lastXChunk, lastZChunk;
-				if (lastChunkOperation == null) {
+				if (stats.getLastchunk() == null) {
 					lastXChunk = 0;
 					lastZChunk = 0;
 				} else {
-					lastXChunk = lastChunkOperation.getXChunk();
-					lastZChunk = lastChunkOperation.getZChunk();
+					lastXChunk = stats.getLastchunk().getXChunk();
+					lastZChunk = stats.getLastchunk().getZChunk();
 				}
-				worldLoader.updatePlayerScoreboard();
 				worldLoader.getPlugin().getLogger().info(String.format("Calculate (1/2) %d/%d chunks - %d%% | %d chunks/s | last x z chunk %d %d | started %s ago | ETA %s - %s",
-					chunkAlreadyCalculate, totalChunks, percentageChunk, averageChunksPerSecond, lastXChunk, lastZChunk, Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
-					Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
+						stats.getChunkAlready(), totalChunks, stats.getPercentageChunk(), stats.getAverageChunksPerSecond(), lastXChunk, lastZChunk,
+						Utils.hrDuration(stats.getTimeDiff()), stats.getDurationETA(), stats.getDateETA()));
 			}, 30, 60, TimeUnit.SECONDS);
 //			chunkToLoad.removeIf(cl -> world.isChunkGenerated(cl.xChunk, cl.zChunk));
 			
@@ -93,19 +97,19 @@ public class CalculateChunk {
 			for (Iterator<List<ChunkLoad>> its = lists.iterator(); its.hasNext();) {
 				List<ChunkLoad> l = its.next();
 				Iterator<ChunkLoad> it = l.iterator();
-				Thread thread = new CalculateThread(it);
+				Thread thread = new CalculateThread(stats, it);
 				threads.add(thread);
 				//worldLoader.getPlugin().getLogger().info(String.format("List size %d, thread id %d", l.size(), thread.getId()));
 				thread.start();
 			}
 		};
 		if (force) {
-			worldLoader.getPlugin().getLogger().info(String.format("Calculation the order of chunks for a map of %d %d to %d %d", worldLoader.getRealMapMinX(),
+			worldLoader.getPlugin().getLogger().info(String.format("Calculation the order of chunks for a map of size %d of %d %d to %d %d", worldLoader.getMapSize(), worldLoader.getRealMapMinX(),
 					worldLoader.getRealMapMinZ(), worldLoader.getRealMapMaxX(), worldLoader.getRealMapMaxZ()));
 			taskHandler.runTaskAsynchronously("generate.calculate", runnable);
 			return;
 		}
-		worldLoader.getPlugin().getLogger().info(String.format("Calculation the order of chunks for a map of %d %d to %d %d in %d seconds.", worldLoader.getRealMapMinX(),
+		worldLoader.getPlugin().getLogger().info(String.format("Calculation the order of chunks for a map of size %d of %d %d to %d %d in %d seconds.", worldLoader.getMapSize(), worldLoader.getRealMapMinX(),
 				worldLoader.getRealMapMinZ(), worldLoader.getRealMapMaxX(), worldLoader.getRealMapMaxZ(), 10));
 		taskHandler.runTaskLater("generate.calculate", () -> {
 			taskHandler.runTaskAsynchronously(runnable);
@@ -126,6 +130,10 @@ public class CalculateChunk {
 //		taskHandler.cancelTask("generate.calculate.info");
 		threads.forEach(Thread::interrupt);
 		threads.clear();
+		if (!force) {
+			worldLoader.startGenerating(Lists.newArrayList(chunkToLoad));
+			return;
+		}
 		int mapSize = worldLoader.getGameManager().getSettings().getMapSize().get();
 		if (chunkToLoad.isEmpty()) {
 			worldLoader.getPlugin().getLogger().info(String.format("World is already generate from %d %d to %d %d (size %d)", worldLoader.getRealMapMinX(),
@@ -136,33 +144,39 @@ public class CalculateChunk {
 		/*if (chunkToLoad.stream().map(ChunkLoad::getCode).distinct().count() != chunkToLoad.size()) {
 			plugin.getLogger().log(Level.SEVERE, "Algo to calcul chunks add duplicating chunks");
 		}*/
-		worldLoader.startGenerating(Lists.newArrayList(chunkToLoad));
 	}
 	
 	public class CalculateThread extends Thread {
 		Iterator<ChunkLoad> it;
-		
-		public CalculateThread(Iterator<ChunkLoad> it) {
+
+		ChunkStats stats;
+
+		public CalculateThread(ChunkStats stats, Iterator<ChunkLoad> it) {
+			this.stats = stats;
 			this.it = it;
 		}
 		
 		@Override
 		public void run() {
 			while (it.hasNext()) {
+				if (threads.isEmpty()) {
+					interrupt();
+					return;
+				}
 				ChunkLoad chunk = it.next();
 				if (worldLoader.getGameManager().getWorld().isChunkGenerated(chunk.getXChunk(), chunk.getZChunk()))
 					chunkToLoad.remove(chunk);
-				lastChunkOperation = chunk;
 				lock.lock();
-				++chunkAlreadyCalculate;
+				stats.setLastchunk(chunk);
+				stats.addChunkAlready();
 				lock.unlock();
 				/*if (totalChunks - chunkAlreadyCalculate < 10) {
 					worldLoader.getPlugin().getLogger().info(String.format("Il reste %d chunks", totalChunks - chunkAlreadyCalculate));
 				}*/
 			}
 			//worldLoader.getPlugin().getLogger().info(String.format("Thread %d finish with %d", this.getId(), chunkAlreadyCalculate));
-			if (chunkAlreadyCalculate >= totalChunks) {
-				chunkAlreadyCalculate = -1;
+			if (stats.getChunkAlready() >= totalChunks) {
+				stats.setChunkAlready(-1);
 				end(false);
 			}
 		}
@@ -171,14 +185,4 @@ public class CalculateChunk {
 	public int getTotalChunks() {
 		return totalChunks;
 	}
-
-	public int getPercentageChunk() {
-		return percentageChunk;
-	}
-
-	public int getAverageChunksPerSecond() {
-		return averageChunksPerSecond;
-	}
-
-
 }

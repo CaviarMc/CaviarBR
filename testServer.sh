@@ -48,6 +48,7 @@ function kill_server {
 		status=$?
 		(( i++ ))
 	done
+	sleep 120
 	echo "Try to stop Java"
 	kill -2 $(pgrep -f paper)
 }

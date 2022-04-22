@@ -5,14 +5,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.WorldBorder;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Shulker;
 import org.bukkit.event.EventHandler;
@@ -23,6 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -33,33 +32,21 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.generate.WorldLoader;
 import fr.caviar.br.task.TaskManagerSpigot;
-import fr.caviar.br.utils.Cuboid;
-import fr.caviar.br.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.Title.Times;
 
 public class StatePreparing extends GameState {
 
-	private List<Location> spawnPoint = new ArrayList<>();
 	private List<Shulker> shulkers = new ArrayList<>();
-//	private List<Location> maxDistance = null;
 	private Location maxDistance = null;
-	private boolean foundSpawnpoints = false;
 	private TaskManagerSpigot taskManager;
+	private boolean foundSpawnpoints = false;
 	
 	public StatePreparing(GameManager game) {
 		super(game);
 		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
-
-	public void addSpawnPoint(Location ploc) {
-		Location treasure = game.getTreasure();
-		if (treasure != null && (maxDistance == null || ploc.distance(treasure) > maxDistance.distance(treasure)))
-			maxDistance = ploc;
-		spawnPoint.add(ploc);
-	}
-	
 	@Override
 	public void start() {
 		super.start();
@@ -78,10 +65,10 @@ public class StatePreparing extends GameState {
 		int playerRaduis = game.getSettings().getPlayersRadius().get();
 		int online = game.getPlayers().size();
 		
-		if (this.spawnPoint.size() >= online) {
-			setSpawnPointsToPlayers(this.spawnPoint);
-		} else
-			calculateSpawnPoints(playerRaduis, online, this::setSpawnPointsToPlayers);
+//		if (spawnPoint != null && this.spawnPoint.size() >= online) {
+//			setSpawnPointsToPlayers(this.spawnPoint, maxDistance);
+//		} else
+		game.getSpawnPoints(playerRaduis, online, this::setSpawnPointsToPlayers);
 
 	}
 
@@ -94,7 +81,7 @@ public class StatePreparing extends GameState {
 		taskManager.cancelAllTasks();
 	}
 
-	public void setSpawnPointsToPlayers(List<Location> spawnPoints) {
+	public void setSpawnPointsToPlayers(List<Location> spawnPoints, Location maxDistance) {
 		Iterator<Location> it = spawnPoints.iterator();
 		Location ploc;
 		if (it.hasNext()) {
@@ -121,50 +108,6 @@ public class StatePreparing extends GameState {
 			CaviarStrings.NOT_ENOUGH_SPAWNPOINTS.send(game.getModerators().keySet());
 		}
 	}
-	
-	public void calculateSpawnPoints(int playerRadius, int nbSpawnPoints, Consumer<List<Location>> consumer) {
-		List<Location> spawnPoints = new ArrayList<>();
-		for (int i = 0; i < nbSpawnPoints; i++) {
-			double theta = i * 2 * Math.PI / nbSpawnPoints;
-
-			int i2 = i;
-			int playerX = (int) (game.getTreasure().getBlockX() + playerRadius * Math.cos(theta));
-			int playerZ = (int) (game.getTreasure().getBlockZ() + playerRadius * Math.sin(theta));
-			
-			Cuboid cub = game.getMapCub();
-			if (cub != null) {
-				if (!cub.isIn(cub.getWorld(), playerX, 0, playerZ)) {
-					game.getPlugin().getLogger().severe(String.format("Found spawnpoint in %d %d out of map (%d %d to %d %d).", playerX, playerZ,
-							cub.getMin().getBlockX(), cub.getMin().getBlockZ(), cub.getMax().getBlockX(), cub.getMax().getBlockZ()));
-				}
-			}
-
-			int chunkX = playerX >> 4;
-			int chunkZ = playerZ >> 4;
-			if (!game.getWorld().isChunkGenerated(chunkX, chunkZ)) {
-				game.getPlugin().getLogger().info(String.format("Chunk x=%d - z=%d is not generated, wait for it before check if it is a good spawnpoint.", playerX, playerZ));
-			}
-			game.prepareLocation(playerX, playerZ, ploc -> {
-				if (!isRunning()) return;
-
-				game.getPlugin().getLogger().info("Found spawnpoint n°" + i2 + " in " + Utils.locToStringH(ploc));
-				
-				addSpawnPoint(ploc);
-				spawnPoints.add(ploc);
-				
-				if (game.getSettings().isDebug().get()) {
-		            Shulker shulk = (Shulker) ploc.getWorld().spawnEntity(ploc, EntityType.SHULKER);
-		            shulk.setInvisible(true);
-		            shulk.setAI(false);
-		            shulk.setGlowing(true);
-		            shulkers.add(shulk);
-				}
-				if (spawnPoints.size() == nbSpawnPoints && consumer != null) {
-					consumer.accept(spawnPoints);
-				}
-			}, new AtomicInteger(1), 1);
-		}
-	}
 
 	private void setPreparing(Player player) {
 		CaviarStrings subtitle;
@@ -183,6 +126,7 @@ public class StatePreparing extends GameState {
 		player.resetTitle();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void tpPlayers(Player player, GamePlayer gamePlayer) {
 		if (gamePlayer == null || gamePlayer.spawnLocation == null) {
 			if (gamePlayer != null)
@@ -206,14 +150,24 @@ public class StatePreparing extends GameState {
 	}
 
 	private void startCoutdown() {
-		WorldBorder worldBoader = game.getWorld().getWorldBorder();
-		worldBoader.setCenter(game.getTreasure());
-		worldBoader.setSize(game.getSettings().getMapSize().get() * 2 + 2);
-		worldBoader.setDamageBuffer(1);
-		worldBoader.setWarningDistance(25);
+		World world = game.getWorld();
+		WorldBorder worldBorder = world.getWorldBorder();
+		worldBorder.setCenter(game.getTreasure());
+		worldBorder.setDamageBuffer(1);
+		worldBorder.setWarningDistance(25);
+		int mapSizeSettings = game.getSettings().getMapSize().get();
+		StatePlaying nextState = new StatePlaying(game);
+		double distanceTreasure = maxDistance.distance(game.getTreasure());
 		game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ()
 			+ " (" + maxDistance.distance(game.getTreasure()) + " from treasure)");
 		WorldLoader worldLoader = game.getWorldLoader();
+		if (!worldBorder.isInside(maxDistance)) {
+			int newMapSize = (int) (Math.round(distanceTreasure) + 200);
+			game.getPlugin().getLogger().severe(String.format("The farthest is out of map, we need to expend the map from %d to %d.", mapSizeSettings, newMapSize));
+			game.getSettings().getMapSize().set(newMapSize);
+			startCoutdown();
+			return;
+		}
 		if (maxDistance.getX() > worldLoader.getRealMapMaxX() || maxDistance.getX() < worldLoader.getRealMapMinX()) {
 			game.getPlugin().getLogger().severe(String.format("The map should be minimum between X %d and %d, not X %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
 		}
@@ -238,7 +192,7 @@ public class StatePreparing extends GameState {
 				}, j, TimeUnit.SECONDS);
 			}
 			taskManager.runTaskLater("prep.countdown_play." + timer, () -> {
-				game.setState(new StatePlaying(game));
+				game.setState(nextState);
 			}, timer, TimeUnit.SECONDS);
 		});
 	}
@@ -338,4 +292,12 @@ public class StatePreparing extends GameState {
 			//event.setCancelled(true);
 		}
 	}
+	
+	@EventHandler
+	public void onFoodLevelChange(FoodLevelChangeEvent event) {
+		if (event.getEntity() instanceof Player p) {
+			disableEvent(p, event);
+		}
+	}
+	
 }

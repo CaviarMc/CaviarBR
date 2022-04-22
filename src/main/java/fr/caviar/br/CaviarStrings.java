@@ -57,40 +57,43 @@ public enum CaviarStrings {
 			"Teleportation in progress for all players...",
 			PREFIX_GOOD),
 	STATE_PREPARING_TITLE(
-			"<yellow>Preparing..."),
+			"<yellow>Preparing...</yellow>"),
 	STATE_PREPARING_TITLE_STARTING_IN(
-			"<green>STARTING IN"),
+			"<green>STARTING IN</green>"),
 	STATE_PREPARING_SUBTITLE_TREASURE(
-			"<gray>Preparing treasure"),
+			"<gray>Preparing treasure</gray>"),
 	STATE_PREPARING_SUBTITLE_SPAWNPOINTS(
-			"<aqua>Finding spawnpoints"),
+			"<aqua>Finding spawnpoints</aqua>"),
 	STATE_PREPARING_SUBTITLE_STARTING(
-			"<green>Starting game"),
+			"<green>Starting game</green>"),
 	
 	STATE_PLAYING_START(
 			"The game has started! Good luck, and be the first one to find the treasure!",
 			PREFIX_GOOD),
 	STATE_PLAYING_TREASURE_SPAWN(
-			"<yellow><bold>A treasure has spawn on the map. Good luck to find it !",
+			"<yellow><bold>A treasure has spawn on the map. Good luck to find it !</bold></yellow>",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS(
-			"<bold>Here is a compass that points to the treasure. It will work for {0} secondes.",
+			"<bold>Here is a compass that points to the treasure. It will work for {0} secondes.</bold>",
 			PREFIX_GOOD),
 	STATE_PLAYING_COMPASS_GROUND(
 			"Compass is on ground, your inventory is full.",
 			PREFIX_BAD),
 	STATE_PLAYING_COMPASS_STOP(
-			"The bousole no longer points to the treasure.",
+			"The bousole no longer points to the treasure. It will be back in {0} minutes.",
 			PREFIX_BAD),
 	STATE_PLAYING_BREAK_TREASURE(
-			"<gold>You cannot break the treasure... click on it!",
+			"<gold>You cannot break the treasure... click on it!</gold>",
+			PREFIX_BAD),
+	STATE_PLAYING_MORE_PLAYERS(
+			"<red><bold>There must be a maximum of 3 players alive to trigger the treasure...</bold></red>",
 			PREFIX_BAD),
 	
 	STATE_WIN(
 			"<light_purple>{0}</light_purple> won the game! Congratulations!"),
 	
 	GAME_SHUTDOWN(
-			"<bold>The game is now shutting down. Thank you for playing!",
+			"<bold>The game is now shutting down. Thank you for playing!</bold>",
 			PREFIX_NEUTRAL),
 	
 	ITEM_COMPASS_NAME(
@@ -167,6 +170,9 @@ public enum CaviarStrings {
 	LOGIN_SCREEN_ERROR_KICK(
 			"An error has occurred, please try again.",
 			LOGIN_SCREEN_PREFIX),
+	LOGIN_SCREEN_KICK_SPEC(
+			"The game no longer accepts spectators.\nIf you think this is a mistake, try logging in again.",
+			LOGIN_SCREEN_PREFIX),
 	VANISH_ON(
 			"<green>Vanish ON",
 			PREFIX_GOOD),
@@ -187,6 +193,9 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	NOT_ENOUGH_SPAWNPOINTS(
 			"They are not enough spawn points for %d players. They are only %d. Maybe some chunks are not load, or settings of game is impossible. Try <bold>/game start</bold> to retry it.",
+			PREFIX_BAD),
+	CANT_DO_THIS(
+			"You can't do this.",
 			PREFIX_BAD),
 	
 	;

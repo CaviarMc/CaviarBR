@@ -6,7 +6,7 @@ import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.game.GameSettings;
 import fr.caviar.br.game.GameSettings.GameSetting;
-
+import fr.caviar.br.permission.Perm;
 import dev.jorel.commandapi.CommandAPICommand;
 
 public class SettingsCommand {
@@ -19,10 +19,12 @@ public class SettingsCommand {
 		settings = game.getSettings();
 		
 		command = new CommandAPICommand("settings")
-			.withPermission("caviarbr.command.settings");
-		
+			.withPermission(Perm.MODERATOR_COMMAND_SETTINGS.get());
+		CommandAPICommand cmd;
 		for (GameSetting<?> setting : settings.getSettings()) {
-			command.withSubcommand(settingCommand(setting));
+			cmd = settingCommand(setting);
+			cmd.setRequirements(s -> true);
+			command.withSubcommand(cmd);
 		}
 		
 		game.getPlugin().getCommands().registerCommand(command);
@@ -32,8 +34,12 @@ public class SettingsCommand {
 		return new CommandAPICommand(setting.getKey())
 				.withArguments(setting.getArguments())
 				.executes((sender, args) -> {
-					T newValue = setting.getValueFromArguments(args);
 					T oldValue = setting.get();
+					if (args == null || args.length == 0) {
+						CaviarStrings.COMMAND_SETTING_SHOW.send(sender, setting.getKey(), Objects.toString(oldValue));
+						return;
+					}
+					T newValue = setting.getValueFromArguments(args);
 					if (oldValue != newValue) {
 						setting.set(newValue);
 						CaviarStrings.COMMAND_SETTING_SET.send(sender, setting.getKey(), Objects.toString(oldValue), Objects.toString(newValue));

@@ -14,8 +14,8 @@ public abstract class AbstractObservable implements Observable {
 	}
 
 	@Override
-	public void unobserve(String name) {
-		observers.remove(name);
+	public Observer unobserve(String name) {
+		return observers.remove(name);
 	}
 
 	protected void clearObservers() {

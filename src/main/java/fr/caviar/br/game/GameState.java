@@ -31,10 +31,6 @@ public abstract class GameState implements Listener {
 		this.game = game;
 	}
 	
-	public GameManager getGame() {
-		return game;
-	}
-	
 	public void start() {
 		running = true;
 		game.getPlugin().getLogger().info("Starting state " + getClass().getSimpleName());
@@ -111,5 +107,9 @@ public abstract class GameState implements Listener {
 			ec.setCancelled(true);
 		else
 			game.getPlugin().getLogger().log(Level.SEVERE, String.format("%s try to cancel event not cancellable : %s", this.getClass().getName(), event.getClass().getName()));
+	}
+	
+	public GameManager getGame() {
+		return game;
 	}
 }

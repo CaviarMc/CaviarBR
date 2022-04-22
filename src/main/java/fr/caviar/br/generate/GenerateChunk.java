@@ -19,14 +19,9 @@ public class GenerateChunk {
 	private NativeTask taskHandler = new NativeTask(this.getClass());
 	private List<Thread> threads = new ArrayList<>();
 	private List<ChunkLoad> chunksToLoad;
-	private ChunkLoad lastChunkOperation;
-	private long timeStarted;
-	private int chunkAlreadyGenerate = 0;
 	private int threadsUses;
 	private boolean async;
 	private Lock mutex = new ReentrantLock();
-	
-	private int averageChunksPerSecond, percentageChunk;
 
 	public GenerateChunk(WorldLoader worldLoader, List<ChunkLoad> chunksToLoad, int threadsUses, boolean async) {
 		this.worldLoader = worldLoader;
@@ -35,62 +30,65 @@ public class GenerateChunk {
 		this.async = async;
 	}
 
+	
 	void start() {
-		timeStarted = Utils.getCurrentTimeInSeconds();
+		worldLoader.getStats().init(2, chunksToLoad.size(), Utils.getCurrentTimeInSeconds());
 		cleanQueue();
 		if (async) {
 			launchAsync();
 		} else {
 			launchSync();
 		}
+		ChunkStats stats = worldLoader.getStats();
+		stats.setChunkAlready(0);
+		taskHandler.scheduleSyncRepeatingTask("generate.chunk.info2", () -> {
+			stats.getStats();
+		}, 0, 10, TimeUnit.SECONDS);
 		taskHandler.scheduleSyncRepeatingTask("generate.chunk.info", () -> {
-			long timeDiff = Utils.getCurrentTimeInSeconds() - timeStarted;
-			long timeToEndSecs;
-			if (chunkAlreadyGenerate > 0 && chunksToLoad.size() > 0) {
-				percentageChunk = (int) (((float) chunkAlreadyGenerate / chunksToLoad.size()) * 100);
-				averageChunksPerSecond = (int) (chunkAlreadyGenerate / timeDiff);
-				timeToEndSecs = (chunksToLoad.size() - chunkAlreadyGenerate) / averageChunksPerSecond;
+			stats.getStats();
+			int lastXChunk, lastZChunk;
+			if (stats.getLastchunk() == null) {
+				lastXChunk = 0;
+				lastZChunk = 0;
 			} else {
-				percentageChunk = 0;
-				averageChunksPerSecond = 0;
-				timeToEndSecs = 0;
+				lastXChunk = stats.getLastchunk().getXChunk();
+				lastZChunk = stats.getLastchunk().getZChunk();
 			}
-			Chunk lastchunk;
-			if (lastChunkOperation == null || lastChunkOperation.getChunk() == null) {
-				lastchunk = worldLoader.getWorld().getSpawnLocation().getChunk();
-			} else {
-				lastchunk = lastChunkOperation.getChunk();
-			}
-			worldLoader.updatePlayerScoreboard();
 			worldLoader.getPlugin().getLogger().info(String.format("Generate (2/2) %d/%d chunks - %d%% | %d chunks/s | last x z chunk %d %d | started %s ago | ETA %s - %s",
-				chunkAlreadyGenerate, chunksToLoad.size(), percentageChunk, averageChunksPerSecond, 
-				lastchunk.getX(), lastchunk.getZ(), Utils.hrDuration(timeDiff), Utils.hrDuration(timeToEndSecs),
-				Utils.timestampToDateAndHour(Utils.getCurrentTimeInSeconds() + timeToEndSecs)));
+					stats.getChunkAlready(), chunksToLoad.size(), stats.getPercentageChunk(), stats.getAverageChunksPerSecond(), 
+				lastXChunk, lastZChunk, Utils.hrDuration(stats.getTimeDiff()), stats.getDurationETA(),
+				stats.getDateETA()));
 		}, 1, 5, TimeUnit.MINUTES);
+		worldLoader.getPlugin().getLogger().info(String.format("Generate (2/2) starting for %d chunks...", chunksToLoad.size()));
 	}
 
 	void end(boolean force) {
+		ChunkStats stats = worldLoader.getStats();
 		//taskHandler.terminateTask("generate.chunk.info");
 		threads.forEach(Thread::interrupt);
+//		threads.forEach(Thread::stop);
 		threads.clear();
 		int averageChunksPerSecond;
-		if (chunkAlreadyGenerate > 0 && chunksToLoad != null && chunksToLoad.size() > 0)
-			averageChunksPerSecond = (int) (((float) chunkAlreadyGenerate / chunksToLoad.size()) * 100);
+		if (stats.getChunkAlready() > 0 && chunksToLoad != null && chunksToLoad.size() > 0)
+			averageChunksPerSecond = (int) (((float) stats.getChunkAlready() / chunksToLoad.size()) * 100);
 		else
 			averageChunksPerSecond = 0;
 		if (force) {
 			taskHandler.terminateAllTasks();
 			worldLoader.getPlugin().getLogger().info(String.format("Generating is stopped | %d/%d chunks generate - %d%% | time taken %s",
-					chunkAlreadyGenerate, chunksToLoad != null ? chunksToLoad.size() : -1, averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+					stats.getChunkAlready(), chunksToLoad != null ? chunksToLoad.size() : -1,
+					averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - stats.getTimeStarted())));
 			worldLoader.getGameManager().setMapCub(worldLoader.getCub());
 		}
 		else {
 			taskHandler.cancelAllTasks();
 			worldLoader.getPlugin().getLogger().info(String.format("Generating is finish | %d/%d chunks generate - %d%% | time taken %s",
-					chunkAlreadyGenerate, chunksToLoad != null ? chunksToLoad.size() : -1, averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - timeStarted)));
+					stats.getChunkAlready(), chunksToLoad != null ? chunksToLoad.size() : -1,
+					averageChunksPerSecond, Utils.hrDuration(Utils.getCurrentTimeInSeconds() - stats.getTimeStarted())));
 		}
 		if (chunksToLoad != null)
 			chunksToLoad.clear();
+		worldLoader.getStats().stop();
 	}
 	
 	private void launchAsync() {
@@ -115,8 +113,9 @@ public class GenerateChunk {
 	}
 	
 	private void loadChunkAsync(Iterator<ChunkLoad> it) {
-		if (!it.hasNext()) {
-			if (chunkAlreadyGenerate >= chunksToLoad.size())
+		ChunkStats stats = worldLoader.getStats();
+		if (threads.isEmpty() || !it.hasNext()) {
+			if (stats.getChunkAlready() >= chunksToLoad.size())
 				worldLoader.stop(false);
 			return;
 		}
@@ -124,10 +123,10 @@ public class GenerateChunk {
 		ChunkLoad chunkL = it.next();
 		world.getChunkAtAsync(chunkL.getXChunk(), chunkL.getZChunk(), true, chunk -> {
 //		world.getChunkAtAsyncUrgently(chunkL.getXChunk(), chunkL.getZChunk()).thenAccept(chunk -> {
-			lastChunkOperation = chunkL;
 			chunkL.addChunk(chunk);
 			mutex.lock();
-			++chunkAlreadyGenerate;
+			stats.setLastchunk(chunkL);
+			stats.addChunkAlready();
 			mutex.unlock();
 			world.unloadChunkRequest(chunkL.getXChunk(), chunkL.getZChunk());
 			loadChunkAsync(it);
@@ -161,16 +160,18 @@ public class GenerateChunk {
 
 	private void loadChunkSync(Iterator<ChunkLoad> it) {
 		World world = worldLoader.getWorld();
+		ChunkStats stats = worldLoader.getStats();
 		while (it.hasNext()) {
 			ChunkLoad chunkL = it.next();
 			mutex.lock();
 			Chunk chunk = world.getChunkAt(chunkL.getXChunk(), chunkL.getZChunk());
-			++chunkAlreadyGenerate;
-			mutex.unlock();
-			lastChunkOperation = chunkL;
 			chunkL.addChunk(chunk);
+			mutex.lock();
+			stats.setLastchunk(chunkL);
+			stats.addChunkAlready();
+			mutex.unlock();
 			world.unloadChunkRequest(chunkL.getXChunk(), chunkL.getZChunk());
-			if (chunkAlreadyGenerate >= chunksToLoad.size())
+			if (stats.getChunkAlready() >= chunksToLoad.size())
 				worldLoader.stop(false);
 		}
 	}
@@ -186,14 +187,5 @@ public class GenerateChunk {
 		}
 		if (changes)
 			worldLoader.getPlugin().getLogger().info(String.format("Number of chunks to generate : %d", chunksToLoad.size()));
-	}
-
-
-	public int getPercentageChunk() {
-		return percentageChunk;
-	}
-
-	public int getAverageChunksPerSecond() {
-		return averageChunksPerSecond;
 	}
 }

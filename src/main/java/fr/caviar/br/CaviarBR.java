@@ -5,6 +5,7 @@ import org.bukkit.plugin.PluginManager;
 import fr.caviar.br.api.CaviarPlugin;
 import fr.caviar.br.commands.ConfigCommand;
 import fr.caviar.br.commands.VanishCommand;
+import fr.caviar.br.game.GameListener;
 import fr.caviar.br.game.GameManager;
 import fr.caviar.br.motd.MotdHandler;
 import fr.caviar.br.nametag.Nametag;
@@ -20,6 +21,8 @@ public class CaviarBR extends CaviarPlugin {
 	private CaviarCommands commands;
 	private Nametag nameTag;
 	private Scoreboard scoreboard;
+
+	private String version;
 
 	@Override
 	public void onLoad() {
@@ -41,6 +44,7 @@ public class CaviarBR extends CaviarPlugin {
 
 		pluginManager.registerEvents(new PlayerLoginListener(), this);
 		pluginManager.registerEvents(new MotdHandler(), this);
+		pluginManager.registerEvents(new GameListener(), this);
 		commands.enable();
 		game.enable();
 		scoreboard.enable();
@@ -48,7 +52,7 @@ public class CaviarBR extends CaviarPlugin {
 		new ConfigCommand(this);
 		new VanishCommand(this);
 
-
+		version = Utils.getPluginVersion(this);
 		sendMessage("§2%s§a (%s) est activé.", getDescription().getName(), Utils.getPluginVersion(this));
 	}
 
@@ -79,6 +83,10 @@ public class CaviarBR extends CaviarPlugin {
 
 	public Scoreboard getScoreboard() {
 		return scoreboard;
+	}
+	
+	public String getVersion() {
+		return version;
 	}
 
 	public static CaviarBR getInstance() {

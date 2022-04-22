@@ -12,6 +12,7 @@ import fr.caviar.br.game.StatePreparing;
 import fr.caviar.br.game.StateWait;
 import fr.caviar.br.game.StateWin;
 import fr.caviar.br.generate.WorldLoader;
+import fr.caviar.br.permission.Perm;
 import io.reactivex.functions.Consumer;
 import net.kyori.adventure.text.Component;
 
@@ -31,7 +32,7 @@ public class GameAdminCommand {
 		
 		command = new CommandAPICommand("gameadmin")
 				.withAliases("game")
-				.withPermission("caviarbr.command.gameadmin")
+				.withPermission(Perm.MODERATOR_COMMAND_GAMEADMIN.get())
 				
 				.withSubcommand(stateCommand("reset", StateWait.class, this::reset))
 				

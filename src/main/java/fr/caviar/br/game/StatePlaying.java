@@ -3,15 +3,12 @@ package fr.caviar.br.game;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-
 import org.apache.commons.lang.Validate;
-import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.WorldBorder;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.FaceAttachable.AttachedFace;
@@ -20,33 +17,34 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.jetbrains.annotations.Nullable;
-
-import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
+import fr.caviar.br.permission.Perm;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.Utils;
+import fr.caviar.br.worldborder.WorldBorderHandler;
 
 public class StatePlaying extends GameState {
 
 	private ItemStack[] compass;
 	private ItemStack compassItem;
 	private TaskManagerSpigot taskManager;
+	private WorldBorderHandler wbHandler;
 
 	public StatePlaying(GameManager game) {
 		super(game);
 		this.taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
+		this.wbHandler = new WorldBorderHandler(game.getWorld().getWorldBorder(), game.getSettings().getMapSize().get() * 2,
+				game.getSettings().getFinalSize().get(), game.getSettings().getMaxTimeGame().getInSecond());
+		this.wbHandler.set();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -77,7 +75,7 @@ public class StatePlaying extends GameState {
 			game.setTreasure(null);
 			setTreasure(tmp);
 			if (!taskManager.cancelTask("playing.scoreboard.treasure_waiting")) {
-				this.getGame().getPlugin().getLogger().log(Level.SEVERE, "Can't cancel task playing.scoreboard.treasure_waiting");
+				this.getGame().getPlugin().getLogger().severe("Can't cancel task playing.scoreboard.treasure_waiting");
 			}
 			CaviarStrings.STATE_PLAYING_TREASURE_SPAWN.broadcast();
 			taskManager.scheduleSyncRepeatingTask("playing.compass.give", this::giveCompass, game.getSettings().getWaitCompass().getInMinute(), game.getSettings().getWaitCompass().getInMinute(), TimeUnit.MINUTES);
@@ -85,11 +83,27 @@ public class StatePlaying extends GameState {
 		taskManager.scheduleSyncRepeatingTask("playing.scoreboard.treasure_waiting", () -> {
 			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().treasureWaiting(p));
 		}, 0, 1, TimeUnit.SECONDS);
-		game.getWorld().setPVP(true);
 
-		WorldBorder worldBoader = game.getWorld().getWorldBorder();
-		worldBoader.setSize(100, game.getSettings().getMaxTimeGame().getInSecond());
-		game.getWorld().setGameRule(GameRule.REDUCED_DEBUG_INFO, false);
+		if (wbHandler != null) {
+			wbHandler.startReducing();
+		} else {
+			this.getGame().getPlugin().getLogger().severe("Can't start reducing WorldBorder");
+		}
+
+		World world = game.getWorld();
+		world.setPVP(true);
+		world.setGameRule(GameRule.REDUCED_DEBUG_INFO, false);
+		world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
+		world.setTime(0);
+		
+		game.getSettings().isAllowedSpectator().observe("allowSpectator", () -> {
+			Boolean newSetting = game.getSettings().isAllowedSpectator().get();
+			if (!newSetting) {
+				game.getSpectators().keySet().stream().filter(p -> !Perm.VIP_SPECTATOR.has(p)).forEach(p -> {
+					p.kick(CaviarStrings.LOGIN_SCREEN_KICK_SPEC.toComponent());
+				});
+			}
+		});
 	}
 
 	@Override
@@ -131,7 +145,7 @@ public class StatePlaying extends GameState {
 		});
 		
 		taskManager.cancelTask("playing.scoreboard.compass");
-		CaviarStrings.STATE_PLAYING_COMPASS_STOP.broadcast();
+		CaviarStrings.STATE_PLAYING_COMPASS_STOP.broadcast(game.getSettings().getWaitCompass().getInMinute());
 		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + game.getSettings().getWaitCompass().getInSecond();
 		waitCompass();
 	}
@@ -223,6 +237,10 @@ public class StatePlaying extends GameState {
 		Location loc = event.getClickedBlock().getLocation();
 		if (loc.subtract(0, 1, 0).equals(game.getTreasure())) {
 			event.setCancelled(true);
+			if (game.getGamers().size() > game.getSettings().getMinPlayerToWin().get()) {
+				CaviarStrings.STATE_PLAYING_MORE_PLAYERS.send(event.getPlayer());
+				return;
+			}
 			game.setState(new StateWin(game, game.getPlayers().get(event.getPlayer().getUniqueId())));
 		}
 	}
@@ -288,6 +306,7 @@ public class StatePlaying extends GameState {
 		join(event.getPlayer(), gPlayer);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer gPlayer) {
 		Player player = event.getPlayer();
@@ -298,6 +317,10 @@ public class StatePlaying extends GameState {
 		}
 		this.getGame().getSpectators().remove(event.getPlayer());
 		return false;
+	}
+
+	public WorldBorderHandler getWbHandler() {
+		return wbHandler;
 	}
 
 }

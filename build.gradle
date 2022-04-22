@@ -21,6 +21,13 @@ repositories {
 		}
 	}
 
+	/*maven {
+		url = 'https://repo.mikeprimm.com'
+		content {
+		  includeGroup 'us.dynmap'
+		}
+	}*/
+
 	maven {
 		url = 'https://jitpack.io'
 		content {
@@ -66,7 +73,8 @@ dependencies {
 	
 	compileOnly 'com.nametagedit:nametagedit:4.5.5'
 	implementation 'fr.mrmicky:fastboard:1.2.1'
-	implementation "dev.jorel.CommandAPI:commandapi-shade:6.5.4"
+	implementation 'dev.jorel.CommandAPI:commandapi-shade:6.5.4'
+	//implementation 'us.dynmap:dynmap-api:3.4-beta-3'
 	//compileOnly "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
 	//annotationProcessor "dev.jorel.CommandAPI:commandapi-annotations:6.5.4"
 	

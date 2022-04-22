@@ -16,21 +16,24 @@ public class GameSettings {
 	private final GameSettingInt minPlayers = new GameSettingInt(2, "minPlayers", 1);
 	private final GameSettingInt maxPlayers = new GameSettingInt(100, "maxPlayers", 1);
 	
-	private final GameSettingInt waitingTimeLong = new GameSettingInt(7, "waitingTimeLong", 0);
-	private final GameSettingInt waitingTimeShort = new GameSettingInt(30, "waitingTimeShort", 0);
+	private final GameSettingInt waitingTimeLong = new GameSettingInt(60, "waitingTimeLong", 0);
+	private final GameSettingInt waitingTimeShort = new GameSettingInt(10, "waitingTimeShort", 0);
 	
-	private final GameSettingInt playersRadius = new GameSettingInt(200, "playersRadius", 10);
+	private final GameSettingInt playersRadius = new GameSettingInt(2000, "playersRadius", 1);
 	
-	private final GameSettingInt mapSize = new GameSettingInt(500, "mapSize", 10);
-	private final GameSettingInt treasureRaduis = new GameSettingInt(100000, "treasureRaduis", 10);
+	private final GameSettingInt mapSize = new GameSettingInt(2500, "mapSize", 1);
+	private final GameSettingInt treasureRaduis = new GameSettingInt(1000, "treasureRaduis", 1);
 	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 1);
 	private final GameSettingMinute waitCompass = new GameSettingMinute(3, "waitCompass");
-	private final GameSettingSecond compassDuration = new GameSettingSecond(10, "compassDuration");
-	private final GameSettingMinute waitTreasure = new GameSettingMinute(1, "waitTreasure");
+	private final GameSettingSecond compassDuration = new GameSettingSecond(30, "compassDuration");
+	private final GameSettingMinute waitTreasure = new GameSettingMinute(5, "waitTreasure");
 	private final GameSettingSecond countdownStart = new GameSettingSecond(60, "countdownStart");
 	private final GameSettingBoolean chunkGenerateAsync = new GameSettingBoolean(true, "chunkGenerateAsync");
 	private final GameSettingBoolean debug = new GameSettingBoolean(true, "debug");
+	private final GameSettingBoolean allowSpectator = new GameSettingBoolean(true, "allowSpectator");
 	private final GameSettingMinute maxTimeGame = new GameSettingMinute(10, "maxTimeGame");
+	private final GameSettingInt finalSize = new GameSettingInt(200, "finalSize", 1);
+	private final GameSettingInt minPlayerToWin = new GameSettingInt(3, "minPlayerToWin", 1);
 	
 	private final GameManager game;
 	
@@ -39,7 +42,7 @@ public class GameSettings {
 	public GameSettings(GameManager game) {
 		this.game = game;
 		this.settings = Arrays.asList(minPlayers, maxPlayers, waitingTimeLong, waitingTimeShort, playersRadius, mapSize, treasureRaduis, endingDuration, waitCompass,
-				compassDuration, waitTreasure, countdownStart, chunkGenerateAsync, maxTimeGame, debug);
+				compassDuration, waitTreasure, countdownStart, chunkGenerateAsync, maxTimeGame, debug, finalSize, allowSpectator, minPlayerToWin);
 		maxPlayers.observe("update_bukkit", () -> Bukkit.setMaxPlayers(maxPlayers.get()));
 		treasureRaduis.observe("treasure_spawn", () -> game.calculateTreasureSpawnPoint(null));
 	}
@@ -112,6 +115,18 @@ public class GameSettings {
 		return debug;
 	}
 
+	public GameSettingBoolean isAllowedSpectator() {
+		return allowSpectator;
+	}
+
+	public GameSettingInt getFinalSize() {
+		return finalSize;
+	}
+
+	public GameSettingInt getMinPlayerToWin() {
+		return minPlayerToWin;
+	}
+
 	public abstract class GameSetting<T> extends AbstractObservable {
 		
 		private T value;
@@ -140,7 +155,7 @@ public class GameSettings {
 		public abstract T getValueFromArguments(Object[] args);
 		
 	}
-	
+
 	public class GameSettingInt extends GameSetting<Integer> {
 		
 		private int min, max;

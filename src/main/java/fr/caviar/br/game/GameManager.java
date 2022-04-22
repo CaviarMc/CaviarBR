@@ -15,33 +15,36 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
-import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.jetbrains.annotations.Nullable;
+import org.bukkit.entity.Shulker;
 
 import fr.caviar.br.CaviarBR;
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.commands.GameAdminCommand;
 import fr.caviar.br.game.commands.SettingsCommand;
 import fr.caviar.br.generate.WorldLoader;
+import fr.caviar.br.permission.Perm;
 import fr.caviar.br.utils.Cuboid;
 import fr.caviar.br.utils.Utils;
+import fr.caviar.br.worldborder.WorldBorderHandler;
 
 public class GameManager {
 
@@ -62,7 +65,8 @@ public class GameManager {
 	protected long timestampCompassEnd;
 	private Location treasure = null;
 	private Cuboid mapCub = null;
-//	private List<Location> spawnPoints = null;
+	private Location tmpMaxDistance = null;
+	private List<Location> spawnPoints;
 
 	private GameState state;
 	
@@ -78,6 +82,8 @@ public class GameManager {
 		world = Bukkit.getWorlds().get(0);
 		world.setStorm(false);
 		world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+		world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+		world.setTime(0);
 		setState(new StateWait(this));
 		new SettingsCommand(this);
 		new GameAdminCommand(this);
@@ -86,7 +92,9 @@ public class GameManager {
 			tloc = tloc.add(0, 1, 0);
 			this.getPlugin().getLogger().info("Found world spawn at " + Utils.locToStringH(tloc));
 			world.setSpawnLocation(tloc);
+			world.getWorldBorder().setCenter(world.getSpawnLocation());
 			this.calculateTreasureSpawnPoint(treasure -> {
+//				calcSpawnPoint((spawnPoints, maxDistance) -> worldLoader.start(false));
 				worldLoader.start(false);
 			});
 		}, new AtomicInteger(1), 1);
@@ -100,7 +108,72 @@ public class GameManager {
 		if (worldLoader != null)
 			worldLoader.stop(true);
 	}
-	
+
+	public void calcSpawnPoint(BiConsumer<List<Location>, Location> consumer) {
+		int playerRadius = settings.getPlayersRadius().get();
+		int nbSpawnPoints = settings.getMaxPlayers().get();
+		BiConsumer<List<Location>, Location> biConsumer = (list, max) -> {
+//			int distGameTreasure = (int) Math.round(max.distance(treasure));
+//			if (distGameTreasure > settings.getMapSize().get()) {
+//				int newMapSize = ((int) distGameTreasure / 100) * 100 + 100;
+//				plugin.getLogger().severe(String.format("The farthest is out of map, we need to expend the map from %d to %d.", settings.getMapSize().get(), newMapSize));
+//				settings.getMapSize().set(newMapSize);
+//			}
+			spawnPoints = list;
+			if (consumer != null)
+				consumer.accept(list, max);
+		};
+		getSpawnPoints(playerRadius, nbSpawnPoints, biConsumer);
+	}
+
+	public void getSpawnPoints(int playerRadius, int nbSpawnPoints, BiConsumer<List<Location>, Location> consumer) {
+		plugin.getTaskManager().runTaskAsynchronously("spawnPoints", () -> {
+			List<Location> spawnPoints = new ArrayList<>();
+			tmpMaxDistance = null;
+			for (int i = 0; i < nbSpawnPoints; i++) {
+				double theta = i * 2 * Math.PI / nbSpawnPoints;
+
+				int i2 = i;
+				int playerX = (int) (treasure.getBlockX() + playerRadius * Math.cos(theta));
+				int playerZ = (int) (treasure.getBlockZ() + playerRadius * Math.sin(theta));
+				
+				Cuboid cub = mapCub;
+				if (cub != null) {
+					if (!cub.isIn(cub.getWorld(), playerX, 0, playerZ)) {
+						plugin.getLogger().severe(String.format("Found spawnpoint in %d %d out of map (%d %d to %d %d).", playerX, playerZ,
+								cub.getMin().getBlockX(), cub.getMin().getBlockZ(), cub.getMax().getBlockX(), cub.getMax().getBlockZ()));
+					}
+				}
+
+				int chunkX = playerX >> 4;
+				int chunkZ = playerZ >> 4;
+				if (!world.isChunkGenerated(chunkX, chunkZ)) {
+					plugin.getLogger().info(String.format("Chunk x=%d - z=%d is not generated, wait for it before check if it is a good spawnpoint.", playerX, playerZ));
+				}
+				this.prepareLocation(playerX, playerZ, ploc -> {
+					//if (!isRunning()) return;
+					plugin.getLogger().info("Found spawnpoint n°" + i2 + " in " + Utils.locToStringH(ploc));
+
+//					addSpawnPoint(ploc);
+					if (treasure != null && (tmpMaxDistance == null || ploc.distance(treasure) > tmpMaxDistance.distance(treasure)))
+						tmpMaxDistance = ploc;
+					spawnPoints.add(ploc);
+					
+//					if (settings.isDebug().get()) {
+//			            Shulker shulk = (Shulker) ploc.getWorld().spawnEntity(ploc, EntityType.SHULKER);
+//			            shulk.setInvisible(true);
+//			            shulk.setAI(false);
+//			            shulk.setGlowing(true);
+//			            shulkers.add(shulk);
+//					}
+					if (spawnPoints.size() == nbSpawnPoints && consumer != null) {
+						consumer.accept(spawnPoints, tmpMaxDistance);
+					}
+				}, new AtomicInteger(1), 1);
+			}
+		});
+	}
+
 	public void calculateTreasureSpawnPoint(Consumer<Location> consumer) {
 		if (state != null && !(state instanceof StateWait)) {
 			this.getPlugin().getLogger().warning("Can't calculte treasure while they are a game");
@@ -178,7 +251,7 @@ public class GameManager {
 	}
 	
 	private boolean isGoodBlock(Block block) {
-		if (block.getY() < 60) return false;
+		if (block.getY() < 60 || block.isEmpty()) return false;
 		Material blockType = block.getType();
 		if (UNSPAWNABLE_ON.contains(blockType)) return false;
 		
@@ -226,7 +299,7 @@ public class GameManager {
 	public GameState getState() {
 		return state;
 	}
-	
+
 	public World getWorld() {
 		return world;
 	}
@@ -258,11 +331,11 @@ public class GameManager {
 	public Map<Player, GamePlayer> getModerators() {
 		Map<Player, GamePlayer> moderators = new HashMap<>();
 		getSpigotPlayers().forEach((player, gamePlayer) -> {
-			if (player.hasPermission("caviarbr.moderator"))
+			if (Perm.MODERATOR.has(player))
 				moderators.put(player, gamePlayer);
 		});
 		getSpectators().forEach((player, gamePlayer) -> {
-			if (player.hasPermission("caviarbr.moderator"))
+			if (Perm.MODERATOR.has(player))
 				moderators.put(player, gamePlayer);
 		});
 		return moderators;
@@ -346,6 +419,7 @@ public class GameManager {
 		return timestampCompassEnd;
 	}
 
+	@Nullable
 	public Cuboid getMapCub() {
 		return mapCub;
 	}
@@ -353,6 +427,5 @@ public class GameManager {
 	public void setMapCub(Cuboid mapCub) {
 		this.mapCub = mapCub;
 	}
-	
 	
 }

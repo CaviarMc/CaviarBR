@@ -188,7 +188,7 @@ jobs:
 
      - name: "Launch server"
        run: ./launchFakeGame.sh
-       shell: script -e -c /bin/bash -c 
+       shell: bash
        continue-on-error: true
 
 # Push .jar to repo Release 

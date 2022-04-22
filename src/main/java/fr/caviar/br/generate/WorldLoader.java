@@ -14,9 +14,9 @@ import fr.caviar.br.utils.Utils;
 
 public class WorldLoader {
 
-	
 	private final CaviarBR plugin;
 	private GameManager gameManager;
+	private ChunkStats stats;
 	private Location spawnLoader;
 	private int realMapMinX;
 	private int realMapMinZ;
@@ -34,6 +34,7 @@ public class WorldLoader {
 	public WorldLoader(CaviarBR plugin) {
 		this.plugin = plugin;
 		this.threadsUses = Runtime.getRuntime().availableProcessors();
+		this.stats = new ChunkStats(() -> updatePlayerScoreboard());
 	}
 
 	public void addGameManager(GameManager gameManager) {
@@ -59,9 +60,9 @@ public class WorldLoader {
 		calculateChunk.start(force);
 	}
 
-	public void calcMap() {
+	private void calcMap() {
 		mapSize = gameManager.getSettings().getMapSize().get();
-		mapLength = mapSize + 1 * 2;
+		mapLength = mapSize * 2;
 		realMapMinX = (-mapSize + spawnLoader.getBlockX());
 		realMapMinZ = (-mapSize + spawnLoader.getBlockZ());
 		realMapMaxX = (mapSize + spawnLoader.getBlockX());
@@ -83,6 +84,8 @@ public class WorldLoader {
 		calculateChunk = null;
 		generateChunk = null;
 		isGenerating = false;
+		if (stats != null)
+			stats.stop();
 	}
 
 	public int getRealMapMinX() {
@@ -132,13 +135,19 @@ public class WorldLoader {
 	protected void updatePlayerScoreboard() {
 		if (!gameManager.getSettings().isDebug().get())
 			return;
-		
 		Scoreboard sb = gameManager.getPlugin().getScoreboard();
 		gameManager.getAllPlayers().forEach(player -> sb.waitToStart(player));
 	}
+	
+	public String getETAStep() {
+		if (stats == null || stats.getStep() != 1 && stats.getStep() != 2) {
+			return null;
+		}
+		return String.format("§dETA n°%d %s", stats.getStep(), stats.getDurationETA());
+	}
 
 	public String getStatus() {
-		int step, percentage, chunkPerSec;
+		/*int step, percentage, chunkPerSec;
 		if (calculateChunk != null) {
 			step = 1;
 			percentage = calculateChunk.getPercentageChunk();
@@ -149,14 +158,32 @@ public class WorldLoader {
 			chunkPerSec = generateChunk.getAverageChunksPerSecond();
 		} else {
 			return "Generation done";
+		}*/
+		if (stats == null) {
+			return "§dGeneration not start";
+		} else if (stats.getStep() == -2) {
+			return "§dGeneration end";
+		} else if (stats.getStep() != 1 && stats.getStep() != 2) {
+			return "§dGeneration unknown status";
 		}
-		return String.format("(%d/2) %d%% - %d chunk/s", step, percentage, chunkPerSec);
+		return String.format("§dGeneration (%d/2) %d%% - %d chunk/s", stats.getStep(), stats.getPercentageChunk(), stats.getAverageChunksPerSecond());
+	}
+	
+	public String getDurationEnd() {
+		if (stats.getStep() != 1 || stats.getStep() != 2) {
+			return "";
+		}
+		return Utils.hrFormatDuration(stats.getStep());
 	}
 
 	public int getTotalChunks() {
 		if (cub != null)
 			return cub.getTotalChunksSize();
 		return calculateChunk != null ? calculateChunk.getTotalChunks() : -1;
+	}
+
+	public ChunkStats getStats() {
+		return stats;
 	}
 	
 }
