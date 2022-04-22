@@ -14,8 +14,6 @@ GITHUB_JAR_FILE=CaviarBR.jar
 GITHUB_URL_API=https://api.github.com/repos/$GITHUB_REPO/releases
 GITHUB_USE_PRE_RELEASE=true
 
-script /dev/null ; echo Hello world
-
 function usage {
 	echo -e "\e[31m$0 <local|github|none> <mapSize> <players>\e[0m"
 	exit 1
