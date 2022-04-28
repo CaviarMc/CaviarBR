@@ -31,21 +31,21 @@ public class GameAdminCommand {
 
 	public GameAdminCommand(GameManager game) {
 		this.game = game;
-	
+
 		command = new CommandAPICommand("gameadmin")
 				.withAliases("game")
 				.withPermission(Perm.MODERATOR_COMMAND_GAMEADMIN.get())
-			
+
 				.withSubcommand(stateCommand("reset", StateWait.class, this::reset))
-			
+
 				.withSubcommand(stateCommand("start", StatePreparing.class, this::start))
-			
+
 				.withSubcommand(new CommandAPICommand("forceStart")
 						.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
 						.executes((CommandExecutor) (sender, args) -> askConfirmation(StatePlaying.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::forceStart)))
-			
+
 				.withSubcommand(new CommandAPICommand("finish")
 						.withArguments(new PlayerArgument("winner"))
 						.executes((CommandExecutor) (sender, args) -> askConfirmation(StateWin.class, sender))
@@ -55,7 +55,7 @@ public class GameAdminCommand {
 						.executes((CommandExecutor) (sender, args) -> askConfirmation(StateWin.class, sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::finish)))
-			
+
 				.withSubcommand(new CommandAPICommand("treasure")
 						.withSubcommand(new CommandAPICommand("set")
 								.withArguments(new LocationArgument("treasure", LocationType.BLOCK_POSITION))
@@ -64,22 +64,22 @@ public class GameAdminCommand {
 								.executesPlayer(this::teleportTreasure))
 						.withSubcommand(new CommandAPICommand("giveCompass")
 								.executes(this::giveCompass)))
-			
+
 				.withSubcommand(new CommandAPICommand("generate")
 						.withSubcommand(new CommandAPICommand("stop")
 								.executes(this::disableGenerate))
 						.withSubcommand(new CommandAPICommand("start")
 								.executes(this::startGenerate)))
-			
+
 				.withSubcommand(new CommandAPICommand("shutdown")
 						.executes((CommandExecutor) (sender, args) -> CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM.send(sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::shutdown)))
 
 				.withSubcommand(new CommandAPICommand("addPlayer").executes(this::spectatorToPlayer))
-			
+
 				;
-	
+
 		game.getPlugin().getCommands().registerCommand(command);
 	}
 
@@ -153,10 +153,10 @@ public class GameAdminCommand {
 			CaviarStrings.PREFIX_ERROR.sendWith(sender, Component.text("no location"));
 			return;
 		}
-	
+
 		StatePlaying state = testGameState(StatePlaying.class, sender);
 		if (state == null) return;
-	
+
 		state.setTreasure(location);
 		CaviarStrings.COMMAND_GAMEADMIN_TREASURE_EDITED.send(sender);
 	}
@@ -164,7 +164,7 @@ public class GameAdminCommand {
 	private void teleportTreasure(Player player, Object[] args) {
 		StatePlaying state = testGameState(StatePlaying.class, player);
 		if (state == null) return;
-	
+
 		if (game.getTreasure() == null) {
 			CaviarStrings.COMMAND_GAMEADMIN_TREASURE_TELEPORTED_NOT_EXIST.send(player);
 			return;
@@ -176,7 +176,7 @@ public class GameAdminCommand {
 	private void giveCompass(CommandSender sender, Object[] args) {
 		StatePlaying state = testGameState(StatePlaying.class, sender);
 		if (state == null) return;
-	
+
 		Player target = (Player) args[0];
 		// state.giveCompass(); // Is this the correct functionality of this cmd?
 		target.getInventory().addItem(state.getCompass());
@@ -187,7 +187,7 @@ public class GameAdminCommand {
 	private void spectatorToPlayer(CommandSender sender, Object[] args) {
 		StatePlaying state = testGameState(StatePlaying.class, sender);
 		if (state == null) return;
-	
+
 		Player target = (Player) args[0];
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(target.getUniqueId());
 		GamePlayer gamePlayer;

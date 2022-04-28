@@ -276,7 +276,7 @@ public class ConfigSpigot extends YamlConfiguration {
 			return null;
 		String name = this.getString("player." + uuid + ".name");
 		String group = this.getString("player." + uuid + ".group");
-	
+
 		uPlayer = new CaviarPlayerSpigot(name, uuid);
 		uPlayer.setGroup(group);
 		return uPlayer;

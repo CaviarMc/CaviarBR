@@ -46,10 +46,10 @@ public class MainTest {
 		String time1 = Utils.hrFormatDuration(Utils.getCurrentTimeInSeconds() + 60);
 		String time2 = Utils.hrFormatDuration(Utils.getCurrentTimeInSeconds() - 60);
 		String time3 = Utils.hrFormatDuration(Utils.getCurrentTimeInSeconds());
-	
+
 		if (!time1.equals(time2))
 			throw new RuntimeException("Time to duration past time is not equels to futur time");
-	
+
 		if (time1.equals(time3) || time2.equals(time3))
 			throw new RuntimeException("Time to duration now is not to futur time or past time");
 	}
@@ -62,15 +62,15 @@ public class MainTest {
 		if (newLists.size() != 2) {
 			throw new RuntimeException("Utils.DevideList not good size test");
 		}
-	
+
 		newLists.get(0).forEach(s -> System.out.println(s));
 		System.out.println("------------");
 		newLists.get(1).forEach(s -> System.out.println(s));
-	
+
 
 		if (!newLists.get(1).get(0).equals("Début"))
 			throw new RuntimeException("Utils.DevideList not good result 1");
-	
+
 		if (!newLists.get(0).get(2).equals("1ère"))
 			throw new RuntimeException("Utils.DevideList not good result 2");
 	}

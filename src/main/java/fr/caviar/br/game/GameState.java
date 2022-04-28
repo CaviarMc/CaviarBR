@@ -60,13 +60,13 @@ public abstract class GameState implements Listener {
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onLogin(PlayerLoginEvent event) {
 		if (event.getResult() != Result.ALLOWED) return;
-	
+
 		UUID uuid = event.getPlayer().getUniqueId();
 		GamePlayer gamePlayer = game.getPlayers().get(uuid);
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(uuid);
-	
+
 		Validate.notNull(caviarPlayer);
-	
+
 		handleLogin(event, gamePlayer);
 		if (event.getResult() == Result.ALLOWED) {
 			if (gamePlayer == null) {

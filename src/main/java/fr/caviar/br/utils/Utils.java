@@ -621,7 +621,7 @@ public class Utils {
 	public static class DevideList<T> {
 		private Collection<T> list;
 		private int nb;
-	
+
 		public DevideList(Collection<T> list, int nb) {
 			this.list = list;
 			this.nb = nb;

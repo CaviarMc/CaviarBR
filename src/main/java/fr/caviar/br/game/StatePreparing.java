@@ -56,7 +56,7 @@ public class StatePreparing extends GameState {
 		Validate.notNull(game.getTreasure());
 
 		game.getWorldLoader().stop(true);
-	
+
 		CaviarStrings.STATE_PREPARING_PREPARE.broadcast();
 		game.getAllPlayers().forEach(p -> {
 			blockPlayer(p);
@@ -67,7 +67,7 @@ public class StatePreparing extends GameState {
 
 		int playerRaduis = game.getSettings().getPlayersRadius().get();
 		int online = game.getPlayers().size();
-	
+
 //		if (spawnPoint != null && this.spawnPoint.size() >= online) {
 //			setSpawnPointsToPlayers(this.spawnPoint, maxDistance);
 //		} else

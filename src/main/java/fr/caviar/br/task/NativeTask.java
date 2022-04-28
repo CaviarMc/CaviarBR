@@ -232,12 +232,12 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 				if (mayInterruptIfRunning)
 					CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, clazz.getSimpleName()));
 				return timerTask.cancel();
-			
+
 			}
 			return false;
 
 		}
-	
+
 	}
 
 	protected TaskLaunch addTask(String name, TaskLaunch task) {

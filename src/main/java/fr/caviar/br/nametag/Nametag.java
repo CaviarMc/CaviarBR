@@ -82,7 +82,7 @@ public class Nametag implements Listener {
 				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Update nameTag : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
 			});
 		} else */
-	
+
 		;
 		if (Perm.ADMIN_PREFIX.has(p))
 			api.setPrefix(p, "&cADMIN ");

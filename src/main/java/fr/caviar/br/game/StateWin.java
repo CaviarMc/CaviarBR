@@ -47,7 +47,7 @@ public class StateWin extends GameState {
 			}
 		});
 		CaviarStrings.FORMAT_BARS.broadcast(CaviarStrings.STATE_WIN.format(winner == null ? "x" : winner.player.getName()));
-	
+
 		int endingDuration = game.getSettings().getEndingDuration().get();
 		if (endingDuration == 0) {
 			game.shutdown();

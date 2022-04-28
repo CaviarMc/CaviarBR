@@ -35,7 +35,7 @@ public enum CaviarStrings {
 
 	FORMAT_BARS(
 			"""
-				
+
 				<dark_purple>==========-====-==========-====</dark_purple>
 				   {0}
 				<dark_purple>==========-====-==========-====</dark_purple>
@@ -244,7 +244,7 @@ public enum CaviarStrings {
 
 	public boolean hasFormatting() {
 		if (hasFormatting != null) return hasFormatting.booleanValue();
-	
+
 		if (ARGUMENT_MATCH.matcher(value).find()) {
 			hasFormatting = true;
 			return true;

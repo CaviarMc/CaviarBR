@@ -35,7 +35,7 @@ public class ConfigCommand {
 		CommandAPICommand configCmd = new CommandAPICommand(config.getFileName()).executes((CommandExecutor) (sender, args) -> {
 			f.accept(config, sender);
 		});
-	
+
 		return configCmd;
 	}
 

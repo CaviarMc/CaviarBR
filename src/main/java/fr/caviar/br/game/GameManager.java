@@ -136,7 +136,7 @@ public class GameManager {
 				int i2 = i;
 				int playerX = (int) (treasure.getBlockX() + playerRadius * Math.cos(theta));
 				int playerZ = (int) (treasure.getBlockZ() + playerRadius * Math.sin(theta));
-			
+
 				Cuboid cub = mapCub;
 				if (cub != null) {
 					if (!cub.isIn(cub.getWorld(), playerX, 0, playerZ)) {
@@ -158,7 +158,7 @@ public class GameManager {
 					if (treasure != null && (tmpMaxDistance == null || ploc.distance(treasure) > tmpMaxDistance.distance(treasure)))
 						tmpMaxDistance = ploc;
 					spawnPoints.add(ploc);
-				
+
 //					if (settings.isDebug().get()) {
 //			            Shulker shulk = (Shulker) ploc.getWorld().spawnEntity(ploc, EntityType.SHULKER);
 //			            shulk.setInvisible(true);
@@ -226,7 +226,7 @@ public class GameManager {
 				int globalZ = (chunk.getZ() << 4) + z;
 				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
 				Block block = chunk.getBlock(x, y, z);
-			
+
 				if (!isGoodBlock(block))
 					continue;
 				List<Block> listBlocks = new ArrayList<>(9);
@@ -254,7 +254,7 @@ public class GameManager {
 		if (block.getY() < 60 || block.isEmpty()) return false;
 		Material blockType = block.getType();
 		if (UNSPAWNABLE_ON.contains(blockType)) return false;
-	
+
 		if (Tag.UNDERWATER_BONEMEALS.isTagged(blockType)) return false;
 		if (Tag.LEAVES.isTagged(blockType)) return false;
 		return true;
@@ -362,7 +362,7 @@ public class GameManager {
 					player.setSpectatorTarget(target);
 				}
 			}
-		
+
 		}
 		return gamePlayer;
 	}

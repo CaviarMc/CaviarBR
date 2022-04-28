@@ -76,7 +76,7 @@ public class PlayerLoginListener implements Listener {
 		if (uPlayer != null) { 
 			return;
 		}
-	
+
 		CaviarPlayerSpigot cPlayer;
 		try {
 			cPlayer = playerHandler.getObjectNotCached(player.getUniqueId());

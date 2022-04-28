@@ -60,7 +60,7 @@ public class StateWait extends GameState implements Runnable {
 		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
 		if (left == -1) CaviarStrings.STATE_WAIT_CANCEL.broadcast();
-	
+
 		WorldBorder worldBoader = game.getWorld().getWorldBorder();
 		worldBoader.reset();
 		worldBoader.setCenter(game.getWorld().getSpawnLocation());
@@ -73,7 +73,7 @@ public class StateWait extends GameState implements Runnable {
 	public void end() {
 		super.end();
 		taskManager.cancelAllTasks();
-	
+
 		GameSettings settings = game.getSettings();
 		settings.getMinPlayers().unobserve(OBSERVER_KEY);
 		settings.getMaxPlayers().unobserve(OBSERVER_KEY);
@@ -86,7 +86,7 @@ public class StateWait extends GameState implements Runnable {
 	@Override
 	public void run() {
 		lock.lock();
-	
+
 		if (left != -1) {
 			if (left == 0) {
 				game.setState(new StatePreparing(game));
@@ -98,7 +98,7 @@ public class StateWait extends GameState implements Runnable {
 			}
 			--left;
 		}
-	
+
 		lock.unlock();
 	}
 
@@ -113,7 +113,7 @@ public class StateWait extends GameState implements Runnable {
 
 	protected void updatePlayers(int online) {
 		lock.lock();
-	
+
 		int min = game.getSettings().getMinPlayers().get();
 		if (online < min) {
 			if (left != -1) {
@@ -149,7 +149,7 @@ public class StateWait extends GameState implements Runnable {
 //		p.setBedSpawnLocation(game.getWorld().getSpawnLocation());
 		p.teleport(game.getWorld().getSpawnLocation());
 		updatePlayers(online);
-	
+
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
 	}
 
@@ -158,11 +158,11 @@ public class StateWait extends GameState implements Runnable {
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 //		int online = game.getAllPlayers().size() - 1;
 		int online = game.getAllPlayers().size();
-	
+
 		updatePlayers(online);
-	
+
 		event.setQuitMessage(event.getQuitMessage() + getOnlineFormat(online));
-	
+
 		return true;
 	}
 

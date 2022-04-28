@@ -68,7 +68,7 @@ public class StatePlaying extends GameState {
 			join(player, game.getPlayers().get(player.getUniqueId()));
 		});
 		CaviarStrings.STATE_PLAYING_START.broadcast();
-	
+
 		waitCompass();
 		taskManager.runTaskLater("playing.treasure", () -> {
 			Location tmp = game.getTreasure();
@@ -95,7 +95,7 @@ public class StatePlaying extends GameState {
 		world.setGameRule(GameRule.REDUCED_DEBUG_INFO, false);
 		world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
 		world.setTime(0);
-	
+
 		game.getSettings().isAllowedSpectator().observe("allowSpectator", () -> {
 			Boolean newSetting = game.getSettings().isAllowedSpectator().get();
 			if (!newSetting) {
@@ -143,7 +143,7 @@ public class StatePlaying extends GameState {
 			player.setCompassTarget(game.getWorld().getSpawnLocation());
 			player.getInventory().remove(compassItem);
 		});
-	
+
 		taskManager.cancelTask("playing.scoreboard.compass");
 		CaviarStrings.STATE_PLAYING_COMPASS_STOP.broadcast(game.getSettings().getWaitCompass().getInMinute());
 		game.timestampNextCompass = Utils.getCurrentTimeInSeconds() + game.getSettings().getWaitCompass().getInSecond();
@@ -153,7 +153,7 @@ public class StatePlaying extends GameState {
 
 	public void waitCompass() {
 		setCompassEnd();
-	
+
 		taskManager.scheduleSyncRepeatingTask("playing.scoreboard.compass_waiting", () -> {
 			game.getPlugin().getServer().getOnlinePlayers().forEach(p -> game.getPlugin().getScoreboard().compassWaiting(p));
 		}, 0, 1, TimeUnit.SECONDS);

@@ -41,7 +41,7 @@ public class SettingsCommand {
 		CommandAPICommand subCmd;
 		for (GameSetting<?> setting : settings.getSettings()) {
 			subCmd = settingCommand(setting);
-			subCmd.setRequirements(s -> false);
+			subCmd.setRequirements(s -> true);
 			command.withSubcommand(subCmd);
 		}
 
@@ -52,10 +52,9 @@ public class SettingsCommand {
 		ChestGui gui = new ChestGui(5, "Settings");
 		OutlinePane pane = new OutlinePane(0, 0, 9, 5);
 
-		ItemStack item;
+		ItemStack item = new ItemStack(Material.ICE);
 		GuiItem guiItem;
 		for (GameSetting<?> setting : settings.getSettings()) {
-			item = new ItemStack(Material.ICE);
 			ItemMeta itemMeta = item.getItemMeta();
 			itemMeta.setDisplayName("§r§e" + setting.getKey());
 			if (setting instanceof GameSettingInt gsi) {
@@ -69,6 +68,7 @@ public class SettingsCommand {
 					item.setAmount(-1);
 			} else
 				itemMeta.setLore(List.of("§r§aValue " + setting.get(), ""));
+			item.setItemMeta(itemMeta);
 			guiItem = new GuiItem(item, event -> event.getWhoClicked().sendMessage("In dev"));
 			pane.addItem(guiItem);
 		}

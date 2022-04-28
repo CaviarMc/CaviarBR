@@ -37,7 +37,7 @@ public class Scoreboard implements Listener {
 
 	public Scoreboard(CaviarBR plugin) {
 		this.plugin = plugin;
-	
+
 		debug = List.of("",
 				ChatColor.AQUA + "Version",
 				ChatColor.AQUA + Utils.getPluginVersion(plugin));
@@ -169,7 +169,7 @@ public class Scoreboard implements Listener {
 				newLines.add(l);
 		}
 		GameManager game = plugin.getGame();
-	
+
 		if (game.getSettings().isDebug().get()) {
 			newLines.addAll(debug);
 		}
