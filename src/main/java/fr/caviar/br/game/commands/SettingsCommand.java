@@ -48,28 +48,51 @@ public class SettingsCommand {
 		game.getPlugin().getCommands().registerCommand(command);
 	}
 
+	private void applyItem(GameSetting<?> setting, ItemStack item) {
+		ItemMeta itemMeta = item.getItemMeta();
+		itemMeta.setDisplayName("§r§e" + setting.getKey());
+		if (setting instanceof GameSettingInt gsi) {
+			itemMeta.setLore(List.of("§r§aValue " + gsi.get(), "", "§7Min " + gsi.getMin(), "§7Max " + gsi.getMax()));
+			item.setAmount(gsi.get());
+		} else if (setting instanceof GameSettingBoolean gsb) {
+			itemMeta.setLore(List.of("§r§aValue " + gsb.get(), "", "§7True or False"));
+			if (gsb.get())
+				item.setAmount(1);
+			else
+				item.setAmount(-1);
+		} else
+			itemMeta.setLore(List.of("§r§aValue " + setting.get(), ""));
+		item.setItemMeta(itemMeta);
+	}
+
 	private void addGui(HumanEntity player) {
 		ChestGui gui = new ChestGui(5, "Settings");
 		OutlinePane pane = new OutlinePane(0, 0, 9, 5);
 
-		ItemStack item = new ItemStack(Material.ICE);
-		GuiItem guiItem;
+		ItemStack item;
 		for (GameSetting<?> setting : settings.getSettings()) {
-			ItemMeta itemMeta = item.getItemMeta();
-			itemMeta.setDisplayName("§r§e" + setting.getKey());
-			if (setting instanceof GameSettingInt gsi) {
-				itemMeta.setLore(List.of("§r§aValue " + gsi.get(), "", "§7Min " + gsi.getMin(), "§7Max " + gsi.getMax()));
-				item.setAmount(gsi.get());
-			} else if (setting instanceof GameSettingBoolean gsb) {
-				itemMeta.setLore(List.of("§r§aValue " + gsb.get(), "", "§7True or False"));
-				if (gsb.get())
-					item.setAmount(1);
-				else
-					item.setAmount(-1);
-			} else
-				itemMeta.setLore(List.of("§r§aValue " + setting.get(), ""));
-			item.setItemMeta(itemMeta);
-			guiItem = new GuiItem(item, event -> event.getWhoClicked().sendMessage("In dev"));
+			item = new ItemStack(setting.getMaterial());
+			applyItem(setting, item);
+			GuiItem guiItem = new GuiItem(item, event -> {
+				event.setCancelled(true);
+				if (event.isShiftClick()) {
+					if (event.isLeftClick()) {
+						setting.bigIncrement();
+					} else if (event.isRightClick())
+						setting.bigDecrement();
+					else
+						return;
+				} else {
+					if (event.isLeftClick()) {
+						setting.smallIncrement();
+					} else if (event.isRightClick())
+						setting.smallDecrement();
+					else
+						return;
+				}
+				applyItem(setting, event.getCurrentItem());
+				gui.update();
+			});
 			pane.addItem(guiItem);
 		}
 		gui.addPane(pane);
