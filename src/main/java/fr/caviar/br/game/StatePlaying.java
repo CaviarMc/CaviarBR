@@ -241,7 +241,9 @@ public class StatePlaying extends GameState {
 				CaviarStrings.STATE_PLAYING_MORE_PLAYERS.send(event.getPlayer());
 				return;
 			}
-			game.setState(new StateWin(game, game.getPlayers().get(event.getPlayer().getUniqueId())));
+			GamePlayer p = game.getPlayers().get(event.getPlayer().getUniqueId());
+			if (p != null)
+				game.setState(new StateWin(game, p));
 		}
 	}
 

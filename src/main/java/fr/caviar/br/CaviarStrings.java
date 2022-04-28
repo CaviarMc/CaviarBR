@@ -148,6 +148,9 @@ public enum CaviarStrings {
 	COMMAND_GAMEADMIN_COMPASS_GIVEN(
 			"You have gave a compass to <dark_green>{0}</dark_green>.",
 			PREFIX_GOOD),
+	COMMAND_GAMEADMIN_PLAYER_ADD(
+			"You add a player in the game : <dark_green>{0}</dark_green>.",
+			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM(
 			"Are you sure you want to shutdown the server? All players will get disconnected, and the world will be reset. Put \"confirm\" at the end of your command.",
 			PREFIX_WARNING),

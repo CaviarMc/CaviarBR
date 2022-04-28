@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.game.GameManager;
+import fr.caviar.br.game.GamePlayer;
 import fr.caviar.br.game.GameState;
 import fr.caviar.br.game.StatePlaying;
 import fr.caviar.br.game.StatePreparing;
@@ -13,6 +14,7 @@ import fr.caviar.br.game.StateWait;
 import fr.caviar.br.game.StateWin;
 import fr.caviar.br.generate.WorldLoader;
 import fr.caviar.br.permission.Perm;
+import fr.caviar.br.player.CaviarPlayerSpigot;
 import io.reactivex.functions.Consumer;
 import net.kyori.adventure.text.Component;
 
@@ -68,11 +70,13 @@ public class GameAdminCommand {
 								.executes(this::disableGenerate))
 						.withSubcommand(new CommandAPICommand("start")
 								.executes(this::startGenerate)))
-
+				
 				.withSubcommand(new CommandAPICommand("shutdown")
 						.executes((CommandExecutor) (sender, args) -> CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_CONFIRM.send(sender))
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::shutdown)))
+
+				.withSubcommand(new CommandAPICommand("addPlayer").executes(this::spectatorToPlayer))
 				
 				;
 		
@@ -179,12 +183,27 @@ public class GameAdminCommand {
 		CaviarStrings.COMMAND_GAMEADMIN_COMPASS_GIVEN.send(sender, target.getName());
 		CaviarStrings.STATE_PLAYING_COMPASS.send(target);
 	}
-	
+
+	private void spectatorToPlayer(CommandSender sender, Object[] args) {
+		StatePlaying state = testGameState(StatePlaying.class, sender);
+		if (state == null) return;
+		
+		Player target = (Player) args[0];
+		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(target.getUniqueId());
+		GamePlayer gamePlayer;
+		if (caviarPlayer == null) {
+			return;
+		}
+		gamePlayer = new GamePlayer(caviarPlayer);
+		game.getPlayers().put(target.getUniqueId(), gamePlayer);
+		CaviarStrings.COMMAND_GAMEADMIN_PLAYER_ADD.send(sender, target.getName());
+	}
+
 	private void shutdown(CommandSender sender, Object[] args) {
 		game.shutdown();
 		CaviarStrings.COMMAND_GAMEADMIN_SHUTDOWN_DONE.send(sender);
 	}
-	
+
 	private void tryCommand(CommandSender sender, Consumer<CommandSender> consumer) {
 		try {
 			consumer.accept(sender);

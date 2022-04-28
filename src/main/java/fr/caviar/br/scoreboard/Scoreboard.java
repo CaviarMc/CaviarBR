@@ -122,12 +122,11 @@ public class Scoreboard implements Listener {
 		board.updateTitle(ChatColor.AQUA + "CaviarBR - In Game");
 		int mapSize = (int) Math.round(game.getWorld().getWorldBorder().getSize() / 2);
 		updateBoard(board,
-				ChatColor.GREEN + "Treasure in",
-				ChatColor.GREEN + Utils.hrFormatDuration(game.getTimestampTreasureSpawn()),
+				ChatColor.GREEN + "Treasure in " + Utils.hrFormatDuration(game.getTimestampTreasureSpawn()),
 				"",
 				ChatColor.AQUA + "" + game.getGamers().size() + " players",
 				ChatColor.AQUA + "Map size " + mapSize + "x" + mapSize,
-				ChatColor.AQUA + "Started " + Utils.durationToString(game.getTimestampStart()),
+				ChatColor.AQUA + "Started " + Utils.hrFormatDuration(game.getTimestampStart()),
 				"",
 				ChatColor.AQUA + "Compass in",
 				ChatColor.AQUA + Utils.hrFormatDuration(game.getTimestampNextCompass())
@@ -142,10 +141,9 @@ public class Scoreboard implements Listener {
 		updateBoard(board,
 				ChatColor.AQUA + "" + game.getGamers().size() + " players",
 				ChatColor.AQUA + "Map size " + mapSize + "x" + mapSize,
-				ChatColor.AQUA + "Started " + Utils.durationToString(game.getTimestampStart()),
+				ChatColor.AQUA + "Started " + Utils.hrFormatDuration(game.getTimestampStart()),
 				"",
-				ChatColor.AQUA + "Compass in",
-				ChatColor.AQUA + Utils.hrFormatDuration(game.getTimestampNextCompass())
+				ChatColor.AQUA + "Compass in " + Utils.hrFormatDuration(game.getTimestampNextCompass())
 			);
 	}
 	
@@ -157,10 +155,9 @@ public class Scoreboard implements Listener {
 		updateBoard(board,
 				ChatColor.AQUA + "" + game.getGamers().size() + " players",
 				ChatColor.AQUA + "Map size " + mapSize + "x" + mapSize,
-				ChatColor.AQUA + "Started " + Utils.durationToString(game.getTimestampStart()),
+				ChatColor.AQUA + "Started " + Utils.hrFormatDuration(game.getTimestampStart()),
 				"",
-				ChatColor.RED + "Remove Compass in",
-				ChatColor.RED + Utils.hrFormatDuration(game.getTimestampCompassEnd())
+				ChatColor.RED + "Remove Compass in " + Utils.hrFormatDuration(game.getTimestampCompassEnd())
 			);
 	}
 	

@@ -353,7 +353,7 @@ public class GameManager {
 		if (player.getGameMode().equals(GameMode.SPECTATOR)) {
 			if (player.getKiller() != null)
 				player.setSpectatorTarget(player.getKiller());
-			else if (!getPlayers().isEmpty()) {
+			else if (!getGamers().isEmpty()) {
 				Player target = getGamers().stream()
 						.sorted((p1, p2) -> (int) (p2.getLocation().distance(player.getLocation()) - p1.getLocation().distance(player.getLocation())))
 						.findFirst().orElse(null);
