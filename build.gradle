@@ -135,9 +135,11 @@ shadowJar {
 	dependencies {
 		include dependency("dev.jorel.CommandAPI:commandapi-shade:6.5.4")
 		include dependency("fr.mrmicky:fastboard:1.2.1")
+		include dependency("com.github.stefvanschie.inventoryframework:IF:0.10.5")
 	}
 	relocate 'fr.mrmicky.fastboard', 'fr.caviar.br.scoreboard'
 	relocate 'dev.jorel.commandapi', 'fr.caviar.br.api.command'
+	relocate 'com.github.stefvanschie.inventoryframework', 'fr.caviar.br.api.gui'
 }
 
 sourceSets {
