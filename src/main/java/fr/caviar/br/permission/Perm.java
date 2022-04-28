@@ -18,13 +18,13 @@ public enum Perm {
 	STAFF_PREFIX,
 	VIP_SPECTATOR,
 	;
-	
+
 	String perm;
-	
+
 	private Perm() {
 		this.perm = name().toLowerCase().replace("_", ".");
 	}
-	
+
 	public boolean has(Player p) {
 		return p.hasPermission(perm);
 	}

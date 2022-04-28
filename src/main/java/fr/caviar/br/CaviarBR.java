@@ -84,7 +84,7 @@ public class CaviarBR extends CaviarPlugin {
 	public Scoreboard getScoreboard() {
 		return scoreboard;
 	}
-	
+
 	public String getVersion() {
 		return version;
 	}

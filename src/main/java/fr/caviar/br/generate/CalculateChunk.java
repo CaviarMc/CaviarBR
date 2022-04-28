@@ -92,7 +92,7 @@ public class CalculateChunk {
 						Utils.hrDuration(stats.getTimeDiff()), stats.getDurationETA(), stats.getDateETA()));
 			}, 30, 60, TimeUnit.SECONDS);
 //			chunkToLoad.removeIf(cl -> world.isChunkGenerated(cl.xChunk, cl.zChunk));
-			
+		
 			List<List<ChunkLoad>> lists = new Utils.DevideList<ChunkLoad>(chunkToLoad, threadsUses).nbList();
 			for (Iterator<List<ChunkLoad>> its = lists.iterator(); its.hasNext();) {
 				List<ChunkLoad> l = its.next();
@@ -115,7 +115,7 @@ public class CalculateChunk {
 			taskHandler.runTaskAsynchronously(runnable);
 		}, 10, TimeUnit.SECONDS);
 	}
-	
+
 	void end(boolean force) {
 		long diff2 = Utils.getCurrentTimeInSeconds() - timeStarted;
 		if (force) {
@@ -145,7 +145,7 @@ public class CalculateChunk {
 			plugin.getLogger().log(Level.SEVERE, "Algo to calcul chunks add duplicating chunks");
 		}*/
 	}
-	
+
 	public class CalculateThread extends Thread {
 		Iterator<ChunkLoad> it;
 
@@ -155,7 +155,7 @@ public class CalculateChunk {
 			this.stats = stats;
 			this.it = it;
 		}
-		
+	
 		@Override
 		public void run() {
 			while (it.hasNext()) {

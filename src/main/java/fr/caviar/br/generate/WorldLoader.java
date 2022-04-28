@@ -26,7 +26,7 @@ public class WorldLoader {
 	private int mapLength;
 	private boolean isGenerating = false;
 	private int threadsUses;
-	
+
 	private CalculateChunk calculateChunk;
 	private GenerateChunk generateChunk;
 	private Cuboid cub;
@@ -123,22 +123,22 @@ public class WorldLoader {
 	public int getMapLength() {
 		return mapLength;
 	}
-	
+
 	public World getWorld() {
 		return gameManager.getWorld();
 	}
-	
+
 	public Cuboid getCub() {
 		return cub;
 	}
-	
+
 	protected void updatePlayerScoreboard() {
 		if (!gameManager.getSettings().isDebug().get())
 			return;
 		Scoreboard sb = gameManager.getPlugin().getScoreboard();
 		gameManager.getAllPlayers().forEach(player -> sb.waitToStart(player));
 	}
-	
+
 	public String getETAStep() {
 		if (stats == null || stats.getStep() != 1 && stats.getStep() != 2) {
 			return null;
@@ -168,7 +168,7 @@ public class WorldLoader {
 		}
 		return String.format("§dGeneration (%d/2) %d%% - %d chunk/s", stats.getStep(), stats.getPercentageChunk(), stats.getAverageChunksPerSecond());
 	}
-	
+
 	public String getDurationEnd() {
 		if (stats.getStep() != 1 || stats.getStep() != 2) {
 			return "";
@@ -185,5 +185,5 @@ public class WorldLoader {
 	public ChunkStats getStats() {
 		return stats;
 	}
-	
+
 }

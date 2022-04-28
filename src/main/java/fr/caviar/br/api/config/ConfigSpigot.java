@@ -37,7 +37,7 @@ public class ConfigSpigot extends YamlConfiguration {
 	public static List<ConfigSpigot> getConfigs() {
 		return configs;
 	}
-	
+
 	public static ConfigSpigot getConfig(String name) {
 		return configs.stream().filter(c -> c.getName().equals(name)).findFirst().orElse(configs.stream().filter(c -> c.fileName.equals(name)).findFirst().orElse(null));
 	}
@@ -93,7 +93,7 @@ public class ConfigSpigot extends YamlConfiguration {
 	public boolean removeLoadTask(String name) {
 		return loadTasks.remove(name) != null;
 	}
-	
+
 	public boolean addLoadTask(String name, Consumer<ConfigSpigot> consumer) {
 		if (isLoaded)
 			consumer.accept(this);
@@ -106,7 +106,7 @@ public class ConfigSpigot extends YamlConfiguration {
 	/*public boolean removeUnLoadTask(String name) {
 		return loadTasks.remove(name) != null;
 	}
-	
+
 	public boolean addUnLoadTask(String name, Consumer<ConfigSpigot> consumer) {
 		if (isLoaded)
 			consumer.accept(this);
@@ -204,7 +204,7 @@ public class ConfigSpigot extends YamlConfiguration {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void saveUnSafe() throws IOException {
 		this.save(configFile);
 	}
@@ -253,7 +253,7 @@ public class ConfigSpigot extends YamlConfiguration {
 		this.set("player." + uPlayer.getUuid() + ".name", uPlayer.getName());
 		this.set("player." + uPlayer.getUuid() + ".group", uPlayer.getGroup());
 	}
-	
+
 	@Override
 	public Location getLocation(String path) {
 //		return UtilsSpigot.convertStringToLocation(this.getString(path));
@@ -263,7 +263,7 @@ public class ConfigSpigot extends YamlConfiguration {
 	public Material getMaterial(String path) {
 		return Material.valueOf(this.getString(path));
 	}
-	
+
 	@Override
 	public String getString(String path) {
 		return ColorUtils.color(super.getString(path));
@@ -276,7 +276,7 @@ public class ConfigSpigot extends YamlConfiguration {
 			return null;
 		String name = this.getString("player." + uuid + ".name");
 		String group = this.getString("player." + uuid + ".group");
-		
+	
 		uPlayer = new CaviarPlayerSpigot(name, uuid);
 		uPlayer.setGroup(group);
 		return uPlayer;

@@ -22,7 +22,7 @@ public class MatcherPattern<T> {
 	private final String regex;
 	private Function<String, T> supplyArgumentFunction;
 	private String typeName;
-	
+
 	public static MatcherPattern<?> of(String regex) {
 		MatcherPattern<?> matcherPattern = cache.getIfPresent(regex);
 		if (matcherPattern == null) {

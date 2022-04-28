@@ -18,7 +18,7 @@ public class ChunkLoad {
 	private World world;
 
 	public ChunkLoad() {}
-	
+
 	public ChunkLoad(World world, int xChunk, int zChunk) {
 		this.world = world;
 		this.xChunk = xChunk;
@@ -47,7 +47,7 @@ public class ChunkLoad {
 		this.chunk = chunk;
 		this.code = chunk.getChunkKey();
 	}
-	
+
 	public void loadChunk() {
 		if (isGenerate()) {
 			return;
@@ -83,7 +83,7 @@ public class ChunkLoad {
 	public boolean isGenerate() {
 		return isGenerate || (isGenerate = world.isChunkGenerated(xChunk, zChunk));
 	}
-	
+
 	@Override
 	public String toString() {
 		return xChunk + "/" + zChunk;
@@ -101,5 +101,5 @@ public class ChunkLoad {
 	public Chunk getChunk() {
 		return chunk;
 	}
-	
+
 }

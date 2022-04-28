@@ -14,7 +14,7 @@ public class ChunkStats {
 	private int averageChunksPerSecond;
 	private int chunkAlreadyGenerate;
 	private ChunkLoad lastchunk;
-	
+
 	private Runnable run;
 
 	public ChunkStats(Runnable run) {
@@ -28,7 +28,7 @@ public class ChunkStats {
 		this.chunkAlreadyGenerate = 0;
 		getStats();
 	}
-	
+
 	public void stop() {
 		if (this.step == -2)
 			return;
@@ -55,23 +55,23 @@ public class ChunkStats {
 		}
 		run.run();
 	}
-	
+
 	public int getChunkSize() {
 		return chunkSize;
 	}
-	
+
 	public int getPercentageChunk() {
 		return percentageChunk;
 	}
-	
+
 	public String getDurationStarted() {
 		return Utils.hrFormatDuration(timeStarted);
 	}
-	
+
 	public String getDurationETA() {
 		return Utils.hrFormatDuration(timeEnd);
 	}
-	
+
 	public String getDateETA() {
 		return Utils.timestampToDateAndHour(timeEnd);
 	}
@@ -103,7 +103,7 @@ public class ChunkStats {
 	public ChunkLoad getLastchunk() {
 		return lastchunk;
 	}
-	
+
 	public void setChunkAlready(int chunkAlreadyGenerate) {
 		this.chunkAlreadyGenerate = chunkAlreadyGenerate;
 	}
@@ -115,5 +115,5 @@ public class ChunkStats {
 	public void setLastchunk(ChunkLoad lastchunk) {
 		this.lastchunk = lastchunk;
 	}
-	
+
 }

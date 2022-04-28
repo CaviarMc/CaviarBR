@@ -13,10 +13,10 @@ import org.bukkit.scheduler.BukkitTask;
 import fr.caviar.br.CaviarBR;
 
 public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
-	
+
 	protected Plugin plugin;
 	private Class<?> clazz = null;
-	
+
 	public TaskManagerSpigot(Plugin plugin, Class<?> clazz) {
 		this.plugin = plugin;
 		this.clazz = clazz;
@@ -90,7 +90,7 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 		addTask(taskName, bukkitTask);
 		return bukkitTask;
 	}
-	
+
 	@Override
 	public BukkitTask runTaskAsynchronously(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
 		return runTaskLater(taskName, () -> {
@@ -107,7 +107,7 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 	public BukkitTask runTaskLater(Runnable runnable, long delay) {
 		return runTaskLater(UUID.randomUUID().toString(), runnable, delay);
 	}
-	
+
 	@Override
 	public BukkitTask runTaskLater(String taskName, Runnable runnable, long delay, TimeUnit timeUnit) {
 		return runTaskLater(taskName, runnable, timeUnit.toMillis(delay) / 50l);
@@ -136,7 +136,7 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 	public BukkitTask scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh) {
 		return this.scheduleSyncRepeatingTask(UUID.randomUUID().toString(), runnable, delay, refresh);
 	}
-	
+
 	@Override
 	public BukkitTask scheduleSyncRepeatingTask(String taskName, Runnable runnable, long delay, long refresh, TimeUnit timeUnit) {
 		return this.scheduleSyncRepeatingTask(taskName, runnable, timeUnit.toMillis(delay) / 50l, timeUnit.toMillis(refresh) / 50l);
@@ -157,7 +157,7 @@ public class TaskManagerSpigot extends AUniversalTask<BukkitTask> {
 		addTask(taskName, task);
 		return task;
 	}
-	
+
 	protected void addTask(String name, BukkitTask task) {
 		addTask(name, task.getTaskId(), task);
 	}

@@ -37,12 +37,12 @@ public class Scoreboard implements Listener {
 
 	public Scoreboard(CaviarBR plugin) {
 		this.plugin = plugin;
-		
+	
 		debug = List.of("",
 				ChatColor.AQUA + "Version",
 				ChatColor.AQUA + Utils.getPluginVersion(plugin));
 	}
-	
+
 	public void enable() {
 		isEnabled = true;
 		testIt();
@@ -60,7 +60,7 @@ public class Scoreboard implements Listener {
 		scoreboards.clear();
 		isEnabled = false;
 	}
-	
+
 	public void testIt() {
 		try {
 			new FastBoard(null);
@@ -74,7 +74,7 @@ public class Scoreboard implements Listener {
 			isEnabled = false;
 		}
 	}
-	
+
 	@Nonnull
 	public FastBoard create(Player player) {
 		FastBoard board = new FastBoard(player);
@@ -84,8 +84,8 @@ public class Scoreboard implements Listener {
 			);
 		scoreboards.put(player, board);
 		return board;
-	}	
-	
+	}
+
 	public void waitToStart(Player player) {
 		FastBoard board = getBoard(player);
 		if (board == null)
@@ -112,8 +112,8 @@ public class Scoreboard implements Listener {
 				String.format("%s%d/%d players", ChatColor.YELLOW, online, maxPlayer),
 				ChatColor.YELLOW + "Map size " + mapSize + "x" + mapSize
 			);
-	}	
-	
+	}
+
 	public void treasureWaiting(Player player) {
 		FastBoard board = getBoard(player);
 		if (board == null)
@@ -132,7 +132,7 @@ public class Scoreboard implements Listener {
 				ChatColor.AQUA + Utils.hrFormatDuration(game.getTimestampNextCompass())
 			);
 	}
-	
+
 	public void compassWaiting(Player player) {
 		FastBoard board = getBoard(player);
 		GameManager game = plugin.getGame();
@@ -146,7 +146,7 @@ public class Scoreboard implements Listener {
 				ChatColor.AQUA + "Compass in " + Utils.hrFormatDuration(game.getTimestampNextCompass())
 			);
 	}
-	
+
 	public void compassEndEffest(Player player) {
 		FastBoard board = getBoard(player);
 		GameManager game = plugin.getGame();
@@ -160,7 +160,7 @@ public class Scoreboard implements Listener {
 				ChatColor.RED + "Remove Compass in " + Utils.hrFormatDuration(game.getTimestampCompassEnd())
 			);
 	}
-	
+
 	private void updateBoard(FastBoard board, String... lines) {
 		List<String> newLines = new ArrayList<>(15);
 		newLines.addAll(top);
@@ -169,7 +169,7 @@ public class Scoreboard implements Listener {
 				newLines.add(l);
 		}
 		GameManager game = plugin.getGame();
-		
+	
 		if (game.getSettings().isDebug().get()) {
 			newLines.addAll(debug);
 		}
@@ -181,7 +181,7 @@ public class Scoreboard implements Listener {
 		FastBoard fb = scoreboards.remove(player);
 		fb.delete();
 	}
-	
+
 	private FastBoard getBoard(Player player) {
 		FastBoard fb = scoreboards.get(player);
 		if (fb == null) {

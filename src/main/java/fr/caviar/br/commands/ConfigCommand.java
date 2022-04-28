@@ -15,9 +15,9 @@ import fr.caviar.br.permission.Perm;
 import fr.caviar.br.utils.Prefix;
 
 public class ConfigCommand {
-	
+
 	private CommandAPICommand command;
-	
+
 	public ConfigCommand(CaviarBR plugin) {
 		command = new CommandAPICommand("config").withPermission(Perm.DEV_COMMAND_CONFIG.get());
 		CommandAPICommand reloadCommand = new CommandAPICommand("reload");
@@ -30,15 +30,15 @@ public class ConfigCommand {
 		command.withSubcommand(saveCommand);
 		plugin.getCommands().registerCommand(command);
 	}
-	
+
 	private CommandAPICommand createConfigCmd(ConfigSpigot config, BiConsumer<ConfigSpigot, CommandSender> f) {
 		CommandAPICommand configCmd = new CommandAPICommand(config.getFileName()).executes((CommandExecutor) (sender, args) -> {
 			f.accept(config, sender);
 		});
-		
+	
 		return configCmd;
 	}
-	
+
 	private void configReload(ConfigSpigot config, CommandSender sender) {
 		long time = System.nanoTime();
 		try {
@@ -50,7 +50,7 @@ public class ConfigCommand {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void configSave(ConfigSpigot config, CommandSender sender) {
 		long time = System.nanoTime();
 		try {

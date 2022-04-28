@@ -69,15 +69,15 @@ public class GameManager {
 	private List<Location> spawnPoints;
 
 	private GameState state;
-	
+
 	private World world;
-	
+
 	public GameManager(CaviarBR plugin) {
 		this.plugin = plugin;
 		settings = new GameSettings(this);
 		worldLoader = new WorldLoader(plugin);
 	}
-	
+
 	public void enable() {
 		world = Bukkit.getWorlds().get(0);
 		world.setStorm(false);
@@ -99,7 +99,7 @@ public class GameManager {
 			});
 		}, new AtomicInteger(1), 1);
 	}
-	
+
 	public void disable() {
 		if (state != null) {
 			state.end();
@@ -136,7 +136,7 @@ public class GameManager {
 				int i2 = i;
 				int playerX = (int) (treasure.getBlockX() + playerRadius * Math.cos(theta));
 				int playerZ = (int) (treasure.getBlockZ() + playerRadius * Math.sin(theta));
-				
+			
 				Cuboid cub = mapCub;
 				if (cub != null) {
 					if (!cub.isIn(cub.getWorld(), playerX, 0, playerZ)) {
@@ -158,7 +158,7 @@ public class GameManager {
 					if (treasure != null && (tmpMaxDistance == null || ploc.distance(treasure) > tmpMaxDistance.distance(treasure)))
 						tmpMaxDistance = ploc;
 					spawnPoints.add(ploc);
-					
+				
 //					if (settings.isDebug().get()) {
 //			            Shulker shulk = (Shulker) ploc.getWorld().spawnEntity(ploc, EntityType.SHULKER);
 //			            shulk.setInvisible(true);
@@ -217,7 +217,7 @@ public class GameManager {
 			return null;
 		});
 	}
-	
+
 	private Location getNicestBlock(Chunk chunk, AtomicInteger operations) {
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
@@ -226,7 +226,7 @@ public class GameManager {
 				int globalZ = (chunk.getZ() << 4) + z;
 				int y = chunk.getWorld().getHighestBlockYAt(globalX, globalZ);
 				Block block = chunk.getBlock(x, y, z);
-				
+			
 				if (!isGoodBlock(block))
 					continue;
 				List<Block> listBlocks = new ArrayList<>(9);
@@ -249,17 +249,17 @@ public class GameManager {
 		}
 		return null;
 	}
-	
+
 	private boolean isGoodBlock(Block block) {
 		if (block.getY() < 60 || block.isEmpty()) return false;
 		Material blockType = block.getType();
 		if (UNSPAWNABLE_ON.contains(blockType)) return false;
-		
+	
 		if (Tag.UNDERWATER_BONEMEALS.isTagged(blockType)) return false;
 		if (Tag.LEAVES.isTagged(blockType)) return false;
 		return true;
 	}
-	
+
 	private void tryChunk(Chunk chunk, Consumer<Location> consumer, boolean xChanged, AtomicInteger operations, int chunks) {
 		Location location = getNicestBlock(chunk, operations);
 		if (location == null) { // have not found good spawnpoint in this chunk
@@ -287,15 +287,15 @@ public class GameManager {
 	public CaviarBR getPlugin() {
 		return plugin;
 	}
-	
+
 	public GameSettings getSettings() {
 		return settings;
 	}
-	
+
 	public WorldLoader getWorldLoader() {
 		return worldLoader;
 	}
-	
+
 	public GameState getState() {
 		return state;
 	}
@@ -303,31 +303,31 @@ public class GameManager {
 	public World getWorld() {
 		return world;
 	}
-	
+
 	public Map<UUID, GamePlayer> getPlayers() {
 		return players;
 	}
-	
+
 	public boolean isGamer(Player player) {
 		return players.containsKey(player.getUniqueId());
 	}
-	
+
 	public Set<Player> getGamers() {
 		return getAllPlayers().stream().filter(this::isGamer).collect(Collectors.toSet());
 	}
-	
+
 	public @Nonnull Collection<? extends Player> getAllPlayers() {
 		return plugin.getServer().getOnlinePlayers();
 	}
-	
+
 	public Map<Player, GamePlayer> getSpigotPlayers() {
 		return players.entrySet().stream().collect(Collectors.toMap(entry -> Bukkit.getPlayer(entry.getKey()), entry -> entry.getValue()));
 	}
-	
+
 	public Map<Player, GamePlayer> getSpectators() {
 		return spectator;
 	}
-	
+
 	public Map<Player, GamePlayer> getModerators() {
 		Map<Player, GamePlayer> moderators = new HashMap<>();
 		getSpigotPlayers().forEach((player, gamePlayer) -> {
@@ -340,7 +340,7 @@ public class GameManager {
 		});
 		return moderators;
 	}
-	
+
 	public GamePlayer addSpectator(Player player) {
 		GamePlayer gamePlayer = players.remove(player.getUniqueId());
 		if (gamePlayer == null) {
@@ -362,17 +362,17 @@ public class GameManager {
 					player.setSpectatorTarget(target);
 				}
 			}
-			
+		
 		}
 		return gamePlayer;
 	}
-	
+
 	public void setState(GameState state) {
 		if (this.state != null) this.state.end();
 		this.state = state;
 		if (state != null) state.start();
 	}
-	
+
 	public void shutdown() {
 		setState(null);
 		CaviarStrings.GAME_SHUTDOWN.broadcast();
@@ -402,7 +402,7 @@ public class GameManager {
 		Bukkit.shutdown();
 	}
 
-	
+
 	public long getTimestampTreasureSpawn() {
 		return timestampTreasureSpawn;
 	}
@@ -427,5 +427,5 @@ public class GameManager {
 	public void setMapCub(Cuboid mapCub) {
 		this.mapCub = mapCub;
 	}
-	
+
 }

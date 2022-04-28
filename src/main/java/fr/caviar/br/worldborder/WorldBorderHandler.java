@@ -6,7 +6,7 @@ import fr.caviar.br.CaviarBR;
 import fr.caviar.br.utils.Utils;
 
 public class WorldBorderHandler {
-	
+
 	WorldBorder worldBorder;
 	int size;
 	int nextSize;
@@ -21,12 +21,12 @@ public class WorldBorderHandler {
 		this.finalSize = finalSize;
 		this.maxTimeToFinalSecond = maxTimeToFinalSecond;
 	}
-	
+
 	public void set() {
 		worldBorder.setSize(size);
 		CaviarBR.getInstance().getLogger().info(String.format("WorldBorder size is set to %d", size));
 	}
-	
+
 	public void startReducing() {
 		if (worldBorder.getSize() > size)
 			worldBorder.setSize(size);
@@ -35,5 +35,5 @@ public class WorldBorderHandler {
 		timeEnd = setTime + maxTimeToFinalSecond;
 		CaviarBR.getInstance().getLogger().info(String.format("WorldBorder size is %d and will be %d at %s", size, finalSize, Utils.timestampToDateAndHour(timeEnd)));
 	}
-	
+
 }

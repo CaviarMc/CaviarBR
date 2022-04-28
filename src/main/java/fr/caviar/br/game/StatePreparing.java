@@ -45,7 +45,7 @@ public class StatePreparing extends GameState {
 	private Location maxDistance = null;
 	private TaskManagerSpigot taskManager;
 	private boolean foundSpawnpoints = false;
-	
+
 	public StatePreparing(GameManager game) {
 		super(game);
 		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
@@ -56,7 +56,7 @@ public class StatePreparing extends GameState {
 		Validate.notNull(game.getTreasure());
 
 		game.getWorldLoader().stop(true);
-		
+	
 		CaviarStrings.STATE_PREPARING_PREPARE.broadcast();
 		game.getAllPlayers().forEach(p -> {
 			blockPlayer(p);
@@ -67,7 +67,7 @@ public class StatePreparing extends GameState {
 
 		int playerRaduis = game.getSettings().getPlayersRadius().get();
 		int online = game.getPlayers().size();
-		
+	
 //		if (spawnPoint != null && this.spawnPoint.size() >= online) {
 //			setSpawnPointsToPlayers(this.spawnPoint, maxDistance);
 //		} else
@@ -208,23 +208,23 @@ public class StatePreparing extends GameState {
 	public void blockPlayer(Player player) {
 		player.setWalkSpeed(0);
 	}
-	
+
 	public void unblockPlayer(Player player) {
 		player.setWalkSpeed(0.2f);
 	}
-	
+
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
 		setPreparing(event.getPlayer());
 		blockPlayer(event.getPlayer());
 	}
-	
+
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 		unblockPlayer(event.getPlayer());
 		return false;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onMove(PlayerMoveEvent event) {
@@ -235,7 +235,7 @@ public class StatePreparing extends GameState {
 			event.getPlayer().sendActionBar("§cYou cannot move during preparation.");
 		}
 	}
-//	
+//
 //	@EventHandler
 //	public void onPlayerJump(PlayerJumpEvent event) {
 //		disableEvent(event.getPlayer(), event);
@@ -270,7 +270,7 @@ public class StatePreparing extends GameState {
 			disableEvent(p, event);
 	}
 
-	
+
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		if (event.getDamager() instanceof Player p) {
@@ -282,12 +282,12 @@ public class StatePreparing extends GameState {
     public void onPlayerInteract(PlayerInteractEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		disableEvent(event.getPlayer(), event);
@@ -300,12 +300,12 @@ public class StatePreparing extends GameState {
 			//event.setCancelled(true);
 		}
 	}
-	
+
 	@EventHandler
 	public void onFoodLevelChange(FoodLevelChangeEvent event) {
 		if (event.getEntity() instanceof Player p) {
 			disableEvent(p, event);
 		}
 	}
-	
+
 }

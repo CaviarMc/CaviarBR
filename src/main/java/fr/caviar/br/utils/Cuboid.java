@@ -59,17 +59,17 @@ public class Cuboid {
 		return center;
 	}
 
-	
+
 	public Location getMin() {
 		return min;
 	}
 
-	
+
 	public Location getMax() {
 		return max;
 	}
 
-	
+
 	public World getWorld() {
 		return world;
 	}
@@ -109,12 +109,12 @@ public class Cuboid {
 		return locations;
 	}
 
-	
+
 	public List<Location> getLocations() {
 		return Arrays.asList(min, max);
 	}
 
-	
+
 	public Location getRandomLocation() {
 		final Random rand = ThreadLocalRandom.current();
 		final int x = rand.nextInt(getXWidth()) + xMin;
@@ -122,7 +122,7 @@ public class Cuboid {
 		final int z = rand.nextInt(getZWidth()) + zMin;
 		return new Location(world, x, y, z);
 	}
-	
+
 	public int getTotalBlockSize() {
 		return getHeight() * getXWidth() * getZWidth();
 	}
@@ -143,7 +143,7 @@ public class Cuboid {
 		return zMax - zMin + 1;
 	}
 
-	
+
 	public boolean isIn(World world, int x, int y, int z) {
 		return world == this.world && x >= xMin && x <= xMax && y >= yMin && y <= yMax && z >= zMin && z <= zMax;
 	}
@@ -153,7 +153,7 @@ public class Cuboid {
 				.getY() <= yMaxCentered + marge && loc.getZ() >= zMinCentered - marge && loc.getZ() <= zMaxCentered + marge;
 	}
 
-	
+
 	public Map<String, Object> serialize() {
 		Map<String, Object> map = new HashMap<>();
 		map.put("world", world.getName());

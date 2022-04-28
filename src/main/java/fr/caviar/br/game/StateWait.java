@@ -31,18 +31,18 @@ import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.observable.Observable.Observer;
 
 public class StateWait extends GameState implements Runnable {
-	
+
 	private static final String OBSERVER_KEY = "wait";
-	
+
 	private Lock lock = new ReentrantLock();
 	private int left = -1;
 	private TaskManagerSpigot taskManager;
-	
+
 	public StateWait(GameManager game) {
 		super(game);
 		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
-	
+
 	@Override
 	public void start() {
 		super.start();
@@ -60,7 +60,7 @@ public class StateWait extends GameState implements Runnable {
 		game.getWorld().setPVP(false);
 		updatePlayers(Bukkit.getOnlinePlayers().size());
 		if (left == -1) CaviarStrings.STATE_WAIT_CANCEL.broadcast();
-		
+	
 		WorldBorder worldBoader = game.getWorld().getWorldBorder();
 		worldBoader.reset();
 		worldBoader.setCenter(game.getWorld().getSpawnLocation());
@@ -68,12 +68,12 @@ public class StateWait extends GameState implements Runnable {
 		worldBoader.setWarningDistance(10);
 		game.getWorld().setGameRule(GameRule.REDUCED_DEBUG_INFO, true);
 	}
-	
+
 	@Override
 	public void end() {
 		super.end();
 		taskManager.cancelAllTasks();
-		
+	
 		GameSettings settings = game.getSettings();
 		settings.getMinPlayers().unobserve(OBSERVER_KEY);
 		settings.getMaxPlayers().unobserve(OBSERVER_KEY);
@@ -82,11 +82,11 @@ public class StateWait extends GameState implements Runnable {
 		settings.getTreasureRaduis().unobserve(OBSERVER_KEY);
 		settings.getMapSize().unobserve(OBSERVER_KEY);
 	}
-	
+
 	@Override
 	public void run() {
 		lock.lock();
-		
+	
 		if (left != -1) {
 			if (left == 0) {
 				game.setState(new StatePreparing(game));
@@ -98,22 +98,22 @@ public class StateWait extends GameState implements Runnable {
 			}
 			--left;
 		}
-		
+	
 		lock.unlock();
 	}
-	
+
 	@Override
 	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
 		// do nothing: players can join
 	}
-	
+
 	protected void updateScoreboard() {
 		game.getAllPlayers().forEach(player -> game.getPlugin().getScoreboard().waitToStart(player));
 	}
-	
+
 	protected void updatePlayers(int online) {
 		lock.lock();
-		
+	
 		int min = game.getSettings().getMinPlayers().get();
 		if (online < min) {
 			if (left != -1) {
@@ -131,7 +131,7 @@ public class StateWait extends GameState implements Runnable {
 		}
 		lock.unlock();
 	}
-	
+
 	private String getOnlineFormat(int online) {
 		int min = game.getSettings().getMinPlayers().get();
 		int max = game.getSettings().getMaxPlayers().get();
@@ -139,7 +139,7 @@ public class StateWait extends GameState implements Runnable {
 			return String.format(" §a(%d/%d)", online, max);
 		return String.format(" §c(%d/%d)", online, min);
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {
@@ -149,45 +149,45 @@ public class StateWait extends GameState implements Runnable {
 //		p.setBedSpawnLocation(game.getWorld().getSpawnLocation());
 		p.teleport(game.getWorld().getSpawnLocation());
 		updatePlayers(online);
-		
+	
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 //		int online = game.getAllPlayers().size() - 1;
 		int online = game.getAllPlayers().size();
-		
+	
 		updatePlayers(online);
-		
+	
 		event.setQuitMessage(event.getQuitMessage() + getOnlineFormat(online));
-		
+	
 		return true;
 	}
-	
+
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onEntityPickupItem(EntityPickupItemEvent event) {
 		if (event.getEntity() instanceof Player p)
 			disableEvent(p, event);
 	}
-	
+
 	@EventHandler
 	public void onEntityDropItem(EntityDropItemEvent event) {
 		if (event.getEntity() instanceof Player p)
 			disableEvent(p, event);
 	}
-	
+
 	@EventHandler
 	public void onEntityDamage(EntityDamageEvent event) {
 		if (event.getEntity() instanceof Player p) {
@@ -197,7 +197,7 @@ public class StateWait extends GameState implements Runnable {
 			disableEvent(p, event);
 		}
 	}
-	
+
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		if (event.getDamager() instanceof Player p) {
@@ -209,12 +209,12 @@ public class StateWait extends GameState implements Runnable {
     public void onPlayerInteract(PlayerInteractEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
 		disableEvent(event.getPlayer(), event);
 	}
-	
+
 	@EventHandler
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		disableEvent(event.getPlayer(), event);
@@ -247,7 +247,7 @@ public class StateWait extends GameState implements Runnable {
 			disableEvent(p, event);
 		}
 	}
-	
+
 	/*@EventHandler
 	public void onMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();

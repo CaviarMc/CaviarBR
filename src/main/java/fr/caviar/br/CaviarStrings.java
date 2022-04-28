@@ -13,7 +13,7 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public enum CaviarStrings {
-	
+
 	PREFIX(
 			"<bold><blue>Caviar<aqua>BR</bold> <gray>>> "),
 	PREFIX_WARNING(
@@ -32,15 +32,15 @@ public enum CaviarStrings {
 			"",
 			Style.style(NamedTextColor.RED),
 			PREFIX),
-	
+
 	FORMAT_BARS(
 			"""
-					
+				
 				<dark_purple>==========-====-==========-====</dark_purple>
 				   {0}
 				<dark_purple>==========-====-==========-====</dark_purple>
 				"""),
-	
+
 	STATE_WAIT_COUNTDOWN(
 			"Game is starting in <green>{0}</green> seconds.",
 			PREFIX_NEUTRAL),
@@ -66,7 +66,7 @@ public enum CaviarStrings {
 			"<aqua>Finding spawnpoints</aqua>"),
 	STATE_PREPARING_SUBTITLE_STARTING(
 			"<green>Starting game</green>"),
-	
+
 	STATE_PLAYING_START(
 			"The game has started! Good luck, and be the first one to find the treasure!",
 			PREFIX_GOOD),
@@ -88,17 +88,17 @@ public enum CaviarStrings {
 	STATE_PLAYING_MORE_PLAYERS(
 			"<red><bold>There must be a maximum of 3 players alive to trigger the treasure...</bold></red>",
 			PREFIX_BAD),
-	
+
 	STATE_WIN(
 			"<light_purple>{0}</light_purple> won the game! Congratulations!"),
-	
+
 	GAME_SHUTDOWN(
 			"<bold>The game is now shutting down. Thank you for playing!</bold>",
 			PREFIX_NEUTRAL),
-	
+
 	ITEM_COMPASS_NAME(
 			"<yellow>Treasure Compass"),
-	
+
 	COMMAND_SETTING_SHOW(
 			"Setting {0} is set to <dark_green>{1}</dark_green>.",
 			PREFIX),
@@ -108,7 +108,7 @@ public enum CaviarStrings {
 	COMMAND_SETTING_SAME(
 			"Setting {0} already had value <dark_red>{1}</dark_red>.",
 			PREFIX_BAD),
-	
+
 	COMMAND_GAMEADMIN_CONFIRM(
 			"Are you sure you want to change the game state from <gold>{0}</gold> to <gold>{1}</gold>? Put \"confirm\" at the end of your command.",
 			PREFIX_WARNING),
@@ -157,7 +157,7 @@ public enum CaviarStrings {
 	COMMAND_GAMEADMIN_SHUTDOWN_DONE(
 			"Server shutdown initiated.",
 			PREFIX_GOOD),
-	
+
 	LOGIN_SCREEN_PREFIX(
 			"<bold><blue>Caviar<aqua>BR</bold>\n\n",
 			Style.style(NamedTextColor.GRAY)),
@@ -200,39 +200,39 @@ public enum CaviarStrings {
 	CANT_DO_THIS(
 			"You can't do this.",
 			PREFIX_BAD),
-	
+
 	;
-	
+
 	private static final Pattern ARGUMENT_MATCH = Pattern.compile("\\{(\\d+)\\}");
-	
+
 	private String value;
 	private Style style;
 	private CaviarStrings[] prefixes;
-	
+
 	private Component component;
 	private Boolean hasFormatting;
-	
+
 	private CaviarStrings(String value, CaviarStrings... prefixes) {
 		this(value, null, prefixes);
 	}
-	
+
 	private CaviarStrings(String value, Style style, CaviarStrings... prefixes) {
 		this.value = value;
 		this.style = style;
 		this.prefixes = prefixes;
 	}
-	
+
 	public String getValue() {
 		return value;
 	}
-	
+
 	public Component toComponent() {
 		if (component == null) {
 			component = createComponent();
 		}
 		return component;
 	}
-	
+
 	protected Component createComponent() {
 		Component compo = MiniMessage.miniMessage().deserialize(value);
 		for (CaviarStrings prefix : prefixes) {
@@ -241,10 +241,10 @@ public enum CaviarStrings {
 		if (style != null) compo = compo.style(style);
 		return compo;
 	}
-	
+
 	public boolean hasFormatting() {
 		if (hasFormatting != null) return hasFormatting.booleanValue();
-		
+	
 		if (ARGUMENT_MATCH.matcher(value).find()) {
 			hasFormatting = true;
 			return true;
@@ -258,12 +258,12 @@ public enum CaviarStrings {
 		hasFormatting = false;
 		return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		return value;
 	}
-	
+
 	public Component format(Object... args) {
 		Component runningComponent = toComponent();
 		if (hasFormatting()) {
@@ -281,22 +281,22 @@ public enum CaviarStrings {
 		}
 		return runningComponent;
 	}
-	
+
 	public void broadcast(Object... args) {
 		Bukkit.broadcast(format(args));
 	}
-	
+
 	public void send(Collection<? extends CommandSender> senders, Object... args) {
 		Component msg = format(args);
 		senders.forEach(sender -> sender.sendMessage(msg));
 	}
-	
+
 	public void send(CommandSender sender, Object... args) {
 		sender.sendMessage(format(args));
 	}
-	
+
 	public void sendWith(CommandSender sender, Component next, Object... args) {
 		sender.sendMessage(format(args).append(next));
 	}
-	
+
 }

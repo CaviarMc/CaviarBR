@@ -22,51 +22,51 @@ import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.player.CaviarPlayerSpigot;
 
 public abstract class GameState implements Listener {
-	
+
 	protected final GameManager game;
-	
+
 	private boolean running = false;
-	
+
 	public GameState(GameManager game) {
 		this.game = game;
 	}
-	
+
 	public void start() {
 		running = true;
 		game.getPlugin().getLogger().info("Starting state " + getClass().getSimpleName());
 		Bukkit.getPluginManager().registerEvents(this, game.getPlugin());
 	}
-	
+
 	public void end() {
 		running = false;
 		game.getPlugin().getLogger().info("Ending state " + getClass().getSimpleName());
 		HandlerList.unregisterAll(this);
 	}
-	
+
 	public boolean isRunning() {
 		return running;
 	}
-	
+
 	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
 		if (player == null) { // disallows players who have never connected
 			event.disallow(PlayerLoginEvent.Result.KICK_OTHER, CaviarStrings.LOGIN_SCREEN_STARTED_KICK.toComponent());
 		}
 	}
-	
+
 	public abstract void onJoin(PlayerJoinEvent event, GamePlayer player);
-	
+
 	public abstract boolean onQuit(PlayerQuitEvent event, GamePlayer player);
 
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onLogin(PlayerLoginEvent event) {
 		if (event.getResult() != Result.ALLOWED) return;
-		
+	
 		UUID uuid = event.getPlayer().getUniqueId();
 		GamePlayer gamePlayer = game.getPlayers().get(uuid);
 		CaviarPlayerSpigot caviarPlayer = game.getPlugin().getPlayerHandler().getObjectCached(uuid);
-		
+	
 		Validate.notNull(caviarPlayer);
-		
+	
 		handleLogin(event, gamePlayer);
 		if (event.getResult() == Result.ALLOWED) {
 			if (gamePlayer == null) {
@@ -75,7 +75,7 @@ public abstract class GameState implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onJoin(PlayerJoinEvent event) {
 		GamePlayer gamePlayer = game.getPlayers().get(event.getPlayer().getUniqueId());
@@ -91,7 +91,7 @@ public abstract class GameState implements Listener {
 		Validate.notNull(gamePlayer);
 		onJoin(event, gamePlayer);
 	}
-	
+
 	@EventHandler (priority = EventPriority.HIGH)
 	public final void onQuit(PlayerQuitEvent event) {
 		UUID uuid = event.getPlayer().getUniqueId();
@@ -108,7 +108,7 @@ public abstract class GameState implements Listener {
 		else
 			game.getPlugin().getLogger().log(Level.SEVERE, String.format("%s try to cancel event not cancellable : %s", this.getClass().getName(), event.getClass().getName()));
 	}
-	
+
 	public GameManager getGame() {
 		return game;
 	}

@@ -52,7 +52,7 @@ import fr.caviar.br.api.regex.MatcherPattern;
 public class Utils {
 
 	private Utils() {}
-	
+
 
 	private static final Collector<?, ?, ?> SHUFFLER = Collectors.collectingAndThen(Collectors.toList(), list -> {
 		Collections.shuffle(list);
@@ -70,7 +70,7 @@ public class Utils {
 		}
 		return loc.getWorld().getName() + sj.toString();
 	}
-	
+
 	public static String getPluginVersion(Plugin plugin) {
 		String pluginVersion = plugin.getDescription().getVersion();
 		String[] split = pluginVersion.split("-");
@@ -85,7 +85,7 @@ public class Utils {
 		}
 		return "v" + split[0] + " " + split[1] + " " + split[3] + " " + buildTime;
 	}
-	
+
 	public static String hrFormatDuration(long timestampSecond) {
 		long now = Utils.getCurrentTimeInSeconds(), distance;
 		if (timestampSecond > now) {
@@ -157,7 +157,7 @@ public class Utils {
 	public static String durationToString(long time) {
 		return durationToString(new DecimalFormat("0.###"), time);
 	}
-	
+
 	public static String durationToString(NumberFormat numberFormat, long time) {
 		StringBuilder sb = new StringBuilder();
 		long days = time / 86_400_000;
@@ -605,8 +605,8 @@ public class Utils {
 	public static <T> T getRandomFrom(Random random, Collection<T> collection) {
 		return collection.isEmpty() ? null : collection.stream().skip(random.nextInt(collection.size())).findFirst().orElse(null);
 	}
-	
-	
+
+
 	public static <T> T getRandomFrom(Random random, T[] array) {
 		return array.length == 0 ? null : array[random.nextInt(array.length)];
 	}
@@ -617,11 +617,11 @@ public class Utils {
 			list.add(string);
 		return list.toArray(String[]::new);
 	}
-	
+
 	public static class DevideList<T> {
 		private Collection<T> list;
 		private int nb;
-		
+	
 		public DevideList(Collection<T> list, int nb) {
 			this.list = list;
 			this.nb = nb;

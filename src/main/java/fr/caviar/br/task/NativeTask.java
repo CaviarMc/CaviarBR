@@ -19,7 +19,7 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 	public static NativeTask getInstance() {
 		return INSTANCE;
 	}
-	
+
 	@Nullable
 	private Class<?> clazz;
 
@@ -33,12 +33,12 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 	public void cancelAllTasks() {
 		super.cancelAllTasks();
 	}
-	
+
 	@Override
 	public boolean cancelTask(String taskName) {
 		return cancelTask(getTaskByName(taskName));
 	}
-	
+
 	@Override
 	public boolean cancelTask(int id) {
 		return cancelTask(getTask(id));
@@ -61,7 +61,7 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 	public boolean terminateTask(int id) {
 		return terminateTask(getTask(id));
 	}
-	
+
 	@Override
 	public boolean terminateTask(TaskLaunch task) {
 		boolean bool = false;
@@ -209,7 +209,7 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 		timer.schedule(task, delay, refresh);
 		return tasklaunch;
 	}
-	
+
 	class TaskLaunch {
 		CompletableFuture<?> completableFuture;
 		TimerTask timerTask;
@@ -232,12 +232,12 @@ public class NativeTask extends AUniversalTask<NativeTask.TaskLaunch> {
 				if (mayInterruptIfRunning)
 					CaviarBR.getInstance().getLogger().log(Level.WARNING, String.format("Can't terminate sync task n°%d in %s. Just cancel it", id, clazz.getSimpleName()));
 				return timerTask.cancel();
-				
+			
 			}
 			return false;
 
 		}
-		
+	
 	}
 
 	protected TaskLaunch addTask(String name, TaskLaunch task) {

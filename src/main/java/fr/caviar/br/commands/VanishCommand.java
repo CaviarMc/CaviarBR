@@ -19,11 +19,11 @@ import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.permission.Perm;
 
 public class VanishCommand implements Listener {
-	
+
 	private CommandAPICommand command;
 	private CaviarBR plugin;
 	private static Set<Player> vanishPlayer = new HashSet<>();
-	
+
 	public VanishCommand(CaviarBR plugin) {
 		this.plugin = plugin;
 		command = new CommandAPICommand("vanish").withPermission(Perm.MODERATOR_COMMAND_VANISH.get()).executes((CommandExecutor) (sender, args) -> {
@@ -36,11 +36,11 @@ public class VanishCommand implements Listener {
 		plugin.getCommands().registerCommand(command);
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
-	
+
 	public static int getOnlineCount() {
 		return (int) Bukkit.getOnlinePlayers().stream().filter(p -> !vanishPlayer.contains(p)).count();
 	}
-	
+
 	private void toggleVanishPlayer(Player player) {
 		if (player.hasMetadata("vanish.caviar")) {
 			unVanishPlayer(player);
@@ -48,7 +48,7 @@ public class VanishCommand implements Listener {
 			vanishPlayer(player);
 		}
 	}
-	
+
 	private void vanishPlayer(Player player) {
 		player.setMetadata("vanish.caviar", new FixedMetadataValue(plugin, true));
 		Bukkit.getOnlinePlayers().forEach(p -> {
@@ -60,7 +60,7 @@ public class VanishCommand implements Listener {
 		player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1));
 		CaviarStrings.VANISH_ON.send(player);
 	}
-	
+
 	private void unVanishPlayer(Player player) {
 		vanishPlayer.remove(player);
 		player.removeMetadata("vanish.caviar", plugin);
@@ -80,7 +80,7 @@ public class VanishCommand implements Listener {
 			vanishPlayer.forEach(playerVanish -> player.hidePlayer(plugin, playerVanish));
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();

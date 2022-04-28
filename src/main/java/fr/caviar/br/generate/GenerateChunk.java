@@ -30,7 +30,7 @@ public class GenerateChunk {
 		this.async = async;
 	}
 
-	
+
 	void start() {
 		worldLoader.getStats().init(2, chunksToLoad.size(), Utils.getCurrentTimeInSeconds());
 		cleanQueue();
@@ -90,7 +90,7 @@ public class GenerateChunk {
 			chunksToLoad.clear();
 		worldLoader.getStats().stop();
 	}
-	
+
 	private void launchAsync() {
 		List<List<ChunkLoad>> lists = new Utils.DevideList<ChunkLoad>(chunksToLoad, threadsUses).nbList();
 		for (Iterator<List<ChunkLoad>> its = lists.iterator(); its.hasNext();) {
@@ -111,7 +111,7 @@ public class GenerateChunk {
 			loadChunkSync(it);
 		});
 	}
-	
+
 	private void loadChunkAsync(Iterator<ChunkLoad> it) {
 		ChunkStats stats = worldLoader.getStats();
 		if (threads.isEmpty() || !it.hasNext()) {

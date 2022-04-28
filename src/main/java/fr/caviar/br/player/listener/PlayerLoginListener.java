@@ -36,7 +36,7 @@ public class PlayerLoginListener implements Listener {
 			});
 		});
 	}
-	
+
 	@EventHandler
 	public void on1PlayerPreLogin(AsyncPlayerPreLoginEvent event) {
 		UUID uuid = event.getUniqueId();
@@ -76,7 +76,7 @@ public class PlayerLoginListener implements Listener {
 		if (uPlayer != null) { 
 			return;
 		}
-		
+	
 		CaviarPlayerSpigot cPlayer;
 		try {
 			cPlayer = playerHandler.getObjectNotCached(player.getUniqueId());
@@ -112,7 +112,7 @@ public class PlayerLoginListener implements Listener {
 		Player player = event.getPlayer();
 		event.setQuitMessage(ColorUtils.format("&7[&c-&7] %s", player.getName()));
 	}
-	
+
 	@EventHandler (priority = EventPriority.HIGH)
 	public void onPlayerQuitHigh(PlayerQuitEvent event) {
 		Player player = event.getPlayer();

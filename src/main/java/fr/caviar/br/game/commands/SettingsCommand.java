@@ -32,7 +32,7 @@ public class SettingsCommand {
 
 	public SettingsCommand(GameManager game) {
 		settings = game.getSettings();
-	
+
 		command = new CommandAPICommand("settings")
 			.withPermission(Perm.MODERATOR_COMMAND_SETTINGS.get())
 			.executesPlayer((player, args) -> {
@@ -44,7 +44,7 @@ public class SettingsCommand {
 			subCmd.setRequirements(s -> false);
 			command.withSubcommand(subCmd);
 		}
-	
+
 		game.getPlugin().getCommands().registerCommand(command);
 	}
 

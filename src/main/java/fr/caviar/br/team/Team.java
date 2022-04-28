@@ -9,5 +9,5 @@ public class Team {
 
 	ChatColor color;
 	List<OfflinePlayer> players;
-	
+
 }

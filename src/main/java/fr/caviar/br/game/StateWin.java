@@ -18,20 +18,20 @@ import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.task.TaskManagerSpigot;
 
 public class StateWin extends GameState {
-	
+
 	private GamePlayer winner;
 	private TaskManagerSpigot taskManager;
-	
+
 	private int timer = 0;
-	
+
 	private Random random = new Random();
-	
+
 	public StateWin(GameManager game, GamePlayer winner) {
 		super(game);
 		this.winner = winner;
 		taskManager = new TaskManagerSpigot(game.getPlugin(), this.getClass());
 	}
-	
+
 	@Override
 	public void start() {
 		super.start();
@@ -47,7 +47,7 @@ public class StateWin extends GameState {
 			}
 		});
 		CaviarStrings.FORMAT_BARS.broadcast(CaviarStrings.STATE_WIN.format(winner == null ? "x" : winner.player.getName()));
-		
+	
 		int endingDuration = game.getSettings().getEndingDuration().get();
 		if (endingDuration == 0) {
 			game.shutdown();
@@ -64,13 +64,13 @@ public class StateWin extends GameState {
 			}, 1, 1, TimeUnit.SECONDS);
 		}
 	}
-	
+
 	@Override
 	public void end() {
 		super.end();
 		taskManager.cancelAllTasks();
 	}
-	
+
 	private void spawnFirework(Location location) {
 		location.add(random.nextInt(30) - 15, 15, random.nextInt(30) - 15);
 		location.getWorld().spawn(location, Firework.class, fw -> {
@@ -84,18 +84,18 @@ public class StateWin extends GameState {
 			fw.setFireworkMeta(meta);
 		});
 	}
-	
+
 	@Override
 	public void handleLogin(PlayerLoginEvent event, GamePlayer player) {
 		event.disallow(PlayerLoginEvent.Result.KICK_OTHER, CaviarStrings.LOGIN_SCREEN_FINISHED_KICK.toComponent());
 	}
-	
+
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer player) {}
-	
+
 	@Override
 	public boolean onQuit(PlayerQuitEvent event, GamePlayer player) {
 		return false;
 	}
-	
+
 }

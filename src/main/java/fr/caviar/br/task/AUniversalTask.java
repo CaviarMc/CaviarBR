@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import fr.caviar.br.task.NativeTask.TaskLaunch;
 
 public abstract class AUniversalTask<T> implements UniversalTask<T> {
-	
+
 	private Map<String, Integer> taskList = new ConcurrentHashMap<>();
 	private Map<Integer, T> taskListTask = new ConcurrentHashMap<>();
 
@@ -42,7 +42,7 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 		taskList.entrySet().removeIf(e -> e.getValue() == result.getKey());
 		taskListTask.remove(result.getKey());
 	}
-	
+
 	public boolean cancelTasksByPrefix(String taskPrefix) {
 		Set<Integer> tasks = getTasksMap().entrySet().stream().filter(e -> e.getKey().startsWith(taskPrefix)).map(Entry::getValue).collect(Collectors.toSet());
 		if (tasks.isEmpty())
@@ -56,7 +56,7 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 		taskList.clear();
 		taskListTask.clear();
 	}
-	
+
 	public void cancelAllTasks() {
 		taskListTask.values().forEach(this::cancelTask);
 		taskList.clear();
@@ -70,11 +70,11 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 	public boolean taskExist(int id) {
 		return taskList.entrySet().stream().anyMatch(e -> e.getValue() == id);
 	}
-	
+
 	public String getTaskName(int id) {
 		return taskList.entrySet().stream().filter(e -> e.getValue() == id).map(Entry::getKey).findFirst().orElse(null);
 	}
-	
+
 	public T getTask(int id) {
 		return taskListTask.get(id);
 	}
@@ -85,7 +85,7 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 			return null;
 		return taskListTask.get(taskId);
 	}
-	
+
 	public Integer getTaskId(String taskName) {
 		return taskList.get(taskName);
 	}
@@ -108,7 +108,7 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 			return getTask(taskId);
 		return null;
 	}
-	
+
 	protected void addTask(String name, int id, T task) {
 		if (name != null && !name.isBlank())
 			taskList.put(name, id);
@@ -118,7 +118,7 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 	protected String getTaskNameFromInt(String taskName) {
 		return getTasksMap().entrySet().stream().filter(e -> e.getKey().equals((taskName))).map(Entry::getKey).findFirst().orElse(null);
 	}
-	
+
 	public T runTaskLater(Runnable runnable, long delay) {
 		return runTaskLater(runnable, delay * 50l, TimeUnit.MILLISECONDS);
 	}
@@ -130,5 +130,5 @@ public abstract class AUniversalTask<T> implements UniversalTask<T> {
 	public T scheduleSyncRepeatingTask(Runnable runnable, long delay, long refresh) {
 		return scheduleSyncRepeatingTask(runnable, delay * 50l, refresh * 50l,  TimeUnit.MILLISECONDS);
 	}
-	
+
 }

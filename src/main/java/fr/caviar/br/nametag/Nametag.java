@@ -41,7 +41,7 @@ public class Nametag implements Listener {
 		}));
 		plugin.getCommands().registerCommand(command);
 	}
-	
+
 	public void enable() {
 		PluginManager pluginManager = plugin.getServer().getPluginManager();
 		isEnabled = pluginManager.isPluginEnabled("NametagEdit");
@@ -57,7 +57,7 @@ public class Nametag implements Listener {
 			nametagEditPlugin = null;
 		}
 	}
-	
+
 	public void disable() {
 		if (!isEnabled)
 			return;
@@ -65,11 +65,11 @@ public class Nametag implements Listener {
 		plugin.getServer().getOnlinePlayers().forEach(p -> delete(p));
 		isEnabled = false;
 	}
-	
+
 	public void refreshAllTeams(Player player) {
 		//nametagEditPlugin.getManager().reset(null);
 	}
-	
+
 	public void updatePlayer(Player p) {
 		if (!isEnabled && api != null)
 			return;
@@ -82,7 +82,7 @@ public class Nametag implements Listener {
 				CaviarBR.getInstance().getLogger().log(Level.INFO, String.format("Update nameTag : name = %s uuid = %s group = %s", cPlayer.getName(), cPlayer.getUuid(), cPlayer.getGroup()));
 			});
 		} else */
-		
+	
 		;
 		if (Perm.ADMIN_PREFIX.has(p))
 			api.setPrefix(p, "&cADMIN ");
@@ -94,7 +94,7 @@ public class Nametag implements Listener {
 			api.setPrefix(p, "&2STAFF ");
 		else
 			api.setPrefix(p, "&7");
-	}	
+	}
 
 	public void setSpectator(Player player) {
 		if (!isEnabled)
@@ -107,7 +107,7 @@ public class Nametag implements Listener {
 			return;
 		api.clearNametag(player);
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();

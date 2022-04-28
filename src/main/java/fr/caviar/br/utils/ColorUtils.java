@@ -197,7 +197,7 @@ public class ColorUtils {
 	public static String join(Iterator<? extends CharSequence> it, String ouOrEt) {
 		return join(null, null, it, ouOrEt);
 	}
-	
+
 	public static String joinPlayer(Character color1, Character color2, Collection<? extends Player> elements) {
 		return join(color1, color2, elements.stream().map(Player::getName).iterator(), " et ");
 	}

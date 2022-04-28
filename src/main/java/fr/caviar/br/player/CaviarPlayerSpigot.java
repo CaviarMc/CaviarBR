@@ -10,12 +10,12 @@ public class CaviarPlayerSpigot extends UniversalPlayer {
 	private OfflinePlayer player;
 	private String group;
 	private boolean fakePlayer;
-	
+
 	public CaviarPlayerSpigot(OfflinePlayer player) {
 		super(player.getName(), player.getUniqueId());
 		this.player = player;
 	}
-	
+
 	public CaviarPlayerSpigot(String name, UUID uuid) {
 		super(name, uuid);
 		player = Bukkit.getOfflinePlayer(uuid); // TODO Check the use against the Mojang API
