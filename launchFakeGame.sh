@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DIR=test_server
+TEST_DIR=test_server2
 SPIGOT_JAR_NAME=paperspigot.jar
 PLUGINS_PATH=build/libs/CaviarBR.jar
 SCREEN=testServer

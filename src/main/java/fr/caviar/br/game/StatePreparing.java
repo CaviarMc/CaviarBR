@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -39,6 +41,7 @@ import net.kyori.adventure.title.Title.Times;
 public class StatePreparing extends GameState {
 
 	private List<Shulker> shulkers = new ArrayList<>();
+	@Nullable
 	private Location maxDistance = null;
 	private TaskManagerSpigot taskManager;
 	private boolean foundSpawnpoints = false;
@@ -107,6 +110,7 @@ public class StatePreparing extends GameState {
 			game.getPlugin().getLogger().severe(String.format("Can't launch countdown, they are not enough spawn points. /game start to retry."));
 			CaviarStrings.NOT_ENOUGH_SPAWNPOINTS.send(game.getModerators().keySet());
 		}
+		this.maxDistance = maxDistance;
 	}
 
 	private void setPreparing(Player player) {
@@ -157,22 +161,26 @@ public class StatePreparing extends GameState {
 		worldBorder.setWarningDistance(25);
 		int mapSizeSettings = game.getSettings().getMapSize().get();
 		StatePlaying nextState = new StatePlaying(game);
-		double distanceTreasure = maxDistance.distance(game.getTreasure());
-		game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ()
-			+ " (" + maxDistance.distance(game.getTreasure()) + " from treasure)");
-		WorldLoader worldLoader = game.getWorldLoader();
-		if (!worldBorder.isInside(maxDistance)) {
-			int newMapSize = (int) (Math.round(distanceTreasure) + 200);
-			game.getPlugin().getLogger().severe(String.format("The farthest is out of map, we need to expend the map from %d to %d.", mapSizeSettings, newMapSize));
-			game.getSettings().getMapSize().set(newMapSize);
-			startCoutdown();
-			return;
-		}
-		if (maxDistance.getX() > worldLoader.getRealMapMaxX() || maxDistance.getX() < worldLoader.getRealMapMinX()) {
-			game.getPlugin().getLogger().severe(String.format("The map should be minimum between X %d and %d, not X %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
-		}
-		if (maxDistance.getZ() > worldLoader.getRealMapMaxZ() || maxDistance.getZ() < worldLoader.getRealMapMinZ()) {
-			game.getPlugin().getLogger().severe(String.format("The map should be minimum between Z %d and %d, not Z %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
+		if (maxDistance == null) {
+			game.getPlugin().getLogger().info("Max distance is not calculate, can't check distance.");
+		} else {
+			double distanceTreasure = maxDistance.distance(game.getTreasure());
+			game.getPlugin().getLogger().info("Start countdown. The farthest is on " + maxDistance.getX() + " " + maxDistance.getZ()
+				+ " (" + maxDistance.distance(game.getTreasure()) + " from treasure)");
+			WorldLoader worldLoader = game.getWorldLoader();
+			if (!worldBorder.isInside(maxDistance)) {
+				int newMapSize = (int) (Math.round(distanceTreasure) + 200);
+				game.getPlugin().getLogger().severe(String.format("The farthest is out of map, we need to expend the map from %d to %d.", mapSizeSettings, newMapSize));
+				game.getSettings().getMapSize().set(newMapSize);
+				startCoutdown();
+				return;
+			}
+			if (maxDistance.getX() > worldLoader.getRealMapMaxX() || maxDistance.getX() < worldLoader.getRealMapMinX()) {
+				game.getPlugin().getLogger().severe(String.format("The map should be minimum between X %d and %d, not X %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
+			}
+			if (maxDistance.getZ() > worldLoader.getRealMapMaxZ() || maxDistance.getZ() < worldLoader.getRealMapMinZ()) {
+				game.getPlugin().getLogger().severe(String.format("The map should be minimum between Z %d and %d, not Z %d.", worldLoader.getRealMapMinX(), worldLoader.getRealMapMaxX()));
+			}
 		}
 		taskManager.runTaskAsynchronously("prep.asynccountdown." , () -> {
 			CaviarStrings.STATE_PREPARING_TELEPORT.broadcast();
