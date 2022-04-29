@@ -42,7 +42,7 @@ public enum CaviarStrings {
 				"""),
 
 	STATE_WAIT_COUNTDOWN(
-			"Game is starting in <green>{0}</green> seconds.",
+			"The game will start in <green>{0}</green> seconds.",
 			PREFIX_NEUTRAL),
 	STATE_WAIT_COUNTDOWN_START(
 			"There is enough players to start the game!",
@@ -141,10 +141,10 @@ public enum CaviarStrings {
 			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_TREASURE_TELEPORTED(
 			"You have been teleported to the treasure.",
-			PREFIX_BAD),
+			PREFIX_GOOD),
 	COMMAND_GAMEADMIN_TREASURE_TELEPORTED_NOT_EXIST(
 			"The treasure has not yet appeared.",
-			PREFIX_GOOD),
+			PREFIX_BAD),
 	COMMAND_GAMEADMIN_COMPASS_GIVEN(
 			"You have gave a compass to <dark_green>{0}</dark_green>.",
 			PREFIX_GOOD),

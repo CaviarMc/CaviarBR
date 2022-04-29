@@ -162,22 +162,22 @@ public class Utils {
 		StringBuilder sb = new StringBuilder();
 		long days = time / 86_400_000;
 		if (days != 0)
-			sb.append(numberFormat.format(days)).append('D');
+			sb.append(numberFormat.format(days)).append('d');
 		time -= days * 86_400_000;
 		long hours = time / 3_600_000;
 		if (hours != 0) {
 			if (sb.length() != 0)
 				sb.append(' ');
-			sb.append(numberFormat.format(hours)).append("H ");
+			sb.append(numberFormat.format(hours)).append("h");
 		}
 		time -= hours * 3_600_000;
 		long minutes = time / 60_000;
 		if (sb.length() != 0)
 			sb.append(' ');
-		sb.append(numberFormat.format(minutes)).append("M ");
+		sb.append(numberFormat.format(minutes)).append("m");
 		time -= minutes * 60_000;
 		long seconds = time / 1_000;
-		sb.append(numberFormat.format(seconds)).append("S");
+		sb.append(numberFormat.format(seconds)).append("s");
 		return sb.toString();
 	}
 

@@ -5,21 +5,19 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-
-import fr.caviar.br.utils.observable.AbstractObservable;
 
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
+import fr.caviar.br.utils.observable.AbstractObservable;
 
 public class GameSettings {
 
 	private final GameSettingInt minPlayers = new GameSettingInt(2, "minPlayers", 1, Material.WATER_BUCKET);
 	private final GameSettingInt maxPlayers = new GameSettingInt(100, "maxPlayers", 1, Material.LAVA_BUCKET);
 
-	private final GameSettingInt waitingTimeLong = new GameSettingInt(60, "waitingTimeLong", 0, Material.GOLD_INGOT);
-	private final GameSettingInt waitingTimeShort = new GameSettingInt(10, "waitingTimeShort", 0, Material.IRON_INGOT);
+	private final GameSettingSecond waitingTimeLong = new GameSettingSecond(60, "waitingTimeLong", Material.GOLD_INGOT);
+	private final GameSettingSecond waitingTimeShort = new GameSettingSecond(10, "waitingTimeShort", Material.IRON_INGOT);
 
 	private final GameSettingInt playersRadius = new GameSettingInt(2000, "playersRadius", 1, Material.STICK);
 
@@ -32,7 +30,7 @@ public class GameSettings {
 	private final GameSettingMinute maxTimeGame = new GameSettingMinute(10, "maxTimeGame", Material.STONE_SWORD);
 	private final GameSettingInt finalSize = new GameSettingInt(200, "finalSize", 1, Material.COBBLESTONE);
 	private final GameSettingInt minPlayerToWin = new GameSettingInt(3, "minPlayerToWin", 1, Material.PLAYER_HEAD);
-	private final GameSettingInt endingDuration = new GameSettingInt(30, "endingDuration", 1, Material.REDSTONE_TORCH);
+	private final GameSettingMinute endingDuration = new GameSettingMinute(30, "endingDuration", Material.REDSTONE_TORCH);
 	private final GameSettingBoolean allowSpectator = new GameSettingBoolean(true, "allowSpectator", Material.MINECART);
 	private final GameSettingBoolean chunkGenerateAsync = new GameSettingBoolean(true, "chunkGenerateAsync", Material.COMPARATOR);
 	private final GameSettingBoolean debug = new GameSettingBoolean(true, "debug", Material.COMMAND_BLOCK);
@@ -186,7 +184,6 @@ public class GameSettings {
 
 		public GameSettingInt(int value, String key, int min, int max, Material material) {
 			super(value, key, material);
-
 			this.min = min;
 			this.max = max;
 		}
@@ -214,6 +211,7 @@ public class GameSettings {
 			if (value == max)
 				return false;
 			++value;
+			update();
 			return true;
 		}
 
@@ -222,6 +220,9 @@ public class GameSettings {
 			if (value == max)
 				return false;
 			value += 10;
+			if (value > max)
+				value = max;
+			update();
 			return true;
 		}
 
@@ -230,6 +231,7 @@ public class GameSettings {
 			if (value == min)
 				return false;
 			--value;
+			update();
 			return true;
 		}
 
@@ -238,6 +240,9 @@ public class GameSettings {
 			if (value == min)
 				return false;
 			value -= 10;
+			if (value < min)
+				value = min;
+			update();
 			return true;
 		}
 	}
@@ -315,6 +320,7 @@ public class GameSettings {
 		@Override
 		public boolean smallIncrement() {
 			value = !value;
+			update();
 			return true;
 		}
 

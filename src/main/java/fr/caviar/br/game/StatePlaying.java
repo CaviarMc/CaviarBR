@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.FaceAttachable.AttachedFace;
 import org.bukkit.block.data.type.Switch;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -21,11 +22,15 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.permission.Perm;
 import fr.caviar.br.task.TaskManagerSpigot;
@@ -270,16 +275,31 @@ public class StatePlaying extends GameState {
 		event.setDeathSound(Sound.ENTITY_WITHER_DEATH);
 	}
 
-	// We'll allow users to drop compass
-	/*@EventHandler 
+	@EventHandler 
 	public void onDrop(PlayerDropItemEvent event) {
-		if (event.getItemDrop().getItemStack().getType() == Material.COMPASS)
+		if (Material.COMPASS.equals(event.getItemDrop().getItemStack().getType()))
 			event.setCancelled(true);
-	}*/
+	}
+
+	@EventHandler 
+	public void onDrop(InventoryClickEvent event) {
+		HumanEntity player = event.getWhoClicked();
+		Inventory topInv = event.getInventory();
+		Inventory botInv = player.getInventory();
+		Inventory clickInv = event.getClickedInventory();
+		if (topInv.equals(botInv) || clickInv == null)
+			return;
+		if (event.getCursor() != null && clickInv.equals(topInv) && Material.COMPASS.equals(event.getCursor().getType())) {
+			event.setCancelled(true);
+		}
+		if (event.getCurrentItem() != null && clickInv.equals(botInv) && event.isShiftClick() && Material.COMPASS.equals(event.getCurrentItem().getType())) {
+			event.setCancelled(true);
+		}
+	}
 
 	// Need to remove chest interaction too if we remove drop item
 
-	@EventHandler
+	/*@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
 		if (!(event.getWhoClicked() instanceof Player)) {
 			return;
@@ -295,7 +315,7 @@ public class StatePlaying extends GameState {
 				event.setCancelled(true);
 			}
 		}
-	}
+	}*/
 
 	@EventHandler
 	public void onCraft(CraftItemEvent event) {
@@ -306,6 +326,7 @@ public class StatePlaying extends GameState {
 	@Override
 	public void onJoin(PlayerJoinEvent event, GamePlayer gPlayer) {
 		join(event.getPlayer(), gPlayer);
+		event.setJoinMessage(null);
 	}
 
 	@SuppressWarnings("deprecation")

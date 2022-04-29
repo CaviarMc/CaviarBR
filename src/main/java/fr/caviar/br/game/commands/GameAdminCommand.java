@@ -76,7 +76,9 @@ public class GameAdminCommand {
 						.withSubcommand(new CommandAPICommand("confirm")
 								.executes(this::shutdown)))
 
-				.withSubcommand(new CommandAPICommand("addPlayer").executes(this::spectatorToPlayer))
+				.withSubcommand(new CommandAPICommand("addPlayer")
+						.withArguments(new PlayerArgument("player"))
+						.executes(this::spectatorToPlayer))
 
 				;
 

@@ -1,10 +1,13 @@
 package fr.caviar.br.game;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
+import org.bukkit.Material;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -26,6 +29,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+
 import fr.caviar.br.CaviarStrings;
 import fr.caviar.br.task.TaskManagerSpigot;
 import fr.caviar.br.utils.observable.Observable.Observer;
@@ -151,6 +157,19 @@ public class StateWait extends GameState implements Runnable {
 		updatePlayers(online);
 
 		event.setJoinMessage(event.getJoinMessage() + getOnlineFormat(online));
+
+		ItemStack writtenBook = new ItemStack(Material.WRITTEN_BOOK);
+		p.getInventory().remove(writtenBook.getType());
+		BookMeta bookMeta = (BookMeta) writtenBook.getItemMeta();
+		bookMeta.setTitle("Rules");
+		bookMeta.setAuthor("CaviarBR");
+		List<String> pages = new ArrayList<String>();
+		pages.add("- Minecraft Vanilla\n- No structure\n- No ocean\n- No Nether\n- No End\n- PVP from start\n- PvP without cooldown");
+		pages.add("When you have the compass, it points to the treasure. It's a button you have to press to win. There must be a maximum of 3 players to win.");
+		pages.add("The map shrinks with the treasure as its centre. The treasure is never in 0 0.");
+		bookMeta.setPages(pages);
+		writtenBook.setItemMeta(bookMeta);
+		p.getInventory().addItem(writtenBook);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -207,6 +226,8 @@ public class StateWait extends GameState implements Runnable {
 
 	@EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+		if (event.getItem() != null && Material.WRITTEN_BOOK.equals(event.getItem().getType()))
+			return;
 		disableEvent(event.getPlayer(), event);
 	}
 

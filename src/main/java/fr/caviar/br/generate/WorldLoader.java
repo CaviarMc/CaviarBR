@@ -143,7 +143,7 @@ public class WorldLoader {
 		if (stats == null || stats.getStep() != 1 && stats.getStep() != 2) {
 			return null;
 		}
-		return String.format("§dETA n°%d %s", stats.getStep(), stats.getDurationETA());
+		return String.format("§dETA %s", stats.getDurationETA());
 	}
 
 	public String getStatus() {
